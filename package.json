@@ -1,7 +1,7 @@
 {
-  "name": "glsl",
+  "name": "marching",
   "version": "1.0.0",
-  "description": "experiment code",
+  "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
   "main": "index.html",
   "dependencies": {
     "browserify": "^14.4.0",
@@ -28,6 +28,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "cshen",
-  "license": "ISC"
+  "author": "Charlie Roberts",
+  "license": "MIT"
 }

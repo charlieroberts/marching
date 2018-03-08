@@ -10,7 +10,7 @@ Marching.js is a JavaScript shader compiler specifically focused on ray marching
 - Enable JS programmers to explore CSG without having to learn GLSL
 - Provide a terse API suitable for live coding performance
 
-The project borrows code from [the glslify project)(https://github.com/glslify/glslify) as well as code originally written by [http://shenchi.github.io](Chi Shen)
+The project borrows code from [the glslify project](https://github.com/glslify/glslify) as well as code originally written by [Chi Shen](http://shenchi.github.io).
 
 ## Development
 The library is compiled using gulp. Run `npm install` to install all necessary dependencies, and then `gulp build` to rebuild the library.

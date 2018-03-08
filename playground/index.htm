@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <meta charset='utf-8'>
+    <title>sdf playground (gibber.graphics 2.0)</title>
+
+    <link  href='../node_modules/codemirror/lib/codemirror.css' rel='stylesheet'>
+    <link  href='../node_modules/codemirror/addon/display/fullscreen.css' rel='stylesheet'>
+    <script src='../node_modules/codemirror/lib/codemirror.js'></script>
+    <script src='../node_modules/codemirror/mode/javascript/javascript.js'></script>
+    <script src='../node_modules/codemirror/addon/display/fullscreen.js'></script>
+    <script src='../node_modules/codemirror/addon/display/panel.js'></script>
+    <script src='../node_modules/codemirror/addon/selection/active-line.js'></script>
+    <script src='../node_modules/codemirror/addon/edit/matchbrackets.js'></script>
+    <script src='../node_modules/codemirror/addon/edit/closebrackets.js'></script>
+    <script src="../dist/index.js"></script>
+    <script src='../node_modules/mousetrap//mousetrap.min.js'></script>
+    
+    <script src='./environment.js'> </script>
+    <link  href='./main.css' rel='stylesheet'>
+  </head>
+
+	<body>
+    <canvas id='c'></canvas>
+    <div id='cm'></div>
+    <button id='help'>?</button>
+    <select id='demo'>
+      <option>intro</option>
+      <option>tutorial</option>
+      <option>noise &amp; displace</option>
+      <option>unions &amp; smooth unions</option>
+    </select>
+	</body>
+
+</html>

@@ -29,5 +29,25 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Charlie Roberts",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charlieroberts/marching.git"
+  },
+  "keywords": [
+    "glsl",
+    "ray",
+    "marching",
+    "graphics",
+    "csg",
+    "constructive",
+    "solid",
+    "geometry",
+    "javascript",
+    "webgl"
+  ],
+  "bugs": {
+    "url": "https://github.com/charlieroberts/marching/issues"
+  },
+  "homepage": "https://github.com/charlieroberts/marching#readme"
 }

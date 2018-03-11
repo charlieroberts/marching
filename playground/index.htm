@@ -2,7 +2,7 @@
 <html lang='en'>
   <head>
     <meta charset='utf-8'>
-    <title>sdf playground (gibber.graphics 2.0)</title>
+    <title>marching.js playground</title>
 
     <link  href='../node_modules/codemirror/lib/codemirror.css' rel='stylesheet'>
     <link  href='../node_modules/codemirror/addon/display/fullscreen.css' rel='stylesheet'>
@@ -16,7 +16,7 @@
     <script src="../dist/index.js"></script>
     <script src='../node_modules/mousetrap//mousetrap.min.js'></script>
     
-    <script src='./environment.js'> </script>
+    <script src='./playground.bundle.js'> </script>
     <link  href='./main.css' rel='stylesheet'>
   </head>
 
@@ -24,12 +24,7 @@
     <canvas id='c'></canvas>
     <div id='cm'></div>
     <button id='help'>?</button>
-    <select id='demo'>
-      <option>intro</option>
-      <option>tutorial</option>
-      <option>noise &amp; displace</option>
-      <option>unions &amp; smooth unions</option>
-    </select>
+    <select id='demo'></select>
 	</body>
 
 </html>

@@ -1,7 +1,19 @@
+const CodeMirror = require( 'codemirror' )
+
+require( '../node_modules/codemirror/mode/javascript/javascript.js' )
+require( '../node_modules/codemirror/addon/edit/matchbrackets.js' )
+require( '../node_modules/codemirror/addon/edit/closebrackets.js' )
+require( '../node_modules/codemirror/addon/hint/show-hint.js' )
+require( '../node_modules/codemirror/addon/hint/javascript-hint.js' )
+require( '../node_modules/codemirror/addon/display/fullscreen.js' )
+require( '../node_modules/codemirror/addon/selection/active-line.js' )
+require( '../node_modules/codemirror/addon/display/panel.js' )
+require( '../node_modules/mousetrap/mousetrap.min.js' )
+
 const demos = {
   introduction: require( './demos/intro.js' ),
   ['tutorial #1']: require( './demos/tutorial_1.js' ),
-  ['constructive solid geomeotry']: require( './demos/csg.js' ),
+  ['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
 

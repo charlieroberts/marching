@@ -6,7 +6,20 @@ const ops = {
   Union( a,b )        { return `opU( ${a}, ${b} )` },
   Intersection( a,b ) { return `opI( ${a}, ${b} )` },
   Substraction( a,b ) { return `opS( ${a}, ${b} )` },  
-  SmoothUnion(  a,b,blend ) { return `opSmoothUnion( ${a}, ${b}, ${blend} )` }
+  SmoothUnion(  a,b,c) { return `opSmoothUnion( ${a}, ${b}, ${c} )` },
+  StairsUnion(  a,b,c,d ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d} )` },
+  StairsIntersection( a,b,c,d ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d} )` },
+  StairsSubstraction( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
+  RoundUnion( a,b,c ) { return `fOpUnionRound( ${a}, ${b}, ${c} )` },
+  RoundSubstraction( a,b,c ) { return `fOpDifferenceRound( ${a}, ${b}, ${c} )` },
+  RoundIntersection( a,b,c ) { return `fOpIntersectionRound( ${a}, ${b}, ${c} )` },
+  ChamferUnion( a,b,c ) { return `fOpUnionChamfer( ${a}, ${b}, ${c} )` },
+  ChamferSubstraction( a,b,c ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c} )` },
+  ChamferIntersection( a,b,c ) { return `fOpIntersectionChamfer( ${a}, ${b}, ${c} )` },
+  PipeUnion( a,b,c ) { return `fOpPipe( ${a}, ${b}, ${c} )` },
+  EngraveUnion( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
+  GrooveUnion( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
+  TongueUnion( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
 }
 
 const DistanceOps = {}
@@ -17,22 +30,28 @@ for( let name in ops ) {
   let op = ops[ name ]
 
   // create constructor
-  DistanceOps[ name ] = function( a,b,blend ) {
+  DistanceOps[ name ] = function( a,b,c,d ) {
     const op = Object.create( DistanceOps[ name ].prototype )
     op.a = a
     op.b = b
 
-    // SmoothUnion is only distance op with k parameter
-    if( name === 'SmoothUnion' ) {
-      let __blend = param_wrap( blend, float_var_gen(.8) )
+    let __c = param_wrap( c, float_var_gen(.8) )
 
-      Object.defineProperty( op, 'blend', {
-        get() { return __blend },
-        set(v) {
-          __blend.set( v )
-        }
-      })
-    } 
+    Object.defineProperty( op, 'c', {
+      get() { return __c },
+      set(v) {
+        __c.set( v )
+      }
+    })
+
+    let __d = param_wrap( d, float_var_gen(.8) )
+
+    Object.defineProperty( op, 'd', {
+      get() { return __d },
+      set(v) {
+        __d.set( v )
+      }
+    })
 
     op.matId = MaterialID.alloc()
 
@@ -44,10 +63,11 @@ for( let name in ops ) {
   DistanceOps[ name ].prototype.emit = function ( __name ) {
     const emitterA = this.a.emit( __name )
     const emitterB = this.b.emit( __name )
-    const blend = this.blend !== undefined ? this.blend.emit() : null
+    const emitterC = this.c !== undefined ? this.c.emit() : null
+    const emitterD = this.d !== undefined ? this.d.emit() : null
 
     const output = {
-      out: op( emitterA.out, emitterB.out, blend ), 
+      out: op( emitterA.out, emitterB.out, emitterC, emitterD ), 
       preface: (emitterA.preface || '') + (emitterB.preface || '')
     }
 
@@ -56,7 +76,8 @@ for( let name in ops ) {
 
   DistanceOps[name].prototype.emit_decl = function () {
     let str =  this.a.emit_decl() + this.b.emit_decl()
-    if( this.blend !== undefined ) str += this.blend.emit_decl()
+    if( this.c !== undefined ) str += this.c.emit_decl()
+    if( this.d !== undefined ) str += this.d.emit_decl()
 
     return str
   };
@@ -64,17 +85,16 @@ for( let name in ops ) {
   DistanceOps[name].prototype.update_location = function(gl, program) {
     this.a.update_location( gl, program )
     this.b.update_location( gl, program )
-    if( this.blend !== undefined ) {
-      this.blend.update_location( gl, program )
-    }
+    if( this.c !== undefined ) this.c.update_location( gl, program )
+    if( this.d !== undefined ) this.d.update_location( gl, program )
   }
 
   DistanceOps[name].prototype.upload_data = function(gl) {
     this.a.upload_data( gl )
     this.b.upload_data( gl )
-    if( this.blend !== undefined ) {
-      this.blend.upload_data( gl )
-    }
+    if( this.c !== undefined ) this.c.upload_data( gl )
+    if( this.d !== undefined ) this.d.upload_data( gl )
+    
   }
 }
 
@@ -98,5 +118,18 @@ DistanceOps.SmoothUnion2 = function( ...args ) {
   return u
 }
 
+DistanceOps.RoundUnion2 = function( ...args ) {
+  // accepts unlimited arguments, but the last one could be a blending coefficient
+  let blend = .25, u
+
+  if( typeof args[ args.length - 1 ] === 'number' ) {
+    blend = args.pop()
+    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next, blend ) )
+  }else{
+    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next ) )
+  }
+
+  return u
+}
 module.exports = DistanceOps
 

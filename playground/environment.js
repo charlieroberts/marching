@@ -12,13 +12,17 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 
 const demos = {
   introduction: require( './demos/intro.js' ),
-  ['tutorial #1']: require( './demos/tutorial_1.js' ),
+  //['tutorial #1']: require( './demos/tutorial_1.js' ),
+  ['abusing the pipe operator']: require( './demos/pipe.js' ),
+  ['twist deformation']: require( './demos/twist.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
 
 window.onload = function() {
   const ta = document.querySelector( '#cm' )
+
+  const SDF = window.Marching
 
   SDF.init( document.querySelector('canvas'), 1 )
   SDF.export( window )
@@ -58,7 +62,7 @@ window.onload = function() {
       }
     },
     'Ctrl-.'( cm ) {
-      SDF.main.clear() 
+      SDF.clear() 
     },
 
     "Shift-Ctrl-=": function(cm) {
@@ -160,7 +164,8 @@ window.onload = function() {
   sel.onchange = e => {
 
     code = demos[ e.target.selectedOptions[0].innerText ]
-    SDF.main.clear()
+    SDF.clear()
+    eval( code )
 
     //switch( e.target.selectedOptions[0].innerText ) {
     //  case 'tutorial':

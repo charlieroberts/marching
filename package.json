@@ -18,7 +18,9 @@
   },
   "devDependencies": {
     "browserify": "^14.5.0",
+    "glsl-diffuse-oren-nayar": "^1.0.2",
     "glsl-inverse": "^1.0.0",
+    "glsl-specular-gaussian": "^1.0.0",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",
     "vinyl-source-stream": "^2.0.0",

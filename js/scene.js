@@ -9,7 +9,7 @@ const getScene = function( SDF ) {
     const scene  = Object.create( Scene.prototype )
 
     MaterialID.clear()
-    VarAlloc.clear()
+    //VarAlloc.clear()
 
     SDF.lighting.lights = []
     SDF.materials.materials = SDF.materials.__materials.slice(0)

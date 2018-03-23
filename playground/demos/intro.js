@@ -1,17 +1,16 @@
-module.exports = `mat = Material( Vec3(.0), Vec3(.1,0,0), Vec3(1), 2, Vec3(0,.25, 2) )
+module.exports = `Marching.lighting.mode = 'global'
 
 march(
   Intersection(
     Sphere(3),
     Repeat( 
-      Sphere(.25, Vec3(0), mat ), 
-      Vec3( .5,.5,.5 ) 
+      Sphere( .25 ), 
+      Vec3( .5 ) 
     )
   )
 )
 .light( 
-  Light( Vec3(0), Vec3(4,0,0), .25 ),
-  Light( Vec3(0,0,5), Vec3(4,4,0), 1 )
+  Light( Vec3(0), Vec3(4,0,0), .25 )
 )
 .background( Vec3(0) )
 .render()

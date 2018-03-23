@@ -11728,26 +11728,24 @@ arguments)}}(b))};c.init();r.Mousetrap=c;"undefined"!==typeof module&&module.exp
 },{}],11:[function(require,module,exports){
 module.exports = `// https://en.wikipedia.org/wiki/Constructive_solid_geometry
 
-green = Material( Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) )
-red   = Material( Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) )
-blue  = Material( Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) )
+Marching.lighting.mode = 'directional'
  
 roundedSphere = Intersection(
-  Sphere(1.25, Vec3(0), blue ),
-  Box(Vec3(1),Vec3(0), red )
+  Sphere(1.25, Vec3(0), Material.blue ),
+  Box(Vec3(1),Vec3(0), Material.red )
 )
  
 crossRadius = .65
 crossHeight = 2
 cross = SmoothUnion2(
-  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), green ),
+  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
   Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), green ),
+    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
     Vec3(0,0,1),
     Math.PI / 2
   ),
   Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), green ),
+    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
     Vec3(1,0,0 ),
     Math.PI / 2
   ),
@@ -11761,57 +11759,62 @@ march(
     Math.PI / 4
   )
 )
-.light( Light(Vec3(0,3,4), Vec3(1,1,1 ), .1 ) )
-.render( 4, true )
+.light( 
+  Light( Vec3(0,3,4), Vec3(1), .15 ) 
+)
+.render( 3, true )
  
 callbacks.push( time => r.angle = time )`
 
 },{}],12:[function(require,module,exports){
-module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
- 
+module.exports = `Marching.lighting.mode = 'directional'
+
+T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
+
+mat1 = Material(v3(.05),v3(1),v3(.5))
 // Torus: Vec2 radius(outer,inner), center, material
-torus   = T( R( Torus( v2(.5,.05) ),  v3(1,0,0,), Math.PI / 2 ), v3(-2,1.5,0) )
+torus   = T( R( Torus( v2(.5,.05), v3(0), mat1 ),  v3(1,0,0,), Math.PI / 2 ), v3(-2,1.5,0) )
   
 // Torus82: Vec2 radius, center, material
-torus82 = T( R( Torus82(), v3(1,0,0,), Math.PI / 2 ), v3(-.75,1.5,0) )
+torus82 = T( R( Torus82(null,null,mat1), v3(1,0,0,), Math.PI / 2 ), v3(-.75,1.5,0) )
   
 // Torus88: Vec2 radius, center, material
-torus88 = T( R( Torus88(), v3(1,0,0,), Math.PI / 2 ), v3(.5,1.5,0) )
+torus88 = T( R( Torus88(null,null,mat1), v3(1,0,0,), Math.PI / 2 ), v3(.5,1.5,0) )
   
 // Sphere: float radius, center, material
-sphere  = Sphere(.65, v3(2,1.5,0) )
+sphere  = Sphere(.65, v3(2,1.5,0), mat1 )
  
  
  
 // Box: Vec3 size, center, material
-box     = Box( v3(.5), v3(-2,0,0) )
+box     = Box( v3(.5), v3(-2,0,0), mat1 )
  
 // Cylinder: Vec2( radius, height ), center, material
-cylinder = Cylinder( v2(.35,.5), v3(-.75,0,0) )
+cylinder = Cylinder( v2(.35,.5), v3(-.75,0,0), mat1 )
  
 // Cone: Vec3 dimensions, center, material
-cone    = Cone( v3(.1, .075, .825) , v3(.5,.3,0) )
+cone    = Cone( v3(.1, .075, .825) , v3(.5,.3,0), mat1 )
  
 // Capsule: Vec3 start, Vec3 end, float radius, material
-capsule = T( Capsule( v3( 0, -.45, 0), v3(0,.45,0), .15 ), v3(2,0,0) )
+capsule = T( Capsule( v3( 0, -.45, 0), v3(0,.45,0), .15, mat1 ), v3(2,0,0) )
  
  
  
 // HexPrism: Vec2 size(radius, depth), center, material
-hexPrism = HexPrism( v2(.6,.45), v3(-2,-1.5,0) )
+hexPrism = HexPrism( v2(.6,.45), v3(-2,-1.5,0), mat1 )
  
 // TriPrism: Vec2 size(radius, depth), center, material
-triPrism = TriPrism( v2(.85,.3), v3(-.75,-1.75,0) )
+triPrism = TriPrism( v2(.85,.3), v3(-.75,-1.75,0), mat1 )
  
 // RoundBox: Vec3 size, roundness, center, material
-roundBox = RoundBox( v3(.45), .15 ,v3(1,-1.5,0) )
+roundBox = RoundBox( v3(.45), .15 ,v3(1,-1.5,0), mat1 )
  
 // Octahedron: float size, center, material
-octahedron = Octahedron( .65 , v3(2.75,-2.25,0) )
+octahedron = Octahedron( .65 , v3(2.75,-2.25,0), mat1 )
  
  
  
-mat = Material( v3(1), v3(1), v3(1) )
+mat = Material( v3(0), v3(.1), v3(.25) )
 // Plane: Vec3 normal, float distance, material
 plane = Plane( v3(0,0,1), 1, mat )
  
@@ -11822,27 +11825,26 @@ march(
   plane
 )
 .light( 
-  Light( Vec3(-2,0,5), Vec3(1), .25 ),
-  Light( Vec3(2,0,5), Vec3(1,0,0), .25 )  
+  Light( Vec3(0,0,5), Vec3(1), .2 ),
+  //Light( Vec3(2,0,5), Vec3(1,1,1), .25 )  
 ) 
 .render()
 .camera( 0,0, 6 )`
 
 },{}],13:[function(require,module,exports){
-module.exports = `mat = Material( Vec3(.0), Vec3(.1,0,0), Vec3(1), 2, Vec3(0,.25, 2) )
+module.exports = `Marching.lighting.mode = 'global'
 
 march(
   Intersection(
     Sphere(3),
     Repeat( 
-      Sphere(.25, Vec3(0), mat ), 
-      Vec3( .5,.5,.5 ) 
+      Sphere( .25 ), 
+      Vec3( .5 ) 
     )
   )
 )
 .light( 
-  Light( Vec3(0), Vec3(4,0,0), .25 ),
-  Light( Vec3(0,0,5), Vec3(4,4,0), 1 )
+  Light( Vec3(0), Vec3(4,0,0), .25 )
 )
 .background( Vec3(0) )
 .render()
@@ -11860,174 +11862,61 @@ or click the ? button for help.
 ** __--__--__--__--__--__--__--__*/`
 
 },{}],14:[function(require,module,exports){
-module.exports = `/* __--__--__--__--__--__--__--__--
-                                    
-let's start by making a simple     
-scene with one sphere.  highlight   
-the lines below and hit ctrl+enter 
-to run them. make sure not to high- 
-light these instructions or the    
-fancy borders :)                    
-                                   
-** __--__--__--__--__--__--__--__*/
-
-sphere1 = Sphere()
- 
-march( sphere1 )
-  .render( 3, true )
-
-/* __--__--__--__--__--__--__--__--
-                                    
-the march() method accepts an array
-of objects that can be geometric    
-primitives or transformations. we  
-can now change the radius of our    
-sphere:                            
-                                    
-** __--__--__--__--__--__--__--__*/
-
-sphere1.radius = 1.25
-
-/* __--__--__--__--__--__--__--__--
-                                    
-or its center point...note that the
-center point is a three-item vector 
-(for x,y, and z position), whereas 
-radius was a single float.          
-                                   
-** __--__--__--__--__--__--__--__*/
-
-sphere1.center.x = .5
-sphere1.center.y = -.5
-
-/* __--__--__--__--__--__--__--__--
-                                    
-note that we can only make these   
-changes after the initial render if 
-a value of true is passed to our   
-render function as its second       
-parameter. Depending on the        
-computer you use, you probably will 
-want to turn the resolution down   
-(the first arg) when animating the  
-scene.                             
-                                    
-we can also register a callback to 
-change properties over time. these  
-run once per video frame, and are  
-passed the current time. here we'll 
-use the time to change the sphere's
-position.                           
-                                   
-** __--__--__--__--__--__--__--__*/
-
-callbacks.push( time => {
-  sphere1.center.z = -10 + Math.sin( time ) * 10
-  sphere1.center.x = Math.sin( time * 2.5 ) * 4
-})
-
-/* __--__--__--__--__--__--__--__--
-                                    
-this library uses signed distance  
-functions (SDFs) to render geometry 
-and perform transformations. You   
-can do fun stuff with SDFs. Below   
-we'll render a box, but substract  
-(I know, the spelling, right?) a    
-sphere from its center.            
-                                    
-** __--__--__--__--__--__--__--__*/
-
-march( 
-  Substraction( 
-    Sphere(1.35), Box() 
-  )
-)
-.render()
-
-/* __--__--__--__--__--__--__--__--
-                                    
-we can animate this as well. we'll 
-turn down the quality first...      
-try turning it back up and see if  
-your computer can handle it.        
-                                   
-** __--__--__--__--__--__--__--__*/
-
-sphere1 = Sphere( 1.35 )
-box1 = Box()
+module.exports = `Marching.lighting.mode = 'global'
  
 march(
-  Substraction( sphere1, box1 )
+  SmoothUnion(
+    rot = Rotation( 
+      pipe = PipeUnion(
+        Box(),
+        sphere = Sphere(2.5),
+        .5
+      ),
+      Vec3(1,.5,.5)
+    ),
+    Plane( Vec3(0,1,.75), 2.25 ),
+    .125
+  )
 )
-.render( 3, true )
- 
-callbacks.push( time => 
-  sphere1.radius = 1.25 + Math.sin( time ) * .1 
+.light( 
+  Light( Vec3(4,4,5), Vec3(1,.25,.25), .05 )
 )
-
-/* __--__--__--__--__--__--__--__--
-                                    
-One fun transform we can do is to  
-repeat a shape throughout our scene,
-We can define how coarse/fine these
-repetitions are.                    
-                                   
-** __--__--__--__--__--__--__--__*/
-
-march(  
-  Repeat( 
-    Sphere( .25 ),
-    Vec3( 1 )
-  ) 
-) 
-.render()
-
-/* __--__--__--__--__--__--__--__--
-                                    
-The vector we pass as the second   
-argument to repeat determines the   
-spacing; higher numbers yield fewer
-repeats. What if we want to take two
-shapes and repeat them? In order to
-do that we need to create a union.  
-                                   
-** __--__--__--__--__--__--__--__*/
-
-sphere1 = Sphere( .35 )
-box1 = Box( Vec3( .35 ) ) 
-sphereBox = SmoothUnion( sphere1, box1, .9 )
+.background( Vec3(.1) )
+.render(3, true)
+.camera( 0,0,7 )
  
-march(  
-  Repeat( sphereBox, Vec3( 2,2,2 ) )
-) 
-.render( 3, true )
- 
-callbacks.push( time => sphere1.radius = Math.sin( time ) * .75 )
-
-/* __--__--__--__--__--__--__--__--
-                                    
-Hopefully your computer can handle 
-that, but if not, you can always    
-lower the resolution further or    
-shrink your browser window. In      
-addition to improving efficiency,  
-we can also change the performance  
-of our raymarcher to get fun glitch
-effects.                            
-                                   
-** __--__--__--__--__--__--__--__*/
-
-march(  
-  Sphere( Noise() )
-) 
-.resolution(.5)
-.steps(1)
-.farPlane(10)
-.threshold(.1)
-.render(null, true)`
+callbacks.push( time => {
+  pipe.c = .8 + Math.abs(Math.sin(time/2)) / 4
+  rot.angle = time
+  sphere.radius = 2 + Math.abs( Math.sin(time/4))
+})`
 
 },{}],15:[function(require,module,exports){
+module.exports = `Marching.lighting.mode = 'global'
+ 
+m = march(
+  Repeat(
+    t = Twist(
+      Rotation(
+        PolarRepeat(
+          Cylinder( Vec2(.1,4.5), Vec3(0,2,0)  ),
+          8,
+          .35
+        ),
+        Vec3(1,0,0),
+        Math.PI / 2
+      ),
+      Vec3(0)
+    ),
+    Vec3(2,0,0)
+  )
+)
+.render(3, true )
+.camera( 0, 5, 3 )
+ 
+callbacks.push( time => t.point = Vec3( time % 4 ) )`
+
+},{}],16:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12042,13 +11931,17 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 
 const demos = {
   introduction: require( './demos/intro.js' ),
-  ['tutorial #1']: require( './demos/tutorial_1.js' ),
+  //['tutorial #1']: require( './demos/tutorial_1.js' ),
+  ['abusing the pipe operator']: require( './demos/pipe.js' ),
+  ['twist deformation']: require( './demos/twist.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
 
 window.onload = function() {
   const ta = document.querySelector( '#cm' )
+
+  const SDF = window.Marching
 
   SDF.init( document.querySelector('canvas'), 1 )
   SDF.export( window )
@@ -12088,7 +11981,7 @@ window.onload = function() {
       }
     },
     'Ctrl-.'( cm ) {
-      SDF.main.clear() 
+      SDF.clear() 
     },
 
     "Shift-Ctrl-=": function(cm) {
@@ -12190,7 +12083,8 @@ window.onload = function() {
   sel.onchange = e => {
 
     code = demos[ e.target.selectedOptions[0].innerText ]
-    SDF.main.clear()
+    SDF.clear()
+    eval( code )
 
     //switch( e.target.selectedOptions[0].innerText ) {
     //  case 'tutorial':
@@ -12284,4 +12178,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/csg.js":11,"./demos/geometries.js":12,"./demos/intro.js":13,"./demos/tutorial_1.js":14,"codemirror":8}]},{},[15]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/csg.js":11,"./demos/geometries.js":12,"./demos/intro.js":13,"./demos/pipe.js":14,"./demos/twist.js":15,"codemirror":8}]},{},[16]);

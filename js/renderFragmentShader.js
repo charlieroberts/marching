@@ -4,6 +4,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
     const fs_source = glsl`     #version 300 es
       precision highp float;
      
+      float PI = 3.141592653589793;
       // Materials should have: color, diffuseColor, specularColor, specularCoefficient, fresnelBias, fresnelPower, fresnelScale
 
       in vec2 v_uv;
@@ -64,7 +65,116 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);
       }
 
+      /* ******** from http://mercury.sexy/hg_sdf/ ********* */
 
+      float fOpUnionStairs(float a, float b, float r, float n) {
+        float s = r/n;
+        float u = b-r;
+        return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));
+      }
+      vec2 fOpUnionStairs(vec2 a, vec2 b, float r, float n) {
+        float s = r/n;
+        float u = b.x-r;
+        return vec2( min(min(a.x,b.x), 0.5 * (u + a.x + abs ((mod (u - a.x + s, 2. * s)) - s))), a.y );
+      }
+
+      // We can just call Union since stairs are symmetric.
+      float fOpIntersectionStairs(float a, float b, float r, float n) {
+        return -fOpUnionStairs(-a, -b, r, n);
+      }
+
+      float fOpSubstractionStairs(float a, float b, float r, float n) {
+        return -fOpUnionStairs(-a, b, r, n);
+      }
+
+      vec2 fOpIntersectionStairs(vec2 a, vec2 b, float r, float n) {
+        return vec2( -fOpUnionStairs(-a.x, -b.x, r, n), a.y );
+      }
+
+      vec2 fOpSubstractionStairs(vec2 a, vec2 b, float r, float n) {
+        return vec2( -fOpUnionStairs(-a.x, b.x, r, n), a.y );
+      }
+
+      float fOpUnionRound(float a, float b, float r) {
+        vec2 u = max(vec2(r - a,r - b), vec2(0));
+        return max(r, min (a, b)) - length(u);
+      }
+
+      float fOpIntersectionRound(float a, float b, float r) {
+        vec2 u = max(vec2(r + a,r + b), vec2(0));
+        return min(-r, max (a, b)) + length(u);
+      }
+
+      float fOpDifferenceRound (float a, float b, float r) {
+        return fOpIntersectionRound(a, -b, r);
+      }
+
+      vec2 fOpUnionRound( vec2 a, vec2 b, float r ) {
+        return vec2( fOpUnionRound( a.x, b.x, r ), a.y );
+      }
+      vec2 fOpIntersectionRound( vec2 a, vec2 b, float r ) {
+        return vec2( fOpIntersectionRound( a.x, b.x, r ), a.y );
+      }
+      vec2 fOpDifferenceRound( vec2 a, vec2 b, float r ) {
+        return vec2( fOpDifferenceRound( a.x, b.x, r ), a.y );
+      }
+
+      float fOpUnionChamfer(float a, float b, float r) {
+        return min(min(a, b), (a - r + b)*sqrt(0.5));
+      }
+
+      float fOpIntersectionChamfer(float a, float b, float r) {
+        return max(max(a, b), (a + r + b)*sqrt(0.5));
+      }
+
+      float fOpDifferenceChamfer (float a, float b, float r) {
+        return fOpIntersectionChamfer(a, -b, r);
+      }
+      vec2 fOpUnionChamfer( vec2 a, vec2 b, float r ) {
+        return vec2( fOpUnionChamfer( a.x, b.x, r ), a.y );
+      }
+      vec2 fOpIntersectionChamfer( vec2 a, vec2 b, float r ) {
+        return vec2( fOpIntersectionChamfer( a.x, b.x, r ), a.y );
+      }
+      vec2 fOpDifferenceChamfer( vec2 a, vec2 b, float r ) {
+        return vec2( fOpDifferenceChamfer( a.x, b.x, r ), a.y );
+      }
+
+      float fOpPipe(float a, float b, float r) {
+        return length(vec2(a, b)) - r;
+      }
+
+
+      float fOpEngrave(float a, float b, float r) {
+        return max(a, (a + r - abs(b))*sqrt(0.5));
+      }
+
+      float fOpGroove(float a, float b, float ra, float rb) {
+        return max(a, min(a + ra, rb - abs(b)));
+      }
+      float fOpTongue(float a, float b, float ra, float rb) {
+        return min(a, max(a - ra, abs(b) - rb));
+      }
+
+      vec2 fOpPipe( vec2 a, vec2 b, float r ) { return vec2( fOpPipe( a.x, b.x, r ), a.y ); }
+      vec2 fOpEngrave( vec2 a, vec2 b, float r ) { return vec2( fOpEngrave( a.x, b.x, r ), a.y ); }
+      vec2 fOpGroove( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpGroove( a.x, b.x, ra, rb ), a.y ); }
+      vec2 fOpTongue( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpTongue( a.x, b.x, ra, rb ), a.y ); }
+
+      vec3 polarRepeat(vec3 p, float repetitions) {
+        float angle = 2.*PI/repetitions;
+        float a = atan(p.z, p.x) + angle/2.;
+        float r = length(p.xz);
+        float c = floor(a/angle);
+        a = mod(a,angle) - angle/2.;
+        vec3 _p = vec3( cos(a) * r, p.y,  sin(a) * r );
+        // For an odd number of repetitions, fix cell index of the cell in -x direction
+        // (cell index would be e.g. -5 and 5 in the two halves of the cell):
+        if (abs(c) >= (repetitions/2.)) c = abs(c);
+        return _p;
+      }
+
+      /* ******************************************************* */
 
       // added k value to glsl-sdf-ops/soft-shadow
       float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){

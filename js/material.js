@@ -88,6 +88,15 @@ const __Materials = function( SDF ) {
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
 
+  Object.assign( Materials.material, {
+    green : Materials.material( Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
+    red   : Materials.material( Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
+    blue  : Materials.material( Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
+    cyan  : Materials.material( Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
+    magenta  : Materials.material( Vec3(.25,0,.25), Vec3(1,0,1), Vec3(0), 2, Vec3(0) ),
+    yellow : Materials.material( Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
+  })
+
   return Materials
 }
 

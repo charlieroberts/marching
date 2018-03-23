@@ -1,17 +1,13 @@
 'use strict'
 
-const SDF = {
-  main: require( './main.js' ),
-  init( canvas, sizingScalar ) {
-    this.main.init( canvas, sizingScalar )
-  },
-  export( obj ) {
-    this.main.export( obj )
-    obj.march = this.main.createScene.bind( this.main )
-  },
+const Marching = require( './main.js' )
 
+Marching.__export = Marching.export
+Marching.export = obj => {
+  obj.march = Marching.createScene.bind( Marching )
+  Marching.__export( obj )
 }
 
-window.SDF = SDF 
+window.Marching = Marching
 
-module.exports = SDF 
+module.exports = Marching

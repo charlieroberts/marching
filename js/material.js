@@ -50,7 +50,7 @@ const __Materials = function( SDF ) {
 
     defaultMaterials:`
       Material materials[2] = Material[2](
-        Material( vec3( .05 ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) ),
+        Material( vec3( .15 ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) ),
         Material( vec3( .05 ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) )
       );
     `,

@@ -934,6 +934,13 @@ const Lights = function( SDF ) {
 
         return str
       }, 
+      global_( numlights, lights, materials ) {
+        const str = glsl(["#define GLSLIFY 1\n\n        float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n        ","\n\n        ","\n\n        vec3 lighting( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 2.0 );\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, 8. );\n          dom *= softshadow( pos, ref, 0.02, 2.5, 8. );\n\n          Material mat = materials[ int(materialID) ];\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 );\n          brdf += 0.70 * bac * vec3( 0.25 );\n          brdf += 0.40 * (fre * light.color);\n\n          return brdf;\n        }",""],materials,lights)
+
+        return str
+
+      },
+
       global( numlights, lights, materials ) {
         const str = glsl(["#define GLSLIFY 1\n\n        float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n        ","\n\n        ","\n\n        vec3 lighting( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 2.0 );\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, 8. );\n          dom *= softshadow( pos, ref, 0.02, 2.5, 8. );\n\n          Material mat = materials[ int(materialID) ];\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 ) * occ;\n          brdf += 0.70 * bac * vec3( 0.25 ) * occ;\n          brdf += 0.40 * (fre * light.color) * occ;\n\n          return brdf;\n        }",""],materials,lights)
 
@@ -1353,7 +1360,7 @@ const __Materials = function( SDF ) {
 
     defaultMaterials:`
       Material materials[2] = Material[2](
-        Material( vec3( .05 ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) ),
+        Material( vec3( .15 ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) ),
         Material( vec3( .05 ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) )
       );
     `,

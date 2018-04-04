@@ -148,6 +148,43 @@ module.exports = {
     },
     glslify:glsl`    #pragma glslify: sdSphere	= require('glsl-sdf-primitives/sdSphere' )`
   },
+  // phi, m, n1, n2, n3, a, b
+  SuperFormula:{
+    parameters:[
+      { name:'m_1', type:'float', default:1 },
+      { name:'n1_1', type:'float', default:1 },
+      { name:'n2_1', type:'float', default:1 },
+      { name:'n3_1', type:'float', default:1 },
+      { name:'a_1', type:'float', default:1 },
+      { name:'b_1', type:'float', default:1 },
+      { name:'m_2', type:'float', default:1 },
+      { name:'n1_2', type:'float', default:1 },
+      { name:'n2_2', type:'float', default:1 },
+      { name:'n3_2', type:'float', default:1 },
+      { name:'a_2', type:'float', default:1 },
+      { name:'b_2', type:'float', default:1 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
+
+    primitiveString( pName ) { 
+      return `superformula( ${pName}, ${this.m_1.emit()}, ${this.n1_1.emit()},${this.n2_1.emit()},${this.n3_1.emit()},${this.a_1.emit()},${this.b_1.emit()}, ${this.m_2.emit()}, ${this.n1_2.emit()},${this.n2_2.emit()},${this.n3_2.emit()},${this.a_2.emit()},${this.b_2.emit()} )`
+    },
+    glslify:glsl`    #pragma glslify: SuperFormula	= require( 'glsl-superformula' )
+ float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {
+    float d = length( p );
+    float theta = atan(p.y / p.x);
+    float phi = asin(p.z / d);
+    float r1 = SuperFormula( theta, m_1, n1_1, n2_1, n3_1, a_1, b_1 );
+    float r2 = SuperFormula( phi, m_2, n1_2, n2_2, n3_2, a_2, b_2 );
+    vec3 q = r2 * vec3(r1 * cos(theta) * cos(phi), r1 * sin(theta) * cos(phi), sin(phi));
+    d = d - length(q);
+
+    return d;
+  }    
+`
+
+  },
   Torus:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1] },

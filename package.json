@@ -13,6 +13,7 @@
     "glsl-sdf-ops": "0.0.3",
     "glsl-sdf-primitives": "0.0.1",
     "glsl-smooth-min": "^1.0.0",
+    "glsl-superformula": "^1.0.3",
     "glslify": "^6.1.0",
     "mousetrap": "^1.6.1"
   },

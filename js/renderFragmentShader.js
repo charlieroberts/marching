@@ -239,6 +239,10 @@ ${preface}
         pos.x *= ( resolution.x / resolution.y );
         vec3 color = bg; 
         vec3 ro = camera_pos;
+
+        //float cameraAngle  = 0.8 * time;
+        //vec3  rayOrigin    = vec3(3.5 * sin(cameraAngle), 3.0, 3.5 * cos(cameraAngle));
+
         vec3 rd = camera( ro, camera_normal, pos, 2.0 );
 
         vec2 t = raytrace( ro, rd, ${maxDistance}, ${minDistance} );

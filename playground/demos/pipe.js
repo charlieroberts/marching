@@ -1,11 +1,11 @@
-module.exports = `Marching.lighting.mode = 'global'
+module.exports = `Marching.lighting.mode = 'orenn'
  
 march(
   SmoothUnion(
     rot = Rotation( 
       pipe = PipeUnion(
         Box(),
-        sphere = Sphere(2.5),
+        sphere = Sphere(2.5, null, Material.blue),
         .5
       ),
       Vec3(1,.5,.5)
@@ -15,9 +15,10 @@ march(
   )
 )
 .light( 
-  Light( Vec3(4,4,5), Vec3(1,.25,.25), .05 )
+  Light( Vec3(0,5,0), Vec3(0,.25,1), .05 )
 )
 .background( Vec3(.1) )
+.shadow( 8 )
 .render(3, true)
 .camera( 0,0,7 )
  

@@ -13,6 +13,7 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 const demos = {
   introduction: require( './demos/intro.js' ),
   //['tutorial #1']: require( './demos/tutorial_1.js' ),
+  ['the superformula']: require('./demos/superformula.js' ),
   ['abusing the pipe operator']: require( './demos/pipe.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),

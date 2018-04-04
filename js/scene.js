@@ -17,7 +17,8 @@ const getScene = function( SDF ) {
     Object.assign( scene, { 
       objs, 
       canvas,
-      postprocessing:[]
+      postprocessing:[],
+      __shadow:8
     })
 
     scene.animate( shouldAnimate )
@@ -48,6 +49,10 @@ const getScene = function( SDF ) {
       Object.assign( SDF.camera.pos, { x,y,z })
       return this
     },
+    shadow( k=0 ) {
+      this.__shadow = k;
+      return this;
+    },
     quality( quality=10 ) {
       this.threshold( .1 / (quality * quality * quality ) )
       this.steps( quality * 20 )
@@ -70,7 +75,7 @@ const getScene = function( SDF ) {
       }
       this.animate( animate )
 
-      const lighting = SDF.lighting.gen()
+      const lighting = SDF.lighting.gen( this.__shadow )
 
       const [ variablesDeclaration, sceneRendering, postprocessing ] = SDF.generateSDF( this )
 

@@ -20,8 +20,8 @@ const Lights = function( SDF ) {
 
     defaultMaterials:`
       Material materials[2] = Material[2](
-        Material( vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) ),
-        Material( vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) )
+        Material( vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) ),
+        Material( vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) )
       );
     `,
 
@@ -47,14 +47,18 @@ const Lights = function( SDF ) {
     },
 
     mode:'directional',
-    gen() {
-
-      const str = this.modes[ this.mode ]( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials() )
+    gen( shadows=8 ) {
+      const str = this.modes[ this.mode ]( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
    
       return str
     },
     modes:{
-      directional( numlights, lights, materials ) {
+      directional( numlights, lights, materials, shadow=0 ) {
+        const __shadow = shadow > 0
+          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+          : ''
+
+        console.log( __shadow )
         const str = glsl`  int MAX_LIGHTS = ${numlights};
         #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
 
@@ -92,13 +96,13 @@ const Lights = function( SDF ) {
 
             float fresnel = mat.fresnel.bias + mat.fresnel.scale * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.power ); 
 
-            diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, 8. );
+            ${__shadow}
 
             vec3 color = vec3( 0. );
             color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;
-            color += 2.2 * specularCoefficient * mat.specular * diffuseCoefficient * light.color;
+            color += 2.2 * specularCoefficient * mat.specular * light.color;
             color += 0.3 * (mat.ambient * light.color) * occlusion;
-            color += (fresnel * light.color) * occlusion;
+            color += (fresnel * light.color);
 
             // gamma correction must occur before light attenuation
             // which means it must be applied on a per-light basis unfortunately
@@ -114,7 +118,11 @@ const Lights = function( SDF ) {
         return str
       }, 
 
-      orenn( numlights, lights, materials ) {
+      orenn( numlights, lights, materials, shadow=0 ) {
+        const __shadow = shadow > 0
+          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+          : ''
+
         const str = glsl`  int MAX_LIGHTS = ${numlights};
         #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
         #pragma glslify: orenn  = require( 'glsl-diffuse-oren-nayar' )
@@ -157,13 +165,13 @@ const Lights = function( SDF ) {
 
             float fresnel = mat.fresnel.bias + mat.fresnel.scale * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.power ); 
 
-            diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, 8. );
+            ${__shadow}
 
             vec3 color = vec3( 0. );
             color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;
-            color += 2.2 * specularCoefficient * mat.specular * diffuseCoefficient * light.color;
+            color += 2.2 * specularCoefficient * mat.specular * light.color;
             color += 0.3 * (mat.ambient * light.color) * occlusion;
-            color += (fresnel * light.color) * occlusion;
+            color += (fresnel * light.color);
 
             // gamma correction must occur before light attenuation
             // which means it must be applied on a per-light basis unfortunately
@@ -178,7 +186,7 @@ const Lights = function( SDF ) {
 
         return str
       }, 
-      global_( numlights, lights, materials ) {
+      global( numlights, lights, materials, shadow=8 ) {
         const str = glsl`
         #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
 
@@ -199,11 +207,11 @@ const Lights = function( SDF ) {
 
           // simulated skydome light
           float dom = smoothstep( -0.1, 0.1, ref.y );
-          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 2.0 );
+          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 3.0);
           float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );
 
-          dif *= softshadow( pos, lig, 0.02, 2.5, 8. );
-          dom *= softshadow( pos, ref, 0.02, 2.5, 8. );
+          dif *= softshadow( pos, lig, 0.02, 2.5, ${shadow.toFixed(1)} );
+          dom *= softshadow( pos, ref, 0.02, 2.5, ${shadow.toFixed(1)} );
 
           Material mat = materials[ int(materialID) ];
 
@@ -222,7 +230,7 @@ const Lights = function( SDF ) {
 
       },
 
-      global( numlights, lights, materials ) {
+      global_save( numlights, lights, materials, shadow='' ) {
         const str = glsl`
         #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
 

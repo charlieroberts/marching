@@ -10,7 +10,7 @@ march(
   )
 )
 .light( 
-  Light( Vec3(0), Vec3(4,0,0), .25 )
+  Light( Vec3(0), Vec3(4,0,0) )
 )
 .background( Vec3(0) )
 .render()

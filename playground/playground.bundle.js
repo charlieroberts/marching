@@ -11844,7 +11844,7 @@ march(
   )
 )
 .light( 
-  Light( Vec3(0), Vec3(4,0,0), .25 )
+  Light( Vec3(0), Vec3(4,0,0) )
 )
 .background( Vec3(0) )
 .render()
@@ -11862,14 +11862,14 @@ or click the ? button for help.
 ** __--__--__--__--__--__--__--__*/`
 
 },{}],14:[function(require,module,exports){
-module.exports = `Marching.lighting.mode = 'global'
+module.exports = `Marching.lighting.mode = 'orenn'
  
 march(
   SmoothUnion(
     rot = Rotation( 
       pipe = PipeUnion(
         Box(),
-        sphere = Sphere(2.5),
+        sphere = Sphere(2.5, null, Material.blue),
         .5
       ),
       Vec3(1,.5,.5)
@@ -11879,9 +11879,10 @@ march(
   )
 )
 .light( 
-  Light( Vec3(4,4,5), Vec3(1,.25,.25), .05 )
+  Light( Vec3(0,5,0), Vec3(0,.25,1), .05 )
 )
 .background( Vec3(.1) )
+.shadow( 8 )
 .render(3, true)
 .camera( 0,0,7 )
  
@@ -11892,6 +11893,47 @@ callbacks.push( time => {
 })`
 
 },{}],15:[function(require,module,exports){
+module.exports = `
+Marching.lighting.mode = 'directional'
+ 
+mat1 = Material( Vec3(.05),Vec3(1),Vec3(2), 32, Vec3(2,2,.125) )
+ 
+march(
+  r = Rotation(
+      
+    // a 3D superformula essentially two 2D supershapes,
+    // first six coefficients govern one, second
+    // six coefficients govern the other. In this example
+    // the two supershapes are the same. 
+        
+    s = SuperFormula(
+      1, 1, 16, 1, 1, 1,
+      1, 1, 16, 1, 1, 1,
+      Vec3(0),
+      mat1
+    ),
+    Vec3(1,1,1)
+  )
+)
+.light( Light( Vec3(0,0,5), Vec3(1,1,2), .12 ) )
+.fog( .5, Vec3(0) )
+.shadow( 0 )
+.background( Vec3(0) )
+.render( 2, true )
+.camera( 2,0,3 )
+ 
+callbacks.push( time => {
+  t = 15
+  s.n1_1 = Math.PI + Math.sin( time )
+  s.n1_2 = Math.PI + Math.cos( time )
+  s.m_1 = Math.sin( time / 2 ) * t
+  s.m_2 = Math.cos( time / 2 ) * t
+  r.angle = time / 4
+})
+
+// thanks to https://github.com/Softwave/glsl-superformula`
+
+},{}],16:[function(require,module,exports){
 module.exports = `Marching.lighting.mode = 'global'
  
 m = march(
@@ -11916,7 +11958,7 @@ m = march(
  
 callbacks.push( time => t.point = Vec3( time % 4 ) )`
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -11932,6 +11974,7 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 const demos = {
   introduction: require( './demos/intro.js' ),
   //['tutorial #1']: require( './demos/tutorial_1.js' ),
+  ['the superformula']: require('./demos/superformula.js' ),
   ['abusing the pipe operator']: require( './demos/pipe.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
@@ -12178,4 +12221,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/csg.js":11,"./demos/geometries.js":12,"./demos/intro.js":13,"./demos/pipe.js":14,"./demos/twist.js":15,"codemirror":8}]},{},[16]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/csg.js":11,"./demos/geometries.js":12,"./demos/intro.js":13,"./demos/pipe.js":14,"./demos/superformula.js":15,"./demos/twist.js":16,"codemirror":8}]},{},[17]);

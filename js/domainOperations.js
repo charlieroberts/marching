@@ -8,7 +8,7 @@ const getDomainOps = function( SDF ) {
 const Repetition = function( primitive, distance ) {
   const repeat = Object.create( Repetition.prototype )
   repeat.distance = param_wrap( distance, vec3_var_gen( 1,1,5 ) )
-  repeat.primitive = primitive
+  repeat.sdf= primitive
 
   return repeat 
 }
@@ -16,41 +16,41 @@ const Repetition = function( primitive, distance ) {
 Repetition.prototype = SceneNode()
 
 Repetition.prototype.emit = function ( name='p' ) {
-  const pId = this.primitive.matId
+  const pId = this.sdf.matId
   const pName = 'p' + pId
 
   let preface =
 `        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
 
 
-  const primitive = this.primitive.emit( pName )
+  const primitive = this.sdf.emit( pName )
 
 
-  if( typeof primitive.preface === 'string' )
-    preface += primitive.preface
+  if( typeof sdf.preface === 'string' )
+    preface += sdf.preface
 
-  return { out:primitive.out, preface }
+  return { out:sdf.out, preface }
 }
 
 Repetition.prototype.emit_decl = function () {
-	return this.distance.emit_decl() + this.primitive.emit_decl()
+	return this.distance.emit_decl() + this.sdf.emit_decl()
 };
 
 Repetition.prototype.update_location = function( gl, program ) {
   this.distance.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.sdf.update_location( gl, program )
 }
 
 Repetition.prototype.upload_data = function( gl ) {
   this.distance.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.sdf.upload_data( gl )
 }
 
-const PolarRepetition = function( primitive, number, distance ) {
+const PolarRepetition = function( primitive, count, distance ) {
   const repeat = Object.create( PolarRepetition.prototype )
-  repeat.number = param_wrap( number, float_var_gen( 7) )
+  repeat.count = param_wrap( count, float_var_gen( 7) )
   repeat.distance = param_wrap( distance, float_var_gen( 1 ) )
-  repeat.primitive = primitive
+  repeat.sdf = sdf
 
   return repeat 
 }
@@ -61,32 +61,32 @@ PolarRepetition.prototype.emit = function ( name='p' ) {
   const pId = VarAlloc.alloc()
   const pName = 'p' + pId
 
-  let preface =`        vec3 ${pName} = polarRepeat( ${name}, ${this.number.emit() } ); 
+  let preface =`        vec3 ${pName} = polarRepeat( ${name}, ${this.count.emit() } ); 
         ${pName} -= vec3(${this.distance.emit()},0.,0.);\n`
 //`//mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
 
 
-  const primitive = this.primitive.emit( pName )
+  const sdf = this.sdf.emit( pName )
 
 
-  if( typeof primitive.preface === 'string' ) preface += primitive.preface
+  if( typeof sdf.preface === 'string' ) preface += sdf.preface
 
-  return { out:primitive.out, preface }
+  return { out:sdf.out, preface }
 }
 
 PolarRepetition.prototype.emit_decl = function () {
-	return this.distance.emit_decl() + this.number.emit_decl() + this.primitive.emit_decl()
+	return this.distance.emit_decl() + this.count.emit_decl() + this.sdf.emit_decl()
 };
 
 PolarRepetition.prototype.update_location = function( gl, program ) {
-  this.number.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.count.update_location( gl, program )
+  this.sdf.update_location( gl, program )
   this.distance.update_location( gl, program )
 }
 
 PolarRepetition.prototype.upload_data = function( gl ) {
-  this.number.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.count.upload_data( gl )
+  this.sdf.upload_data( gl )
   this.distance.upload_data( gl )
 }
 const Rotation = function( primitive, axis, angle=0 ) {

@@ -1754,7 +1754,19 @@ module.exports = {
     glslify:glsl(["#define GLSLIFY 1\n      float sdTriPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max(q.x*0.866025+p.y*0.5,-p.y)-h.x*0.5);\n}\n\n"])
 
   }, 
+  VoxelSphere:{
+    parameters:[
+      { name:'radius', type:'float', default:1 },
+      { name:'resolution', type:'float', default:20 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
 
+    primitiveString( pName ) { 
+      return `VoxelSphere( ${pName} - ${this.center.emit()}, ${this.radius.emit()}, ${this.resolution.emit()} )`
+    },
+    glslify:glsl(["#define GLSLIFY 1\nfloat sdBox( vec3 p, vec3 b ){\n        vec3 d = abs(p) - b;\n        return min(max(d.x,max(d.y,d.z)),0.0) +\n               length(max(d,0.0));\n      }\n      float VoxelSphere( vec3 p, float radius, float resolution ) {\n        //vec3 ref = p * resolution;\n        //ref = round( ref );\n        //return ( length( ref ) - resolution * radius ) / resolution;\n\n        float dist = round( length( p ) - radius * resolution) / resolution;\n        //if( dist < resolution ) {\n        //  dist = sdBox( vec3(0.), vec3(resolution) );\n        //}\n\n        return dist; \n    }",""])
+  },
 
 }
 

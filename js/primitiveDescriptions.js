@@ -20,7 +20,7 @@ module.exports = {
   // XXX we should normalize dimensions in the shader... 
   Cone: {
     parameters:[
-      { name:'dimension', type:'vec3', default:[.8,.6,.3] },
+      { name:'dimensions', type:'vec3', default:[.8,.6,.3] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
@@ -33,7 +33,7 @@ module.exports = {
 
 	Cylinder: {
     parameters:[
-      { name:'dimension', type:'vec2', default:[.8,.6] },
+      { name:'dimensions', type:'vec2', default:[.8,.6] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
@@ -66,7 +66,7 @@ module.exports = {
   //` #pragma glslify: sdCylinder	= require('glsl-sdf-primitives/sdCylinder')`
  	HexPrism: {
     parameters:[
-      { name:'dimension', type:'vec2', default:[.8,.6] },
+      { name:'dimensions', type:'vec2', default:[.8,.6] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
@@ -76,6 +76,7 @@ module.exports = {
     },
     glslify:glsl`      #pragma glslify: sdHexPrism	= require('glsl-sdf-primitives/sdHexPrism')`
   },   
+
 	Octahedron: {
     parameters:[
       { name:'size', type:'float', default:1 },
@@ -109,11 +110,11 @@ module.exports = {
   },  
  	Quad: {
     parameters:[
-      { name:'center', type:'vec3', default:[0,0,0] },
       { name:'v1', type:'vec3', default:[-.5,-.5,0] },
       { name:'v2', type:'vec3', default:[.5,-.5,0] },
       { name:'v3', type:'vec3', default:[.5,.5,0] },
       { name:'v4', type:'vec3', default:[-.5,.5,0] },
+      { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
@@ -245,7 +246,7 @@ module.exports = {
 
   TriPrism: {
     parameters:[
-      { name:'dimension', type:'vec2', default:[.5,.5] },
+      { name:'dimensions', type:'vec2', default:[.5,.5] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
@@ -256,6 +257,34 @@ module.exports = {
     glslify:glsl`      #pragma glslify: sdTriPrism = require('glsl-sdf-primitives/sdTriPrism')`
 
   }, 
+  VoxelSphere:{
+    parameters:[
+      { name:'radius', type:'float', default:1 },
+      { name:'resolution', type:'float', default:20 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
 
+    primitiveString( pName ) { 
+      return `VoxelSphere( ${pName} - ${this.center.emit()}, ${this.radius.emit()}, ${this.resolution.emit()} )`
+    },
+    glslify:glsl`float sdBox( vec3 p, vec3 b ){
+        vec3 d = abs(p) - b;
+        return min(max(d.x,max(d.y,d.z)),0.0) +
+               length(max(d,0.0));
+      }
+      float VoxelSphere( vec3 p, float radius, float resolution ) {
+        //vec3 ref = p * resolution;
+        //ref = round( ref );
+        //return ( length( ref ) - resolution * radius ) / resolution;
+
+        float dist = round( length( p ) - radius * resolution) / resolution;
+        //if( dist < resolution ) {
+        //  dist = sdBox( vec3(0.), vec3(resolution) );
+        //}
+
+        return dist; 
+    }`
+  },
 
 }

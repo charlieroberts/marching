@@ -53,7 +53,7 @@ const SDF = {
     obj.noise = this.noise
   },
 
-  init( canvas, size=1 ) {
+  init( canvas ) {
     this.primitives = this.__primitives( this )
     this.Scene      = this.__scene( this )
     this.domainOps  = this.__domainOps( this )

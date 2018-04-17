@@ -1,12 +1,3 @@
-
-/*float opDisplace( vec3 p )
-{
-    float d1 = primitive(p);
-    float d2 = displacement(p);
-    return d1+d2;
-}
-*/
-
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )

@@ -25,7 +25,7 @@ window.onload = function() {
 
   const SDF = window.Marching
 
-  SDF.init( document.querySelector('canvas'), 1 )
+  SDF.init( document.querySelector('canvas') )
   SDF.export( window )
 
   let hidden = false
@@ -109,50 +109,7 @@ window.onload = function() {
   })
   cm.setOption('fullScreen', true )
 
-  let panel = null
-  const btn = document.querySelector( 'button' )
-  btn.onclick = ()=> {
-    addPanel('bottom')
-  }
-  function makePanel( where ) {
-    var node = document.createElement("div");
-    var widget, close, label;
-
-    node.id = 'panel-helo'
-    node.className = "panel " + where;
-    close = node.appendChild(document.createElement("a"));
-    close.setAttribute("title", "Remove me!");
-    close.setAttribute("class", "remove-panel");
-    close.textContent = "✖";
-    CodeMirror.on(close, "click", function() {
-      panel.clear();
-    });
-    const help = document.createElement( 'div' )
-    help.innerHTML = `thanks to <a href="https://github.com/shenchi">Chi Shen</a> for his work on this.<br>
-
-            <ul><li><strong>scene([ objs ], numSteps, minEdge, maxDistance )</strong> - The first argument is an array of SDF objects to render (Box, Sphere, Capsule, RoundBox etc.); the SDFs are combined via Union operations. The second argument determines the number of steps (default=50) taken by the raycaster for each pixel. The third argument (default .001) is the minimum closeness a sample must be to an object to register a collision. The last argument determines that maximum distance (default 20). You can improve performance (and create weird glitch effects) by decreasing the number of steps / maximum distance, or by increasing the minimum precision. The inverse behaviors will improve rendering quality.</li>
-
-            <li><strong>Sphere( (float)radius, (Vec3)center )</strong> - a sphere.</li>
-            <li><strong>Box( (Vec3)center, (Vec3)dimensions )</strong> - a box.</li>
-
-            <li><strong>Substraction( (SDF)shape1, (SDF)shape2 )</strong> - Substract one element from another.</li>
-            <li><strong>Union( (SDF)shape1, (SDF)shape2 )</strong> - Combine two shapes wihout smoothing. </li>
-            <li><strong>SmoothUnion( (SDF)shape1, (SDF)shape2, (float)blend)</strong> - Blend two shapes together.</li>
-            <li><strong>Intersection( (SDF)shape1, (SDF)shape2 )</strong> - Return the intersection of two elements.</li>
-            <li><strong>Repeat( (SDF)shape, (Vec3)spacing )</strong> - repeat an element. if a given spacing value is 0, the shape arugment will not be repeated in that direction.</li>     
-            <li><strong>Rotation( (SDF)shape, (Vec3)axis, (float)angle )</strong> - rotate an element about an axis.</li>
-            <li><strong>camera</strong> - The camera has .pos and .dir Vec3 properties that can be used to move and point it.</li>
-            <li><strong>Noise( (float)strength=.25, (float)bias=1, (float)timeMod=1 )</strong> - Noise can be used as an input(s) to another SDF. timeMod determines the speed at which the perlin noise progresses, while strength and bias combine to determine the range of outputted values.</li>
-            <li><strong>Vec3( (float)x, (float)y, (float)z ))</strong> - Creates a three-field vector. If only one argument is given, all fields will be set to the passed argument. If no arguments are provided, the Vec3 will be initialized with zeroes in each field.</li>
-            </ul>`
-
-
-    node.appendChild( help )
-
-    return node;
-  }
-
-  const sel = document.querySelector('select')
+    const sel = document.querySelector('select')
   for( let key in demos ) {
     const demoCode = demos[ key ]
 
@@ -187,17 +144,6 @@ window.onload = function() {
     //}
 
     cm.setValue( code )
-  }
-
-  function addPanel(where) {
-
-    if( panel === null ) {
-      var node = makePanel(where);
-      panel = cm.addPanel(node, {position: where, stable: true});
-    }else{
-      panel.clear()
-      panel = null
-    }
   }
 
   var getSelectionCodeColumn = function( cm, findBlock ) {

@@ -5,21 +5,21 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require
 const ops = { 
   Union( a,b )        { return `opU( ${a}, ${b} )` },
   Intersection( a,b ) { return `opI( ${a}, ${b} )` },
-  Substraction( a,b ) { return `opS( ${a}, ${b} )` },  
+  Difference( a,b ) { return `opS( ${a}, ${b} )` },  
   SmoothUnion(  a,b,c) { return `opSmoothUnion( ${a}, ${b}, ${c} )` },
   StairsUnion(  a,b,c,d ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d} )` },
   StairsIntersection( a,b,c,d ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d} )` },
-  StairsSubstraction( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
+  StairsDifference( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
   RoundUnion( a,b,c ) { return `fOpUnionRound( ${a}, ${b}, ${c} )` },
-  RoundSubstraction( a,b,c ) { return `fOpDifferenceRound( ${a}, ${b}, ${c} )` },
+  RoundDifference( a,b,c ) { return `fOpDifferenceRound( ${a}, ${b}, ${c} )` },
   RoundIntersection( a,b,c ) { return `fOpIntersectionRound( ${a}, ${b}, ${c} )` },
   ChamferUnion( a,b,c ) { return `fOpUnionChamfer( ${a}, ${b}, ${c} )` },
-  ChamferSubstraction( a,b,c ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c} )` },
+  ChamferDifference( a,b,c ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c} )` },
   ChamferIntersection( a,b,c ) { return `fOpIntersectionChamfer( ${a}, ${b}, ${c} )` },
-  PipeUnion( a,b,c ) { return `fOpPipe( ${a}, ${b}, ${c} )` },
-  EngraveUnion( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
-  GrooveUnion( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
-  TongueUnion( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
+  Pipe( a,b,c ) { return `fOpPipe( ${a}, ${b}, ${c} )` },
+  Engrave( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
+  Groove( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
+  Tongue( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
 }
 
 const DistanceOps = {}
@@ -35,7 +35,7 @@ for( let name in ops ) {
     op.a = a
     op.b = b
 
-    let __c = param_wrap( c, float_var_gen(.8) )
+    let __c = param_wrap( c, float_var_gen(.3) )
 
     Object.defineProperty( op, 'c', {
       get() { return __c },
@@ -44,7 +44,7 @@ for( let name in ops ) {
       }
     })
 
-    let __d = param_wrap( d, float_var_gen(.8) )
+    let __d = param_wrap( d, float_var_gen(4) )
 
     Object.defineProperty( op, 'd', {
       get() { return __d },

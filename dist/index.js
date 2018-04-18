@@ -150,15 +150,6 @@ module.exports = Camera
 },{}],4:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
 },{"./sceneNode.js":20,"./utils.js":21,"./var.js":22,"dup":1}],5:[function(require,module,exports){
-
-/*float opDisplace( vec3 p )
-{
-    float d1 = primitive(p);
-    float d2 = displacement(p);
-    return d1+d2;
-}
-*/
-
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
@@ -297,21 +288,21 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require
 const ops = { 
   Union( a,b )        { return `opU( ${a}, ${b} )` },
   Intersection( a,b ) { return `opI( ${a}, ${b} )` },
-  Substraction( a,b ) { return `opS( ${a}, ${b} )` },  
+  Difference( a,b ) { return `opS( ${a}, ${b} )` },  
   SmoothUnion(  a,b,c) { return `opSmoothUnion( ${a}, ${b}, ${c} )` },
   StairsUnion(  a,b,c,d ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d} )` },
   StairsIntersection( a,b,c,d ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d} )` },
-  StairsSubstraction( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
+  StairsDifference( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
   RoundUnion( a,b,c ) { return `fOpUnionRound( ${a}, ${b}, ${c} )` },
-  RoundSubstraction( a,b,c ) { return `fOpDifferenceRound( ${a}, ${b}, ${c} )` },
+  RoundDifference( a,b,c ) { return `fOpDifferenceRound( ${a}, ${b}, ${c} )` },
   RoundIntersection( a,b,c ) { return `fOpIntersectionRound( ${a}, ${b}, ${c} )` },
   ChamferUnion( a,b,c ) { return `fOpUnionChamfer( ${a}, ${b}, ${c} )` },
-  ChamferSubstraction( a,b,c ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c} )` },
+  ChamferDifference( a,b,c ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c} )` },
   ChamferIntersection( a,b,c ) { return `fOpIntersectionChamfer( ${a}, ${b}, ${c} )` },
-  PipeUnion( a,b,c ) { return `fOpPipe( ${a}, ${b}, ${c} )` },
-  EngraveUnion( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
-  GrooveUnion( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
-  TongueUnion( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
+  Pipe( a,b,c ) { return `fOpPipe( ${a}, ${b}, ${c} )` },
+  Engrave( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
+  Groove( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
+  Tongue( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
 }
 
 const DistanceOps = {}
@@ -327,7 +318,7 @@ for( let name in ops ) {
     op.a = a
     op.b = b
 
-    let __c = param_wrap( c, float_var_gen(.8) )
+    let __c = param_wrap( c, float_var_gen(.3) )
 
     Object.defineProperty( op, 'c', {
       get() { return __c },
@@ -336,7 +327,7 @@ for( let name in ops ) {
       }
     })
 
-    let __d = param_wrap( d, float_var_gen(.8) )
+    let __d = param_wrap( d, float_var_gen(4) )
 
     Object.defineProperty( op, 'd', {
       get() { return __d },
@@ -437,7 +428,7 @@ const getDomainOps = function( SDF ) {
 const Repetition = function( primitive, distance ) {
   const repeat = Object.create( Repetition.prototype )
   repeat.distance = param_wrap( distance, vec3_var_gen( 1,1,5 ) )
-  repeat.primitive = primitive
+  repeat.sdf = primitive
 
   return repeat 
 }
@@ -445,41 +436,39 @@ const Repetition = function( primitive, distance ) {
 Repetition.prototype = SceneNode()
 
 Repetition.prototype.emit = function ( name='p' ) {
-  const pId = this.primitive.matId
+  const pId = this.sdf.matId
   const pName = 'p' + pId
 
   let preface =
 `        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
 
 
-  const primitive = this.primitive.emit( pName )
+  const primitive = this.sdf.emit( pName )
 
-
-  if( typeof primitive.preface === 'string' )
-    preface += primitive.preface
+  if( typeof primitive.preface === 'string' ) preface += primitive.preface 
 
   return { out:primitive.out, preface }
 }
 
 Repetition.prototype.emit_decl = function () {
-	return this.distance.emit_decl() + this.primitive.emit_decl()
+	return this.distance.emit_decl() + this.sdf.emit_decl()
 };
 
 Repetition.prototype.update_location = function( gl, program ) {
   this.distance.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.sdf.update_location( gl, program )
 }
 
 Repetition.prototype.upload_data = function( gl ) {
   this.distance.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.sdf.upload_data( gl )
 }
 
-const PolarRepetition = function( primitive, number, distance ) {
+const PolarRepetition = function( primitive, count, distance ) {
   const repeat = Object.create( PolarRepetition.prototype )
-  repeat.number = param_wrap( number, float_var_gen( 7) )
+  repeat.count = param_wrap( count, float_var_gen( 7) )
   repeat.distance = param_wrap( distance, float_var_gen( 1 ) )
-  repeat.primitive = primitive
+  repeat.sdf = primitive 
 
   return repeat 
 }
@@ -490,32 +479,32 @@ PolarRepetition.prototype.emit = function ( name='p' ) {
   const pId = VarAlloc.alloc()
   const pName = 'p' + pId
 
-  let preface =`        vec3 ${pName} = polarRepeat( ${name}, ${this.number.emit() } ); 
+  let preface =`        vec3 ${pName} = polarRepeat( ${name}, ${this.count.emit() } ); 
         ${pName} -= vec3(${this.distance.emit()},0.,0.);\n`
 //`//mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
 
 
-  const primitive = this.primitive.emit( pName )
+  const sdf = this.sdf.emit( pName )
 
 
-  if( typeof primitive.preface === 'string' ) preface += primitive.preface
+  if( typeof sdf.preface === 'string' ) preface += sdf.preface
 
-  return { out:primitive.out, preface }
+  return { out:sdf.out, preface }
 }
 
 PolarRepetition.prototype.emit_decl = function () {
-	return this.distance.emit_decl() + this.number.emit_decl() + this.primitive.emit_decl()
+	return this.distance.emit_decl() + this.count.emit_decl() + this.sdf.emit_decl()
 };
 
 PolarRepetition.prototype.update_location = function( gl, program ) {
-  this.number.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.count.update_location( gl, program )
+  this.sdf.update_location( gl, program )
   this.distance.update_location( gl, program )
 }
 
 PolarRepetition.prototype.upload_data = function( gl ) {
-  this.number.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.count.upload_data( gl )
+  this.sdf.upload_data( gl )
   this.distance.upload_data( gl )
 }
 const Rotation = function( primitive, axis, angle=0 ) {
@@ -927,7 +916,6 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        console.log( __shadow )
         const str = glsl(["#define GLSLIFY 1\n  int MAX_LIGHTS = ",";\n        float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n        ","\n\n        ","\n\n        vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          Material mat = materials[ int(materialID) ];\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            float fresnel = mat.fresnel.bias + mat.fresnel.scale * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.power ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }",""],numlights,materials,lights,__shadow)
 
         return str
@@ -1030,7 +1018,7 @@ const SDF = {
     obj.noise = this.noise
   },
 
-  init( canvas, size=1 ) {
+  init( canvas ) {
     this.primitives = this.__primitives( this )
     this.Scene      = this.__scene( this )
     this.domainOps  = this.__domainOps( this )
@@ -1530,26 +1518,26 @@ module.exports = {
   // XXX we should normalize dimensions in the shader... 
   Cone: {
     parameters:[
-      { name:'dimension', type:'vec3', default:[.8,.6,.3] },
+      { name:'dimensions', type:'vec3', default:[.8,.6,.3] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdCone( ${pName} - ${this.center.emit()}, ${this.dimension.emit()} )`
+      return `sdCone( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
     glslify:glsl(["#define GLSLIFY 1\n    float sdCone( in vec3 p, in vec3 c )\n{\n    vec2 q = vec2( length(p.xz), p.y );\n    float d1 = -p.y-c.z;\n    float d2 = max( dot(q,c.xy), p.y);\n    return length(max(vec2(d1,d2),0.0)) + min(max(d1,d2), 0.);\n}\n\n"])
   }, 
 
 	Cylinder: {
     parameters:[
-      { name:'dimension', type:'vec2', default:[.8,.6] },
+      { name:'dimensions', type:'vec2', default:[.8,.6] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdCappedCylinder( ${pName} - ${this.center.emit()}, ${this.dimension.emit()} )`
+      return `sdCappedCylinder( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
 
     glslify:`    float sdCappedCylinder( vec3 p, vec2 h ) {
@@ -1576,16 +1564,17 @@ module.exports = {
   //` #pragma glslify: sdCylinder	= require('glsl-sdf-primitives/sdCylinder')`
  	HexPrism: {
     parameters:[
-      { name:'dimension', type:'vec2', default:[.8,.6] },
+      { name:'dimensions', type:'vec2', default:[.8,.6] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimension.emit()} )`
+      return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
     glslify:glsl(["#define GLSLIFY 1\n      float sdHexPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max((q.x*0.866025+q.y*0.5),q.y)-h.x);\n}\n\n"])
   },   
+
 	Octahedron: {
     parameters:[
       { name:'size', type:'float', default:1 },
@@ -1619,11 +1608,11 @@ module.exports = {
   },  
  	Quad: {
     parameters:[
-      { name:'center', type:'vec3', default:[0,0,0] },
       { name:'v1', type:'vec3', default:[-.5,-.5,0] },
       { name:'v2', type:'vec3', default:[.5,-.5,0] },
       { name:'v3', type:'vec3', default:[.5,.5,0] },
       { name:'v4', type:'vec3', default:[-.5,.5,0] },
+      { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
@@ -1743,13 +1732,13 @@ module.exports = {
 
   TriPrism: {
     parameters:[
-      { name:'dimension', type:'vec2', default:[.5,.5] },
+      { name:'dimensions', type:'vec2', default:[.5,.5] },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdTriPrism( ${pName} - ${this.center.emit()}, ${this.dimension.emit()})`
+      return `sdTriPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()})`
     },
     glslify:glsl(["#define GLSLIFY 1\n      float sdTriPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max(q.x*0.866025+p.y*0.5,-p.y)-h.x*0.5);\n}\n\n"])
 
@@ -1943,7 +1932,7 @@ module.exports = createPrimitives
 const glsl = require( 'glslify' )
 
 module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20 ) {
-    const fs_source = glsl(["     #version 300 es\n      precision highp float;\n#define GLSLIFY 1\n\n     \n      float PI = 3.141592653589793;\n      // Materials should have: color, diffuseColor, specularColor, specularCoefficient, fresnelBias, fresnelPower, fresnelScale\n\n      in vec2 v_uv;\n\n      struct Fresnel {\n        float bias;\n        float scale;\n        float power;\n      };\n\n      struct Light {\n        vec3 position;\n        vec3 color;\n        float attenuation;\n      };\n\n      struct Material {\n        vec3 ambient;\n        vec3 diffuse;\n        vec3 specular;\n        float shininess;\n        Fresnel fresnel;\n      };     \n\n      uniform float time;\n      uniform vec2 resolution;\n      uniform float matTexSize;\n      uniform sampler2D uMatSampler;\n      uniform vec3 camera_pos;\n      uniform vec3 camera_normal;\n\n      ","\n\n      // must be before geometries!\n      float length8( vec2 p ) { \n        return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); \n      }\n\n      /* GEOMETRIES */\n      ","\n\n      vec2 scene(vec3 p);\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir, float maxd, float precis) {\n  float latest = precis * 2.0;\n  float dist   = +0.0;\n  float type   = -1.0;\n  vec2  res    = vec2(-1.0, -1.0);\n\n  for (int i = 0; i < "," ; i++) {\n    if (latest < precis || dist > maxd) break;\n\n    vec2 result = scene(rayOrigin + rayDir * dist);\n\n    latest = result.x;\n    type   = result.y;\n    dist  += latest;\n  }\n\n  if (dist < maxd) {\n    res = vec2(dist, type);\n  }\n\n  return res;\n}\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {\n  return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);\n}\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec3 calcNormal(vec3 pos, float eps) {\n  const vec3 v1 = vec3( 1.0,-1.0,-1.0);\n  const vec3 v2 = vec3(-1.0,-1.0, 1.0);\n  const vec3 v3 = vec3(-1.0, 1.0,-1.0);\n  const vec3 v4 = vec3( 1.0, 1.0, 1.0);\n\n  return normalize( v1 * scene ( pos + v1*eps ).x +\n                    v2 * scene ( pos + v2*eps ).x +\n                    v3 * scene ( pos + v3*eps ).x +\n                    v4 * scene ( pos + v4*eps ).x );\n}\n\nvec3 calcNormal(vec3 pos) {\n  return calcNormal(pos, 0.002);\n}\n\n      mat3 calcLookAtMatrix(vec3 origin, vec3 target, float roll) {\n  vec3 rr = vec3(sin(roll), cos(roll), 0.0);\n  vec3 ww = normalize(target - origin);\n  vec3 uu = normalize(cross(ww, rr));\n  vec3 vv = normalize(cross(uu, ww));\n\n  return mat3(uu, vv, ww);\n}\n\nvec3 getRay(mat3 camMat, vec2 screenPos, float lensLength) {\n  return normalize(camMat * vec3(screenPos, lensLength));\n}\n\nvec3 getRay(vec3 origin, vec3 target, vec2 screenPos, float lensLength) {\n  mat3 camMat = calcLookAtMatrix(origin, target, 0.0);\n  return getRay(camMat, screenPos, lensLength);\n}\n\n      float smin(float a, float b, float k) {\n  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);\n  return mix(b, a, h) - k * h * (1.0 - h);\n}\n\n      // OPS\n      float opU( float d1, float d2 )\n{\n    return min(d1,d2);\n}\n\nvec2 opU( vec2 d1, vec2 d2 ){\n\treturn ( d1.x < d2.x ) ? d1 : d2;\n}\n\n      float opI( float d1, float d2 ) {\n        return max(d1,d2);\n      }\n\n      vec2 opI( vec2 d1, vec2 d2 ) {\n        return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);\n      }\n\n      /* ******** from http://mercury.sexy/hg_sdf/ ********* */\n\n      float fOpUnionStairs(float a, float b, float r, float n) {\n        float s = r/n;\n        float u = b-r;\n        return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));\n      }\n      vec2 fOpUnionStairs(vec2 a, vec2 b, float r, float n) {\n        float s = r/n;\n        float u = b.x-r;\n        return vec2( min(min(a.x,b.x), 0.5 * (u + a.x + abs ((mod (u - a.x + s, 2. * s)) - s))), a.y );\n      }\n\n      // We can just call Union since stairs are symmetric.\n      float fOpIntersectionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, -b, r, n);\n      }\n\n      float fOpSubstractionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, b, r, n);\n      }\n\n      vec2 fOpIntersectionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, -b.x, r, n), a.y );\n      }\n\n      vec2 fOpSubstractionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, b.x, r, n), a.y );\n      }\n\n      float fOpUnionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r - a,r - b), vec2(0));\n        return max(r, min (a, b)) - length(u);\n      }\n\n      float fOpIntersectionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r + a,r + b), vec2(0));\n        return min(-r, max (a, b)) + length(u);\n      }\n\n      float fOpDifferenceRound (float a, float b, float r) {\n        return fOpIntersectionRound(a, -b, r);\n      }\n\n      vec2 fOpUnionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceRound( a.x, b.x, r ), a.y );\n      }\n\n      float fOpUnionChamfer(float a, float b, float r) {\n        return min(min(a, b), (a - r + b)*sqrt(0.5));\n      }\n\n      float fOpIntersectionChamfer(float a, float b, float r) {\n        return max(max(a, b), (a + r + b)*sqrt(0.5));\n      }\n\n      float fOpDifferenceChamfer (float a, float b, float r) {\n        return fOpIntersectionChamfer(a, -b, r);\n      }\n      vec2 fOpUnionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceChamfer( a.x, b.x, r ), a.y );\n      }\n\n      float fOpPipe(float a, float b, float r) {\n        return length(vec2(a, b)) - r;\n      }\n\n      float fOpEngrave(float a, float b, float r) {\n        return max(a, (a + r - abs(b))*sqrt(0.5));\n      }\n\n      float fOpGroove(float a, float b, float ra, float rb) {\n        return max(a, min(a + ra, rb - abs(b)));\n      }\n      float fOpTongue(float a, float b, float ra, float rb) {\n        return min(a, max(a - ra, abs(b) - rb));\n      }\n\n      vec2 fOpPipe( vec2 a, vec2 b, float r ) { return vec2( fOpPipe( a.x, b.x, r ), a.y ); }\n      vec2 fOpEngrave( vec2 a, vec2 b, float r ) { return vec2( fOpEngrave( a.x, b.x, r ), a.y ); }\n      vec2 fOpGroove( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpGroove( a.x, b.x, ra, rb ), a.y ); }\n      vec2 fOpTongue( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpTongue( a.x, b.x, ra, rb ), a.y ); }\n\n      vec3 polarRepeat(vec3 p, float repetitions) {\n        float angle = 2.*PI/repetitions;\n        float a = atan(p.z, p.x) + angle/2.;\n        float r = length(p.xz);\n        float c = floor(a/angle);\n        a = mod(a,angle) - angle/2.;\n        vec3 _p = vec3( cos(a) * r, p.y,  sin(a) * r );\n        // For an odd number of repetitions, fix cell index of the cell in -x direction\n        // (cell index would be e.g. -5 and 5 in the two halves of the cell):\n        if (abs(c) >= (repetitions/2.)) c = abs(c);\n        return _p;\n      }\n\n      /* ******************************************************* */\n\n      // added k value to glsl-sdf-ops/soft-shadow\n      float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){\n        float res = 1.0;\n        float t = mint;\n\n        for( int i = 0; i < 16; i++ ) {\n          float h = scene( ro + rd * t ).x;\n          res = min( res, k * h / t );\n          t += clamp( h, 0.02, 0.10 );\n          if( h<0.001 || t>tmax ) break;\n        }\n\n        return clamp( res, 0.0, 1.0 );\n      }\n\n      vec2 smin( vec2 a, vec2 b, float k) {\n        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );\n        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );\n\n        // material blending... i am proud.\n        float starty = clamp( (b.x - a.x) / k, 0., 1. );\n        float hy = 1. - (a.y + ( b.y - a.y ) * starty); \n\n        return vec2( hx, hy ); \n      }\n\n      float opS( float d1, float d2 ) { return max(-d1,d2); }\n      vec2  opS( vec2 d1, vec2 d2 ) {\n        return -d1.x > d2.x ? vec2( -1. * d1.x, d1.y ) : d2;\n      }\n\n      float opSmoothUnion( float a, float b, float k) {\n        return smin( a, b, k );\n      }\n\n      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {\n        return smin( a, b, k);\n      }\n\n","\n\n      vec3 colorFromInt( in float _color ) {\n        int color = int( _color );\n        int r = clamp( color >> 16, 0, 255 );\n        int g = clamp( (color & 65280) >> 8, 0, 255 );\n        int b = clamp( color & 255, 0, 255 );\n\n        return vec3( float(r)/255., float(g)/255., float(b)/255.);\n      }\n\n      vec2 scene(vec3 p) {\n","\n        return ",";\n      }\n\n      out vec4 col;\n\n      void main() {\n        vec2 pos = v_uv * 2.0 - 1.0;\n        pos.x *= ( resolution.x / resolution.y );\n        vec3 color = bg; \n        vec3 ro = camera_pos;\n\n        //float cameraAngle  = 0.8 * time;\n        //vec3  rayOrigin    = vec3(3.5 * sin(cameraAngle), 3.0, 3.5 * cos(cameraAngle));\n\n        vec3 rd = getRay( ro, camera_normal, pos, 2.0 );\n\n        vec2 t = calcRayIntersection( ro, rd, ",", "," );\n        if( t.x > -0.5 ) {\n          vec3 pos = ro + rd * t.x;\n          vec3 nor = calcNormal( pos );\n\n          color = lighting( pos, nor, ro, rd, t.y ); //;* colorFromInt( t.y );\n        }\n\n        ","\n        \n\n        col = vec4( color, 1.0 );\n      }",""],variables,geometries,steps,lighting,preface,scene,maxDistance,minDistance,postprocessing)
+    const fs_source = glsl(["     #version 300 es\n      precision highp float;\n#define GLSLIFY 1\n\n     \n      float PI = 3.141592653589793;\n      // Materials should have: color, diffuseColor, specularColor, specularCoefficient, fresnelBias, fresnelPower, fresnelScale\n\n      in vec2 v_uv;\n\n      struct Fresnel {\n        float bias;\n        float scale;\n        float power;\n      };\n\n      struct Light {\n        vec3 position;\n        vec3 color;\n        float attenuation;\n      };\n\n      struct Material {\n        vec3 ambient;\n        vec3 diffuse;\n        vec3 specular;\n        float shininess;\n        Fresnel fresnel;\n      };     \n\n      uniform float time;\n      uniform vec2 resolution;\n      uniform float matTexSize;\n      uniform sampler2D uMatSampler;\n      uniform vec3 camera_pos;\n      uniform vec3 camera_normal;\n\n      ","\n\n      // must be before geometries!\n      float length8( vec2 p ) { \n        return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); \n      }\n\n      /* GEOMETRIES */\n      ","\n\n      vec2 scene(vec3 p);\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir, float maxd, float precis) {\n  float latest = precis * 2.0;\n  float dist   = +0.0;\n  float type   = -1.0;\n  vec2  res    = vec2(-1.0, -1.0);\n\n  for (int i = 0; i < "," ; i++) {\n    if (latest < precis || dist > maxd) break;\n\n    vec2 result = scene(rayOrigin + rayDir * dist);\n\n    latest = result.x;\n    type   = result.y;\n    dist  += latest;\n  }\n\n  if (dist < maxd) {\n    res = vec2(dist, type);\n  }\n\n  return res;\n}\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {\n  return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);\n}\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec3 calcNormal(vec3 pos, float eps) {\n  const vec3 v1 = vec3( 1.0,-1.0,-1.0);\n  const vec3 v2 = vec3(-1.0,-1.0, 1.0);\n  const vec3 v3 = vec3(-1.0, 1.0,-1.0);\n  const vec3 v4 = vec3( 1.0, 1.0, 1.0);\n\n  return normalize( v1 * scene ( pos + v1*eps ).x +\n                    v2 * scene ( pos + v2*eps ).x +\n                    v3 * scene ( pos + v3*eps ).x +\n                    v4 * scene ( pos + v4*eps ).x );\n}\n\nvec3 calcNormal(vec3 pos) {\n  return calcNormal(pos, 0.002);\n}\n\n      mat3 calcLookAtMatrix(vec3 origin, vec3 target, float roll) {\n  vec3 rr = vec3(sin(roll), cos(roll), 0.0);\n  vec3 ww = normalize(target - origin);\n  vec3 uu = normalize(cross(ww, rr));\n  vec3 vv = normalize(cross(uu, ww));\n\n  return mat3(uu, vv, ww);\n}\n\nvec3 getRay(mat3 camMat, vec2 screenPos, float lensLength) {\n  return normalize(camMat * vec3(screenPos, lensLength));\n}\n\nvec3 getRay(vec3 origin, vec3 target, vec2 screenPos, float lensLength) {\n  mat3 camMat = calcLookAtMatrix(origin, target, 0.0);\n  return getRay(camMat, screenPos, lensLength);\n}\n\n      float smin(float a, float b, float k) {\n  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);\n  return mix(b, a, h) - k * h * (1.0 - h);\n}\n\n      // OPS\n      float opU( float d1, float d2 )\n{\n    return min(d1,d2);\n}\n\nvec2 opU( vec2 d1, vec2 d2 ){\n\treturn ( d1.x < d2.x ) ? d1 : d2;\n}\n\n      float opI( float d1, float d2 ) {\n        return max(d1,d2);\n      }\n\n      vec2 opI( vec2 d1, vec2 d2 ) {\n        return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);\n      }\n\n      /* ******** from http://mercury.sexy/hg_sdf/ ********* */\n\n      float fOpUnionStairs(float a, float b, float r, float n) {\n        float s = r/n;\n        float u = b-r;\n        return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));\n      }\n      vec2 fOpUnionStairs(vec2 a, vec2 b, float r, float n) {\n        float s = r/n;\n        float u = b.x-r;\n        return vec2( min(min(a.x,b.x), 0.5 * (u + a.x + abs ((mod (u - a.x + s, 2. * s)) - s))), a.y );\n      }\n\n      // We can just call Union since stairs are symmetric.\n      float fOpIntersectionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, -b, r, n);\n      }\n\n      float fOpSubstractionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, b, r, n);\n      }\n\n      vec2 fOpIntersectionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, -b.x, r, n), a.y );\n      }\n\n      vec2 fOpSubstractionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, b.x, r, n), a.y );\n      }\n\n      float fOpUnionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r - a,r - b), vec2(0));\n        return max(r, min (a, b)) - length(u);\n      }\n\n      float fOpIntersectionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r + a,r + b), vec2(0));\n        return min(-r, max (a, b)) + length(u);\n      }\n\n      float fOpDifferenceRound (float a, float b, float r) {\n        return fOpIntersectionRound(a, -b, r);\n      }\n\n      vec2 fOpUnionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceRound( a.x, b.x, r ), a.y );\n      }\n\n      float fOpUnionChamfer(float a, float b, float r) {\n        return min(min(a, b), (a - r + b)*sqrt(0.5));\n      }\n\n      float fOpIntersectionChamfer(float a, float b, float r) {\n        return max(max(a, b), (a + r + b)*sqrt(0.5));\n      }\n\n      float fOpDifferenceChamfer (float a, float b, float r) {\n        return fOpIntersectionChamfer(a, -b, r);\n      }\n      vec2 fOpUnionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceChamfer( a.x, b.x, r ), a.y );\n      }\n\n      float fOpPipe(float a, float b, float r) {\n        return length(vec2(a, b)) - r;\n      }\n\n      float fOpEngrave(float a, float b, float r) {\n        return max(a, (a + r - abs(b))*sqrt(0.5));\n      }\n\n      float fOpGroove(float a, float b, float ra, float rb) {\n        return max(a, min(a + ra, rb - abs(b)));\n      }\n      float fOpTongue(float a, float b, float ra, float rb) {\n        return min(a, max(a - ra, abs(b) - rb));\n      }\n\n      vec2 fOpPipe( vec2 a, vec2 b, float r ) { return vec2( fOpPipe( a.x, b.x, r ), a.y ); }\n      vec2 fOpEngrave( vec2 a, vec2 b, float r ) { return vec2( fOpEngrave( a.x, b.x, r ), a.y ); }\n      vec2 fOpGroove( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpGroove( a.x, b.x, ra, rb ), a.y ); }\n      vec2 fOpTongue( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpTongue( a.x, b.x, ra, rb ), a.y ); }\n\n      vec3 polarRepeat(vec3 p, float repetitions) {\n        float angle = 2.*PI/repetitions;\n        float a = atan(p.z, p.x) + angle/2.;\n        float r = length(p.xz);\n        float c = floor(a/angle);\n        a = mod(a,angle) - angle/2.;\n        vec3 _p = vec3( cos(a) * r, p.y,  sin(a) * r );\n        // For an odd number of repetitions, fix cell index of the cell in -x direction\n        // (cell index would be e.g. -5 and 5 in the two halves of the cell):\n        if (abs(c) >= (repetitions/2.)) c = abs(c);\n        return _p;\n      }\n\n      /* ******************************************************* */\n\n      // added k value to glsl-sdf-ops/soft-shadow\n      float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){\n        float res = 1.0;\n        float t = mint;\n\n        for( int i = 0; i < 16; i++ ) {\n          float h = scene( ro + rd * t ).x;\n          res = min( res, k * h / t );\n          t += clamp( h, 0.02, 0.10 );\n          if( h<0.001 || t>tmax ) break;\n        }\n\n        return clamp( res, 0.0, 1.0 );\n      }\n\n      vec2 smin( vec2 a, vec2 b, float k) {\n        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );\n        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );\n\n        // material blending... i am proud.\n        float starty = clamp( (b.x - a.x) / k, 0., 1. );\n        float hy = 1. - (a.y + ( b.y - a.y ) * starty); \n\n        return vec2( hx, hy ); \n      }\n\n      float opS( float d1, float d2 ) { return max(-d1,d2); }\n      vec2  opS( vec2 d1, vec2 d2 ) {\n        return -d1.x > d2.x ? vec2( -1. * d1.x, d1.y ) : d2;\n      }\n\n      float opSmoothUnion( float a, float b, float k) {\n        return smin( a, b, k );\n      }\n\n      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {\n        return smin( a, b, k);\n      }\n\n","\n\n      vec2 scene(vec3 p) {\n","\n        return ",";\n      }\n\n      out vec4 col;\n\n      void main() {\n        vec2 pos = v_uv * 2.0 - 1.0;\n        pos.x *= ( resolution.x / resolution.y );\n        vec3 color = bg; \n        vec3 ro = camera_pos;\n\n        //float cameraAngle  = 0.8 * time;\n        //vec3  rayOrigin    = vec3(3.5 * sin(cameraAngle), 3.0, 3.5 * cos(cameraAngle));\n\n        vec3 rd = getRay( ro, camera_normal, pos, 2.0 );\n\n        vec2 t = calcRayIntersection( ro, rd, ",", "," );\n        if( t.x > -0.5 ) {\n          vec3 pos = ro + rd * t.x;\n          vec3 nor = calcNormal( pos );\n\n          color = lighting( pos, nor, ro, rd, t.y ); //;* colorFromInt( t.y );\n        }\n\n        ","\n        \n\n        col = vec4( color, 1.0 );\n      }",""],variables,geometries,steps,lighting,preface,scene,maxDistance,minDistance,postprocessing)
 
     return fs_source
   }

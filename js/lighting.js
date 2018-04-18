@@ -58,7 +58,6 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        console.log( __shadow )
         const str = glsl`  int MAX_LIGHTS = ${numlights};
         #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
 

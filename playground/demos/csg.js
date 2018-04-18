@@ -26,7 +26,7 @@ cross = SmoothUnion2(
  
 march( 
   r = Rotation(
-    Substraction( cross, roundedSphere ),
+    Difference( cross, roundedSphere ),
     Vec3(-.75,1,.25),
     Math.PI / 4
   )

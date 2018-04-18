@@ -11754,7 +11754,7 @@ cross = SmoothUnion2(
  
 march( 
   r = Rotation(
-    Substraction( cross, roundedSphere ),
+    Difference( cross, roundedSphere ),
     Vec3(-.75,1,.25),
     Math.PI / 4
   )
@@ -11867,7 +11867,7 @@ module.exports = `Marching.lighting.mode = 'orenn'
 march(
   SmoothUnion(
     rot = Rotation( 
-      pipe = PipeUnion(
+      pipe = Pipe(
         Box(),
         sphere = Sphere(2.5, null, Material.blue),
         .5

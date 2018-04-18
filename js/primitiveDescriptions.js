@@ -26,7 +26,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `sdCone( ${pName} - ${this.center.emit()}, ${this.dimension.emit()} )`
+      return `sdCone( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
     glslify:glsl`    #pragma glslify: sdCone	= require('glsl-sdf-primitives/sdCappedCone')`
   }, 
@@ -39,7 +39,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `sdCappedCylinder( ${pName} - ${this.center.emit()}, ${this.dimension.emit()} )`
+      return `sdCappedCylinder( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
 
     glslify:`    float sdCappedCylinder( vec3 p, vec2 h ) {
@@ -72,7 +72,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimension.emit()} )`
+      return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
     glslify:glsl`      #pragma glslify: sdHexPrism	= require('glsl-sdf-primitives/sdHexPrism')`
   },   
@@ -252,7 +252,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `sdTriPrism( ${pName} - ${this.center.emit()}, ${this.dimension.emit()})`
+      return `sdTriPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()})`
     },
     glslify:glsl`      #pragma glslify: sdTriPrism = require('glsl-sdf-primitives/sdTriPrism')`
 

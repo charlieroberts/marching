@@ -218,15 +218,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
 ${lighting}
 
-      vec3 colorFromInt( in float _color ) {
-        int color = int( _color );
-        int r = clamp( color >> 16, 0, 255 );
-        int g = clamp( (color & 65280) >> 8, 0, 255 );
-        int b = clamp( color & 255, 0, 255 );
-
-        return vec3( float(r)/255., float(g)/255., float(b)/255.);
-      }
-
       vec2 scene(vec3 p) {
 ${preface}
         return ${scene};

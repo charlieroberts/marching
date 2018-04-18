@@ -8,7 +8,7 @@ const getDomainOps = function( SDF ) {
 const Repetition = function( primitive, distance ) {
   const repeat = Object.create( Repetition.prototype )
   repeat.distance = param_wrap( distance, vec3_var_gen( 1,1,5 ) )
-  repeat.sdf= primitive
+  repeat.sdf = primitive
 
   return repeat 
 }
@@ -25,11 +25,9 @@ Repetition.prototype.emit = function ( name='p' ) {
 
   const primitive = this.sdf.emit( pName )
 
+  if( typeof primitive.preface === 'string' ) preface += primitive.preface 
 
-  if( typeof sdf.preface === 'string' )
-    preface += sdf.preface
-
-  return { out:sdf.out, preface }
+  return { out:primitive.out, preface }
 }
 
 Repetition.prototype.emit_decl = function () {
@@ -50,7 +48,7 @@ const PolarRepetition = function( primitive, count, distance ) {
   const repeat = Object.create( PolarRepetition.prototype )
   repeat.count = param_wrap( count, float_var_gen( 7) )
   repeat.distance = param_wrap( distance, float_var_gen( 1 ) )
-  repeat.sdf = sdf
+  repeat.sdf = primitive 
 
   return repeat 
 }

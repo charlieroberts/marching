@@ -3,7 +3,7 @@ module.exports = `Marching.lighting.mode = 'orenn'
 march(
   SmoothUnion(
     rot = Rotation( 
-      pipe = PipeUnion(
+      pipe = Pipe(
         Box(),
         sphere = Sphere(2.5, null, Material.blue),
         .5

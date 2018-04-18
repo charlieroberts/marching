@@ -18,6 +18,7 @@ const demos = {
   ['twist deformation']: require( './demos/twist.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
+  ['snare and sticks']: require( './demos/snare.js' ),
 }
 
 window.onload = function() {

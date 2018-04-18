@@ -95,6 +95,9 @@ const __Materials = function( SDF ) {
     cyan  : Materials.material( Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
     magenta  : Materials.material( Vec3(.25,0,.25), Vec3(1,0,1), Vec3(0), 2, Vec3(0) ),
     yellow : Materials.material( Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
+    black : Materials.material( Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
+    white: Materials.material( Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
+    grey : Materials.material( Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) )
   })
 
   return Materials

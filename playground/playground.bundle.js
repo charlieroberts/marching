@@ -11893,6 +11893,76 @@ callbacks.push( time => {
 })`
 
 },{}],15:[function(require,module,exports){
+module.exports = `// because, like, marching.js, snare drums, marching, got it?
+
+Marching.lighting.mode = 'directional'
+ 
+let white = Material( Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
+	grey =  Material( Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
+ 	a = .45, b = .25 // for side bands on drum
+ 
+stick = ()=> {
+  return Union(
+    Groove(
+      Cylinder( Vec2(.2,2.5), Vec3(.5,4.5,-.5), grey ),     
+      Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), 1 ),
+      .08
+    ),
+    Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), .175, grey )
+  )
+}
+  
+stickL = Translate(
+  Rotation(
+    stick(),
+    Vec3(0,0,1),
+    Math.PI / 3
+  ),
+  Vec3(-1.5,.25,0)
+)
+ 
+stickR = Translate(
+  Rotation(
+    stick(),
+    Vec3(0,.75,.5),
+    Math.PI / 3
+  ),
+  Vec3(-2.05,.0,-.5)
+)
+ 
+drum = RoundUnion(
+  Union2(
+    ChamferDifference(
+      Cylinder( Vec2(2.25, .45), null, grey ),
+      Cylinder( Vec2(2,.4), null, grey ),
+      .1
+    ),
+    Cylinder( Vec2(2,.3), null, white )
+  ),
+  PolarRepeat(
+    Quad( Vec3(0,-a,-b), Vec3(0,-a,0), Vec3(0,a,b), Vec3(0,a,0), Vec3(0) ),
+    15,
+    2.25
+  ),
+  .05
+)
+ 
+march(
+  r = Rotation(
+    drum,   
+    Vec3(1,1,0),
+    -1
+  ),
+  stickL,
+  stickR
+)
+.background(Vec3(0))
+.shadow(.75)
+.light( Light( Vec3(2,5,8), Vec3(1), .125 ) )
+.render()
+.camera( 0,0,7 )`
+
+},{}],16:[function(require,module,exports){
 module.exports = `
 Marching.lighting.mode = 'directional'
  
@@ -11933,7 +12003,7 @@ callbacks.push( time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = `Marching.lighting.mode = 'global'
  
 m = march(
@@ -11958,7 +12028,7 @@ m = march(
  
 callbacks.push( time => t.point = Vec3( time % 4 ) )`
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -11979,6 +12049,7 @@ const demos = {
   ['twist deformation']: require( './demos/twist.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
+  ['snare and sticks']: require( './demos/snare.js' ),
 }
 
 window.onload = function() {
@@ -12167,4 +12238,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/csg.js":11,"./demos/geometries.js":12,"./demos/intro.js":13,"./demos/pipe.js":14,"./demos/superformula.js":15,"./demos/twist.js":16,"codemirror":8}]},{},[17]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/csg.js":11,"./demos/geometries.js":12,"./demos/intro.js":13,"./demos/pipe.js":14,"./demos/snare.js":15,"./demos/superformula.js":16,"./demos/twist.js":17,"codemirror":8}]},{},[18]);

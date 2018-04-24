@@ -11854,7 +11854,7 @@ march(
 /* __--__--__--__--__--__--__--____
                                    
 select code and hit ctrl+enter to  
-execute. ctrl+h toggles hiding the 
+execute. ctrl+shift+h toggles hiding the 
 code/gui. try the other demos using
 the menu in the upper left corner, 
 or click the ? button for help.    
@@ -12080,7 +12080,7 @@ window.onload = function() {
         console.log( e )
       }
     },
-    'Ctrl-H'() { toggleGUI() },
+    'Shift-Ctrl-H'() { toggleGUI() },
     'Alt-Enter'( cm ) {
       try {
         var selectedCode = getSelectionCodeColumn( cm, true )
@@ -12125,7 +12125,7 @@ window.onload = function() {
     hidden = !hidden
   }
   // have to bind to window for when editor is hidden
-  Mousetrap.bind('ctrl+h', toggleGUI )
+  Mousetrap.bind('ctrl+shift+h', toggleGUI )
 
   delete CodeMirror.keyMap.default[ 'Ctrl-H' ]
 

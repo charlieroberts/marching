@@ -171,6 +171,55 @@ This distance operation creates a smoothly rounded border at the intersection be
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
 **size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects.
 
+SmoothUnion
+---
+This distance operation creates a smoothly transition between two SDFs. 
+
+#### Constructor ####
+**a** &nbsp; *sdf* &nbsp; A signed distance field to be combined.   
+**b** &nbsp; *sdf* &nbsp; A signed distance field to be combined.  
+**c** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. High values can cause relatively large distances between SDFs to be bridged to form a continuous surface.
+
+```js
+// make a peanut by smoothing gap between two spheres.
+march(
+  SmoothUnion(
+    Sphere(1, Vec3(-1,0,0) ),
+    Sphere(1, Vec3(1,0,0) ),
+    1
+  )
+).render()
+```
+SmoothUnion2
+---
+This distance operation creates a smoothly transition between an unlimited number of SDFs. The last parameter passed to the constructor will determine the amount of smoothing used.
+
+#### Constructor ####
+**...sdfs** &nbsp; *sdf* &nbsp; A list of signed distance fields to be combined.   
+**c** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. High values can cause relatively large distances between SDFs to be bridged to form a continuous surface.
+
+```js
+// makie a 3D jumping jack. 
+march(
+  r = Rotation(
+    SmoothUnion2(
+      Sphere(1, Vec3(-2,0,0) ),
+      Sphere(1, Vec3(2,0,0) ),
+      Sphere(1, Vec3(0,0,0) ),
+      Sphere(1, Vec3(0,2,0) ),
+      Sphere(1, Vec3(0,-2,0) ),
+      Sphere(1, Vec3(0,0,-2) ),
+      Sphere(1, Vec3(0,0,2) ),
+      .5 // smoothing value
+    ),
+    Vec3(1)
+  )
+)
+.render(4, true )
+  
+callbacks.push( time => r.angle = time )
+```
+
 StairsDifference
 ----
 This distance operation creates a smoothly rounded border where one geometry is subtracted from another.  
@@ -216,16 +265,34 @@ This distance operation combines two signed distance functions using hard edges.
 **sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
 
+Union2
+----
+Combine an arbitrary number of SDFs. 
 
+#### Constructor ####
+**...sdfs** &nbsp; *object* &nbsp; A comma-separated list of SDFs to combine.
 
+```js
+// the following two SDFs are equivalent:
 
+sdf1 = Union(
+  Sphere( .5 ),
+  Union(
+    Box(),
+    Union(
+      Capsule(),
+      Octahedron()
+    )
+  ) 
+) 
 
-
-
-
-
-
-
+sdf2 = Union2(
+  Sphere(),
+  Box(),
+  Capsule(),
+  Octahedron() 
+)
+```
 
 # Geometries 
 
@@ -391,7 +458,7 @@ This operation repeats a distance field in a circle.
 **count** &nbsp; *int* &nbsp; The number of radial repetitions. 
 **distance** &nbsp; *float* &nbsp; The spacing between radial repetitions. 
 
-Repetition
+Repeat
 ----
 This operation repeats a distance field infinitely across 3D space at a specified rate.
 

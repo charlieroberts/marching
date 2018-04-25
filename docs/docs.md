@@ -449,7 +449,7 @@ At each step of the ray we use the current position of the ray to determine if a
 
 Each of these effects is designed to operate on a distance field, which is typically the first argument passed to constructors; this could also be multiple geometries joined by a union operator, for example. Subsequent constructor parameters / properties determine the nature of the effect being applied.
 
-PolarRepetition
+PolarRepeat
 ----
 This operation repeats a distance field in a circle. 
 

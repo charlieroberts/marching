@@ -41,7 +41,7 @@ body {
 }
 #help {
   position:absolute;
-  top:0; right:0;
+  top:0; right:2em;
   z-index:10
 }
 .panel{
@@ -73,8 +73,17 @@ body {
 
 select {
   position:absolute;
-  right: 3em;
+  right: 8em;
   top:0;
+  z-index:10
+}
+
+img {
+  position:absolute;
+  right: 0em;
+  top:0;
+  width:45px;
+  height:38px;
   z-index:10
 }
 

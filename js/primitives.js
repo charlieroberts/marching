@@ -72,7 +72,15 @@ const createPrimitives = function( SDF ) {
           Object.defineProperty( p, param.name, {
             get() { return __var },
             set(v) {
-              __var.set( v )
+              if( typeof v === 'object' ) {
+                __var.set( v )
+              }else{
+                __var.value.x = v
+                __var.value.y = v
+                __var.value.z = v
+                __var.value.w = v
+                __var.dirty = true
+              }
             }
           })
 
@@ -119,7 +127,7 @@ const createPrimitives = function( SDF ) {
 
       const id = this.material !== undefined ? SDF.materials.materials.indexOf( this.material ) : 0
 
-      const primitive = `        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this, pname )}, ${id} );\n`//${this.color.emit()});\n`
+      const primitive = `        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this, pname )}, ${id} );\n`
 
       SDF.memo[ this.id ] = name + this.id
 

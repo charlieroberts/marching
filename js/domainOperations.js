@@ -7,7 +7,27 @@ const getDomainOps = function( SDF ) {
 
 const Repetition = function( primitive, distance ) {
   const repeat = Object.create( Repetition.prototype )
-  repeat.distance = param_wrap( distance, vec3_var_gen( 1,1,5 ) )
+
+  // XXX make this DRY
+  const __var =  param_wrap( 
+    distance, 
+    param_wrap( distance, vec3_var_gen( 1,1,5 ) )    
+  )
+
+  Object.defineProperty( repeat, 'distance', {
+    get() { return __var },
+    set(v) {
+      if( typeof v === 'object' ) {
+        __var.set( v )
+      }else{
+        __var.value.x = v
+        __var.value.y = v
+        __var.value.z = v
+        __var.dirty = true
+      }
+    }
+  }) 
+
   repeat.sdf = primitive
 
   return repeat 
@@ -66,7 +86,6 @@ PolarRepetition.prototype.emit = function ( name='p' ) {
 
   const sdf = this.sdf.emit( pName )
 
-
   if( typeof sdf.preface === 'string' ) preface += sdf.preface
 
   return { out:sdf.out, preface }
@@ -101,7 +120,14 @@ const Rotation = function( primitive, axis, angle=0 ) {
   Object.defineProperty( rotate, 'axis', {
     get() { return __var },
     set(v) {
-      __var.set( v )
+      if( typeof v === 'object' ) {
+        __var.set( v )
+      }else{
+        __var.value.x = v
+        __var.value.y = v
+        __var.value.z = v
+        __var.dirty = true
+      }
     }
   })
 
@@ -207,7 +233,14 @@ const Translate = function( primitive, amount ) {
   Object.defineProperty( rotate, 'amount', {
     get() { return __var },
     set(v) {
-      __var.set( v )
+      if( typeof v === 'object' ) {
+        __var.set( v )
+      }else{
+        __var.value.x = v
+        __var.value.y = v
+        __var.value.z = v
+        __var.dirty = true
+      }
     }
   })
 
@@ -258,7 +291,14 @@ const Scale = function( primitive,amount ) {
   Object.defineProperty( scale, 'amount', {
     get() { return __var },
     set(v) {
-      __var.set( v )
+      if( typeof v === 'object' ) {
+        __var.set( v )
+      }else{
+        __var.value.x = v
+        __var.value.y = v
+        __var.value.z = v
+        __var.dirty = true
+      }
     }
   })
 

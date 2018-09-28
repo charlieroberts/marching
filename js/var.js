@@ -35,7 +35,11 @@ let Var = function( value, fixedName = null ) {
       z: {
         get() { return this.value.z },
         set(v){ this.value.z = v; this.dirty = true }
-      }
+      },
+      w: {
+        get() { return this.value.w },
+        set(v){ this.value.w = v; this.dirty = true }
+      },
     })
   }/*else{
     let __value = v.value
@@ -102,7 +106,7 @@ Var.prototype = {
 		} else if( v instanceof Vec3 ) {
 			gl.uniform3f(this.loc, v.x, v.y, v.z )
 		} else if( v instanceof Vec4 ) {
-			gl.uniform4f(this.loc, v.x, v.y, v.z, v.w)
+			gl.uniform4f(this.loc, v.x, v.y, v.z, v.w )
     } else {
       // for color variables
       gl.uniform1f( this.loc, v.x )
@@ -122,6 +126,6 @@ function vec2_var_gen(x, y,name=null) { return ()=> Var( Vec2(x, y), name  ) }
 
 function vec3_var_gen(x, y, z,name=null) { return ()=> Var( Vec3(x, y, z), name ) }
 
-function vec4_var_gen(x, y, z, w,name=null) { return Var( Vec4(x, y, z, w ), name ) }
+function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ), name ) }
 
 module.exports = { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }

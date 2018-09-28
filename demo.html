@@ -1,6 +1,6 @@
 <html>
   <head>
-    <script src='./marching/dist/index.js'></script>
+    <script src='./dist/index.js'></script>
     <style>
       canvas { width:100%; height:100% }
       body { margin:0 }
@@ -14,7 +14,11 @@
       Marching.export( window )
       Marching.init( document.querySelector('canvas') )
 
-      march( Marching.Sphere() ).render()  
+      const s = march( Marching.Sphere() ).render()  
+      
+      window.onresize = function() {
+        s.resolution( .5 )
+      }
     }
   </script>
 </html>

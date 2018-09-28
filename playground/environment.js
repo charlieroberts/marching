@@ -14,11 +14,13 @@ const demos = {
   introduction: require( './demos/intro.js' ),
   //['tutorial #1']: require( './demos/tutorial_1.js' ),
   ['the superformula']: require('./demos/superformula.js' ),
-  ['abusing the pipe operator']: require( './demos/pipe.js' ),
-  ['twist deformation']: require( './demos/twist.js' ),
-  ['constructive solid geometry']: require( './demos/csg.js' ),
-  ['geometry catalog']: require( './demos/geometries.js' ),
   ['snare and sticks']: require( './demos/snare.js' ),
+  ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
+  ['julia fractal']: require( './demos/julia.js' ),
+  //['abusing the pipe operator']: require( './demos/pipe.js' ),
+  ['twist deformation']: require( './demos/twist.js' ),
+  //['constructive solid geometry']: require( './demos/csg.js' ),
+  ['geometry catalog']: require( './demos/geometries.js' ),
 }
 
 window.onload = function() {

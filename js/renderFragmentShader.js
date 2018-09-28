@@ -3,9 +3,8 @@ const glsl = require( 'glslify' )
 module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20 ) {
     const fs_source = glsl`     #version 300 es
       precision highp float;
-     
+
       float PI = 3.141592653589793;
-      // Materials should have: color, diffuseColor, specularColor, specularCoefficient, fresnelBias, fresnelPower, fresnelScale
 
       in vec2 v_uv;
 
@@ -52,6 +51,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       #pragma glslify: getNormal = require( 'glsl-sdf-normal', map = scene )
       #pragma glslify: camera = require( 'glsl-camera-ray' )
       #pragma glslify: smin = require( 'glsl-smooth-min' )
+      //#pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
       // OPS
       #pragma glslify: opUnion = require( 'glsl-sdf-ops/union' )
@@ -222,6 +222,8 @@ ${lighting}
 ${preface}
         return ${scene};
       }
+ 
+
 
       out vec4 col;
 
@@ -241,7 +243,7 @@ ${preface}
           vec3 pos = ro + rd * t.x;
           vec3 nor = getNormal( pos );
 
-          color = lighting( pos, nor, ro, rd, t.y ); //;* colorFromInt( t.y );
+          color = lighting( pos, nor, ro, rd, t.y ); 
         }
 
         ${postprocessing}

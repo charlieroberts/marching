@@ -62,6 +62,7 @@ module.exports = {
     glslify:glsl`      #pragma glslify: sdCapsule	= require('glsl-sdf-primitives/sdCapsule')`
 
   },
+
   // XXX No cylinder description
   //` #pragma glslify: sdCylinder	= require('glsl-sdf-primitives/sdCylinder')`
  	HexPrism: {
@@ -75,7 +76,91 @@ module.exports = {
       return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
     glslify:glsl`      #pragma glslify: sdHexPrism	= require('glsl-sdf-primitives/sdHexPrism')`
-  },   
+  },
+
+  Julia: {
+    parameters:[
+      { name:'atime', type:'float', default:0 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
+
+    primitiveString( pName ) { 
+      return `julia( ${pName}, ${this.atime.emit()} )`
+    },
+
+    // https://www.shadertoy.com/view/MsfGRr
+    glslify:glsl`  vec4 qsqr( in vec4 a ) {
+    return vec4( a.x*a.x - a.y*a.y - a.z*a.z - a.w*a.w,
+                 2.0*a.x*a.y,
+                 2.0*a.x*a.z,
+                 2.0*a.x*a.w );
+  }
+
+  float julia( in vec3 p, float atime ){
+    vec4 c = 0.45*cos( vec4(0.5,3.9,1.4,1.1) + atime*vec4(1.2,1.7,1.3,2.5) ) - vec4(0.3,0.0,0.0,0.0);
+    vec4 z = vec4(p,0.);
+    float md2 = 1.0;
+    float mz2 = dot(z,z);
+
+    //vec4 trap = vec4(abs(z.xyz),dot(z,z));
+
+    for( int i=0; i<11; i++ ){
+      md2 *= 4.0*mz2;   
+      // dz -> 2·z·dz, meaning |dz| -> 2·|z|·|dz| (can take the 4 out of the loop and do an exp2() afterwards)
+      z = qsqr(z) + c;  // z  -> z^2 + c
+
+      //trap = min( trap, vec4(abs(z.xyz),dot(z,z)) );
+
+      mz2 = dot(z,z);
+      if(mz2>4.0) break;
+    }
+    
+    //outrap = trap;
+
+    return 0.25*sqrt(mz2/md2)*log(mz2);  // d = 0.5·|z|·log|z| / |dz|
+  }`,
+  },
+
+  Mandelbulb: {
+    parameters:[
+      { name:'a', type:'float', default:8 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
+
+    primitiveString( pName ) { 
+      return `mandelbulb( ${pName}, ${this.a.emit()} )`
+    },
+
+    // adapted from: https://www.shadertoy.com/view/ltfSWn
+    glslify:glsl`      float mandelbulb( in vec3 p, in float aa ){
+        vec3 w = p;
+        float m = dot(w,w);
+
+        vec4 trap = vec4(abs(w),m);
+        float dz = 1.0;
+                
+        for( int i=0; i<4; i++ ) {
+          dz = aa*pow(sqrt(m),aa - 1.)*dz + 1.0;
+
+          float r = length(w);
+          float b = aa*acos( w.y /r);
+          float a = aa*atan( w.x, w.z );
+          w = p + pow(r,aa) * vec3( sin(b)*sin(a), cos(b), sin(b)*cos(a) );
+
+          trap = min( trap, vec4(abs(w),m) );
+
+          m = dot(w,w);
+          if( m > 256.0 ) {
+            break;
+          }
+        }
+
+        return 0.25*log(m)*sqrt(m)/dz;
+      }
+    `,
+  },
 
 	Octahedron: {
     parameters:[
@@ -183,9 +268,8 @@ module.exports = {
 
     return d;
   }    
-`
+` },
 
-  },
   Torus:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1] },

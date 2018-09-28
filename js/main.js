@@ -150,9 +150,7 @@ const SDF = {
     let objs = __scene.objs
     if( objs.length > 1 ) {
       // reduce objects to nested Unions
-      scene.output = objs.reduce( ( current, next ) => {
-        return this.Union( current, next ) 
-      })
+      scene.output = objs.reduce( ( current, next ) => this.Union( current, next ) )
     }else{
       scene.output = objs[0]
     }

@@ -103,21 +103,15 @@ module.exports = {
     float md2 = 1.0;
     float mz2 = dot(z,z);
 
-    //vec4 trap = vec4(abs(z.xyz),dot(z,z));
-
     for( int i=0; i<11; i++ ){
       md2 *= 4.0*mz2;   
       // dz -> 2·z·dz, meaning |dz| -> 2·|z|·|dz| (can take the 4 out of the loop and do an exp2() afterwards)
       z = qsqr(z) + c;  // z  -> z^2 + c
 
-      //trap = min( trap, vec4(abs(z.xyz),dot(z,z)) );
-
       mz2 = dot(z,z);
       if(mz2>4.0) break;
     }
     
-    //outrap = trap;
-
     return 0.25*sqrt(mz2/md2)*log(mz2);  // d = 0.5·|z|·log|z| / |dz|
   }`,
   },

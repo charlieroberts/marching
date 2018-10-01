@@ -5,6 +5,13 @@ const SceneNode = require( './sceneNode.js' ),
 
 const glsl = require( 'glslify' )
 
+const modeConstants = [
+  'global',
+  'normal',
+  'directional',
+  'orenn'
+]
+
 const Lights = function( SDF ) {
 
   const Light = {
@@ -20,8 +27,8 @@ const Lights = function( SDF ) {
 
     defaultMaterials:`
       Material materials[2] = Material[2](
-        Material( vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) ),
-        Material( vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) )
+        Material( 0, vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) ),
+        Material( 0, vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) )
       );
     `,
 
@@ -46,12 +53,46 @@ const Lights = function( SDF ) {
       return str
     },
 
-    mode:'directional',
+    mode:'global',
+
     gen( shadows=8 ) {
-      const str = this.modes[ this.mode ]( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
+      //const str = this.modes[ this.mode ]( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
    
+      const str = this.shell( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
       return str
     },
+
+    modesEmployed:[],
+
+    shell( numlights, lights, materials, shadow=0 ) {
+      const __shadow = shadow > 0
+        ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+        : ''
+
+      let lightingFunctions = ''
+
+
+      let code = glsl`  int MAX_LIGHTS = ${numlights};
+    #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
+
+    ${materials}
+
+    ${lights}
+      vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
+        vec3  outputColor   = vec3( 0. );
+ 
+        // applies to all lights
+        float occlusion = calcAO( surfacePosition, normal );
+
+        Material mat = materials[ int(materialID) ];
+
+        if( mat.mode == 1 ) return normal;
+      }
+      `
+
+      return code
+    }, 
+
     modes:{
       directional( numlights, lights, materials, shadow=0 ) {
         const __shadow = shadow > 0

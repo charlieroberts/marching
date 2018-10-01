@@ -21,6 +21,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       };
 
       struct Material {
+        int  mode;
         vec3 ambient;
         vec3 diffuse;
         vec3 specular;

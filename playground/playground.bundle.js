@@ -12013,7 +12013,7 @@ march(
 module.exports = `
 Marching.lighting.mode = 'directional'
  
-mat1 = Material( Vec3(.05),Vec3(1),Vec3(2), 32, Vec3(2,2,.125) )
+mat1 = Material( 0, Vec3(.05),Vec3(1),Vec3(2), 32, Vec3(2,2,.125) )
  
 march(
   r = Rotation(

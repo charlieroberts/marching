@@ -75,8 +75,6 @@ const __Materials = function( SDF ) {
         const specular = `vec3( ${f(mat.specular.x)}, ${f(mat.specular.y)}, ${f(mat.specular.z)} )`
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
-        console.log( 'mode:', mat.mode )
-
         str += `\n        Material( ${mat.mode}, ${ambient}, ${diffuse}, ${specular}, ${f(mat.shininess)}, ${fresnel} ),` 
       }
       

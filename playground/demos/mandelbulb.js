@@ -1,9 +1,4 @@
-module.exports = `
-
-// The mandelbulb fractal with mouse-driven rotation.
-Marching.lighting.mode = 'directional'
-  
-mat1 = Material( Vec3(.05),Vec3(4,0,2),Vec3(1), 64, Vec3(2,2,.25) )
+module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(4,0,2),Vec3(1), 64, Vec3(2,2,.25) )
  
 march(
   ry = Rotation(

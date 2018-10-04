@@ -1,11 +1,9 @@
-module.exports = `Marching.lighting.mode = 'global'
- 
-m = march(
+module.exports = `m = march(
   Repeat(
     t = Twist(
       Rotation(
         PolarRepeat(
-          Cylinder( Vec2(.1,4.5), Vec3(0,2,0)  ),
+          Cylinder( Vec2(.1,4.5), Vec3(0,2,0), Material(0)  ),
           8,
           .35
         ),

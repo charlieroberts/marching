@@ -1,10 +1,8 @@
-module.exports = `// because, like, marching.js, snare drums, marching, got it?
-
-Marching.lighting.mode = 'directional'
+module.exports = `// because, like, marching.js, snare drums, marching...
  
-let white = Material( Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
-	grey =  Material( Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
- 	a = .45, b = .25 // for side bands on drum
+const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
+      grey =  Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
+      a = .45, b = .25 // for side bands on drum
  
 stick = ()=> {
   return Union(

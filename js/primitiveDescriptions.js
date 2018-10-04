@@ -86,7 +86,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `julia( ${pName}, ${this.atime.emit()} )`
+      return `julia( ${pName} - ${this.center.emit()}, ${this.atime.emit()} )`
     },
 
     // https://www.shadertoy.com/view/MsfGRr
@@ -124,7 +124,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `mandelbulb( ${pName}, ${this.a.emit()} )`
+      return `mandelbulb( ${pName} - ${this.center.emit()}, ${this.a.emit()} )`
     },
 
     // adapted from: https://www.shadertoy.com/view/ltfSWn
@@ -248,7 +248,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `superformula( ${pName}, ${this.m_1.emit()}, ${this.n1_1.emit()},${this.n2_1.emit()},${this.n3_1.emit()},${this.a_1.emit()},${this.b_1.emit()}, ${this.m_2.emit()}, ${this.n1_2.emit()},${this.n2_2.emit()},${this.n3_2.emit()},${this.a_2.emit()},${this.b_2.emit()} )`
+      return `superformula( ${pName} - ${this.center.emit()}, ${this.m_1.emit()}, ${this.n1_1.emit()},${this.n2_1.emit()},${this.n3_1.emit()},${this.a_1.emit()},${this.b_1.emit()}, ${this.m_2.emit()}, ${this.n1_2.emit()},${this.n2_2.emit()},${this.n3_2.emit()},${this.a_2.emit()},${this.b_2.emit()} )`
     },
     glslify:glsl`    #pragma glslify: SuperFormula	= require( 'glsl-superformula' )
  float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {

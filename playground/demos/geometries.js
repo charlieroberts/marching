@@ -1,8 +1,6 @@
-module.exports = `Marching.lighting.mode = 'directional'
+module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
 
-T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
-
-mat1 = Material(v3(.05),v3(1),v3(.5))
+mat1 = Material( 'phong', v3(.05),v3(1),v3(.5))
 // Torus: Vec2 radius(outer,inner), center, material
 torus   = T( R( Torus( v2(.5,.05), v3(0), mat1 ),  v3(1,0,0,), Math.PI / 2 ), v3(-2,1.5,0) )
   
@@ -30,7 +28,6 @@ cone    = Cone( v3(.1, .075, .825) , v3(.5,.3,0), mat1 )
 capsule = T( Capsule( v3( 0, -.45, 0), v3(0,.45,0), .15, mat1 ), v3(2,0,0) )
  
  
- 
 // HexPrism: Vec2 size(radius, depth), center, material
 hexPrism = HexPrism( v2(.6,.45), v3(-2,-1.5,0), mat1 )
  
@@ -45,7 +42,7 @@ octahedron = Octahedron( .65 , v3(2.75,-2.25,0), mat1 )
  
  
  
-mat = Material( v3(0), v3(.1), v3(.25) )
+mat = Material( 'phong', v3(0), v3(.1), v3(.25) )
 // Plane: Vec3 normal, float distance, material
 plane = Plane( v3(0,0,1), 1, mat )
  

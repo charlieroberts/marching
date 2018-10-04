@@ -5,13 +5,6 @@ const SceneNode = require( './sceneNode.js' ),
 
 const glsl = require( 'glslify' )
 
-const modeConstants = [
-  'global',
-  'normal',
-  'directional',
-  'orenn'
-]
-
 const Lights = function( SDF ) {
 
   const Light = {
@@ -58,22 +51,26 @@ const Lights = function( SDF ) {
     gen( shadows=8 ) {
       //const str = this.modes[ this.mode ]( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
    
+      const modeConstants = SDF.materials.modeConstants
       this.modesEmployed.length = 0
 
       let lightingFunctions = []
 
+      // loop through all materials used and add corresponding lighting functions as needed
       for( let mat of SDF.materials.materials ) {
         if( this.modesEmployed.indexOf( mat.mode ) === -1 ) {
-          lightingFunctions.push( this.modes[ modeConstants[ mat.mode ] ]() )  
+          lightingFunctions.push( this.modes[ mat.mode ]() )  
 
           this.modesEmployed.push( mat.mode )
         }
       }
 
-      for( let mode in modeConstants ) {
+      // check all modes to see if they're lighting function has been added to the shader,
+      // if not, add their function stub
+      for( let mode of modeConstants ) {
         // key is iterated as string, must use parseInt
-        if( this.modesEmployed.indexOf( parseInt(mode) ) === -1 ) {
-          lightingFunctions.push( this.defaultFunctionDeclarations[ mode  ] )
+        if( this.modesEmployed.indexOf( mode ) === -1 ) {
+          lightingFunctions.push( this.defaultFunctionDeclarations[ modeConstants.indexOf( mode ) ] )
         }
       }
 
@@ -84,16 +81,15 @@ const Lights = function( SDF ) {
 
     modesEmployed:[],
 
+    // these stubs are placed in the shader by default as placeholders so that they can be referenced in 
+    // a switch statement selecting lighting. They are overridden by actual lighting functions if any
+    // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
       'vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
       'vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
       'vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
       'vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
     ],
-
-    functionDeclarations: {
-
-    },
 
     shell( numlights, lights, materials, shadow=0 ) {
       const __shadow = shadow > 0
@@ -135,7 +131,9 @@ const Lights = function( SDF ) {
     }, 
 
     modes:{
-      global( shadow=8 ) {
+      global() {
+        const shadow = SDF.__scene.__shadow
+
         const str = glsl`
 
         vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {
@@ -169,13 +167,14 @@ const Lights = function( SDF ) {
 
           return brdf;
         }
-        
         `
 
         return str
       },
 
-      directional( numlights, lights, materials, shadow=0 ) {
+      phong( numlights, lights, materials ) {
+        const shadow = SDF.__scene.__shadow
+
         const __shadow = shadow > 0
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
@@ -229,13 +228,13 @@ const Lights = function( SDF ) {
 
           return outputColor;
         }
-        
         `
 
         return str
       }, 
 
-      orenn( numlights, lights, materials, shadow=0 ) {
+      orenn( numlights, lights, materials ) {
+        const shadow = SDF.__scene.__shadow
         const __shadow = shadow > 0
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
@@ -259,9 +258,6 @@ const Lights = function( SDF ) {
 
             vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );
             
-            //vec3 dif2 = col2 * orenND( surfaceToLightDirection, -rayDirection, normal, 0.15, 1.0);
-            //vec3 spc2 = col2 * gauss(dir2, -rd, nor, 0.15);
-
             // get similarity between normal and direction to light
             float diffuseCoefficient = orenND( surfaceToLightDirection, -rayDirection, normal, 0.15, 4.0);
 
@@ -345,14 +341,6 @@ const Lights = function( SDF ) {
       },
 
       normal() { return '' }
-      //normal( numlights, lights, materials ) {
-      //  const str = glsl`vec3 lighting( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {
-      //    return nor;
-      //  }`
-
-      //  return str
-
-      //},
     },
   }
 

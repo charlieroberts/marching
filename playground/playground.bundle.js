@@ -11791,11 +11791,9 @@ this._directMap={};return this};e.prototype.stopCallback=function(a,b){return-1<
 arguments)}}(b))};e.init();p.Mousetrap=e;"undefined"!==typeof module&&module.exports&&(module.exports=e);"function"===typeof define&&define.amd&&define(function(){return e})}})("undefined"!==typeof window?window:null,"undefined"!==typeof window?document:null);
 
 },{}],11:[function(require,module,exports){
-module.exports = `Marching.lighting.mode = 'directional'
+module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
 
-T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
-
-mat1 = Material(v3(.05),v3(1),v3(.5))
+mat1 = Material( 'phong', v3(.05),v3(1),v3(.5))
 // Torus: Vec2 radius(outer,inner), center, material
 torus   = T( R( Torus( v2(.5,.05), v3(0), mat1 ),  v3(1,0,0,), Math.PI / 2 ), v3(-2,1.5,0) )
   
@@ -11823,7 +11821,6 @@ cone    = Cone( v3(.1, .075, .825) , v3(.5,.3,0), mat1 )
 capsule = T( Capsule( v3( 0, -.45, 0), v3(0,.45,0), .15, mat1 ), v3(2,0,0) )
  
  
- 
 // HexPrism: Vec2 size(radius, depth), center, material
 hexPrism = HexPrism( v2(.6,.45), v3(-2,-1.5,0), mat1 )
  
@@ -11838,7 +11835,7 @@ octahedron = Octahedron( .65 , v3(2.75,-2.25,0), mat1 )
  
  
  
-mat = Material( v3(0), v3(.1), v3(.25) )
+mat = Material( 'phong', v3(0), v3(.1), v3(.25) )
 // Plane: Vec3 normal, float distance, material
 plane = Plane( v3(0,0,1), 1, mat )
  
@@ -11856,7 +11853,7 @@ march(
 .camera( 0,0, 6 )`
 
 },{}],12:[function(require,module,exports){
-module.exports = `Marching.lighting.mode = 'global'
+module.exports = `Marching.materials.default = 'global'
 
 march(
   Intersection(
@@ -11886,25 +11883,18 @@ or click the ? button for help.
 ** __--__--__--__--__--__--__--__*/`
 
 },{}],13:[function(require,module,exports){
-module.exports = `Marching.lighting.mode = 'global'
-
-march(
+module.exports = `march(
   Julia( 1.45 ),
   Plane( Vec3(0,1,0), .75 )
 )
 .light( Light( Vec3(0,3,3), Vec3(1) ) )
 .background( Vec3(0) )
 .fog( .25, Vec3(0,0,0) )
-.render( 10 )
+.render()
 .camera( 0,0,2.25 )`
 
 },{}],14:[function(require,module,exports){
-module.exports = `
-
-// The mandelbulb fractal with mouse-driven rotation.
-Marching.lighting.mode = 'directional'
-  
-mat1 = Material( Vec3(.05),Vec3(4,0,2),Vec3(1), 64, Vec3(2,2,.25) )
+module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(4,0,2),Vec3(1), 64, Vec3(2,2,.25) )
  
 march(
   ry = Rotation(
@@ -11940,13 +11930,11 @@ callbacks[1] = time => {
 }`
 
 },{}],15:[function(require,module,exports){
-module.exports = `// because, like, marching.js, snare drums, marching, got it?
-
-Marching.lighting.mode = 'directional'
+module.exports = `// because, like, marching.js, snare drums, marching...
  
-let white = Material( Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
-	grey =  Material( Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
- 	a = .45, b = .25 // for side bands on drum
+const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
+      grey =  Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
+      a = .45, b = .25 // for side bands on drum
  
 stick = ()=> {
   return Union(
@@ -12010,37 +11998,38 @@ march(
 .camera( 0,0,7 )`
 
 },{}],16:[function(require,module,exports){
-module.exports = `
-Marching.lighting.mode = 'directional'
+module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
  
-mat1 = Material( 0, Vec3(.05),Vec3(1),Vec3(2), 32, Vec3(2,2,.125) )
- 
-march(
+m = march(
   r = Rotation(
-      
+ 
     // a 3D superformula essentially two 2D supershapes,
     // first six coefficients govern one, second
     // six coefficients govern the other. In this example
-    // the two supershapes are the same. 
-        
+    // the two supershapes are the same.
+ 
     s = SuperFormula(
       1, 1, 16, 1, 1, 1,
       1, 1, 16, 1, 1, 1,
-      Vec3(0),
+      Vec3(0,.35,0),
       mat1
     ),
-    Vec3(1,1,1)
-  )
+    Vec3(0,.5,0)
+  ),
+  Plane( Vec3(0,1,0), 1, Material('phong', Vec3(.15), Vec3(1) ) )
 )
-.light( Light( Vec3(0,0,5), Vec3(1,1,2), .12 ) )
-.fog( .5, Vec3(0) )
-.shadow( 0 )
-.background( Vec3(0) )
+.light( 
+  Light( Vec3(0,5,0), Vec3(1,1,2), .25 ),
+  Light( Vec3(3,3,0), Vec3(0,0,1), .5 )
+)
+.fog( .25, Vec3(1) )
+.shadow(8)
+.background( Vec3(1) )
 .render( 2, true )
-.camera( 2,0,3 )
+.camera( 0,0,4 )
  
 callbacks.push( time => {
-  t = 15
+  t = 12
   s.n1_1 = Math.PI + Math.sin( time )
   s.n1_2 = Math.PI + Math.cos( time )
   s.m_1 = Math.sin( time / 2 ) * t
@@ -12051,14 +12040,12 @@ callbacks.push( time => {
 // thanks to https://github.com/Softwave/glsl-superformula`
 
 },{}],17:[function(require,module,exports){
-module.exports = `Marching.lighting.mode = 'global'
- 
-m = march(
+module.exports = `m = march(
   Repeat(
     t = Twist(
       Rotation(
         PolarRepeat(
-          Cylinder( Vec2(.1,4.5), Vec3(0,2,0)  ),
+          Cylinder( Vec2(.1,4.5), Vec3(0,2,0), Material(0)  ),
           8,
           .35
         ),

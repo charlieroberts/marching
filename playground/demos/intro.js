@@ -1,4 +1,4 @@
-module.exports = `Marching.lighting.mode = 'global'
+module.exports = `Marching.materials.default = 'global'
 
 march(
   Intersection(

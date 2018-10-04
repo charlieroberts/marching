@@ -29,6 +29,8 @@ const getScene = function( SDF ) {
 
     scene.useQuality = true
 
+    SDF.__scene = scene
+
     return scene
   }
 

@@ -47,6 +47,14 @@ const __Materials = function( SDF ) {
         float shininess;
         Fresnel fresnel;
         };  */
+    modeConstants : [
+      'global',
+      'normal',
+      'phong',
+      'orenn'
+    ],
+
+    default: 'global',
 
     defaultMaterials:`
       Material materials[2] = Material[2](
@@ -55,7 +63,14 @@ const __Materials = function( SDF ) {
       );
     `,
 
-    material( mode=0, ambient=Vec3(.05), diffuse=Vec3(0,0,1), specular=Vec3(1,1,1), shininess=8, fresnel=Vec3(0,1,2) ){
+    material( mode='global', ambient=Vec3(.05), diffuse=Vec3(0,0,1), specular=Vec3(1,1,1), shininess=8, fresnel=Vec3(0,1,2) ){
+      let modeIdx = Materials.modeConstants.indexOf( mode )
+      if( modeIdx === -1 ) {
+        console.warn( `There is no material type named ${mode}. Using the default material, ${Materials.default}, instead.` )
+        mode = Materials.default
+        modeIdx = Materials.modeConstants.indexOf( mode )
+      }
+
       const mat = { mode, ambient, diffuse, specular, shininess, fresnel, id:MaterialID.alloc() }
       Materials.materials.push( mat )
       
@@ -75,7 +90,7 @@ const __Materials = function( SDF ) {
         const specular = `vec3( ${f(mat.specular.x)}, ${f(mat.specular.y)}, ${f(mat.specular.z)} )`
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
-        str += `\n        Material( ${mat.mode}, ${ambient}, ${diffuse}, ${specular}, ${f(mat.shininess)}, ${fresnel} ),` 
+        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${ambient}, ${diffuse}, ${specular}, ${f(mat.shininess)}, ${fresnel} ),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma
@@ -89,15 +104,15 @@ const __Materials = function( SDF ) {
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
 
   Object.assign( Materials.material, {
-    green : Materials.material( 0, Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
-    red   : Materials.material( 0, Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
-    blue  : Materials.material( 0, Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
-    cyan  : Materials.material( 0, Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
-    magenta  : Materials.material( 0, Vec3(.25,0,.25), Vec3(1,0,1), Vec3(0), 2, Vec3(0) ),
-    yellow : Materials.material( 0, Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
-    black : Materials.material( 0, Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
-    white: Materials.material( 0, Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
-    grey : Materials.material( 0, Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) )
+    green : Materials.material( 'global', Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
+    red   : Materials.material( 'global', Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
+    blue  : Materials.material( 'global', Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
+    cyan  : Materials.material( 'global', Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
+    magenta  : Materials.material( 'global', Vec3(.25,0,.25), Vec3(1,0,1), Vec3(0), 2, Vec3(0) ),
+    yellow : Materials.material( 'global', Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
+    black : Materials.material( 'global', Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
+    white: Materials.material( 'global', Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
+    grey : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) )
   })
 
   return Materials

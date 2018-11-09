@@ -725,13 +725,13 @@ const Scale = function( primitive,amount ) {
   return scale 
 }
 
-//return primitive(p/s)*s;
 Scale.prototype.emit = function ( name='p' ) {
-  const pId = 'scalar'+this.matId
+  const pId = 'scale'+this.matId
+  const pname = name+pId
 
-  let preface =`  vec3 ${pId} = p/${this.amount.emit()};\n `
+  let preface =`  vec3 ${pname} = ${name}/${this.amount.emit()};\n `
 
-  const primitive = this.primitive.emit( pId )
+  const primitive = this.primitive.emit( pname )
   let out = primitive.out + ' * ' + this.amount.emit()
 
   if( typeof primitive.preface === 'string' )

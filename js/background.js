@@ -8,7 +8,7 @@ const BG = function( Scene, SDF ) {
     if( SDF.memo.background === undefined ) {
       const bg = Object.create( Background.prototype )
 
-      const __color = param_wrap( color, vec3_var_gen( .5,.6,.7, 'bg' ), 'bg' )  
+      const __color = param_wrap( color, vec3_var_gen( 0,0,0, 'bg' ), 'bg' )  
       
       Object.defineProperty( bg, 'color', {
         get() { return __color },

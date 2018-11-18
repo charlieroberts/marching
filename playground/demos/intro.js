@@ -1,28 +1,33 @@
-module.exports = `Marching.materials.default = 'global'
-
+module.exports = `repeatedSpheres = Repeat( 
+  Sphere( .14 ), 
+  Vec3( .25 ) 
+)
+ 
 march(
   Intersection(
-    Sphere(3),
-    Repeat( 
-      Sphere( .25 ), 
-      Vec3( .5 ) 
-    )
+    Sphere(2),
+	repeatedSpheres
   )
 )
-.light( 
-  Light( Vec3(0), Vec3(4,0,0) )
-)
-.background( Vec3(0) )
+.light( Light( Vec3(0), Vec3(2) ) )
 .render()
-.camera( 0,0,7 )
-
 
 /* __--__--__--__--__--__--__--____
                                    
 select code and hit ctrl+enter to  
-execute. ctrl+shift+h toggles hiding the 
-code/gui. try the other demos using
-the menu in the upper left corner, 
-or click the ? button for help.    
+execute. ctrl+shift+h toggles hiding
+the code/gui. try the other demos  
+using the menu in the upper left    
+corner. when you're ready to start 
+coding go through the tutorials     
+found in the same menu. Click on   
+the ? button for a reference.       
+                                   
+For a nice intro on ray marching and
+signed distance functions, which are
+the techniques used by marching.js,
+see:                                
+                                   
+https://bit.ly/2qRMrpe              
                                    
 ** __--__--__--__--__--__--__--__*/`

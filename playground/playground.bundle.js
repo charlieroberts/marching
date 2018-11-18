@@ -11853,32 +11853,37 @@ march(
 .camera( 0,0, 6 )`
 
 },{}],12:[function(require,module,exports){
-module.exports = `Marching.materials.default = 'global'
-
+module.exports = `repeatedSpheres = Repeat( 
+  Sphere( .14 ), 
+  Vec3( .25 ) 
+)
+ 
 march(
   Intersection(
-    Sphere(3),
-    Repeat( 
-      Sphere( .25 ), 
-      Vec3( .5 ) 
-    )
+    Sphere(2),
+	repeatedSpheres
   )
 )
-.light( 
-  Light( Vec3(0), Vec3(4,0,0) )
-)
-.background( Vec3(0) )
+.light( Light( Vec3(0), Vec3(2) ) )
 .render()
-.camera( 0,0,7 )
-
 
 /* __--__--__--__--__--__--__--____
                                    
 select code and hit ctrl+enter to  
-execute. ctrl+shift+h toggles hiding the 
-code/gui. try the other demos using
-the menu in the upper left corner, 
-or click the ? button for help.    
+execute. ctrl+shift+h toggles hiding
+the code/gui. try the other demos  
+using the menu in the upper left    
+corner. when you're ready to start 
+coding go through the tutorials     
+found in the same menu. Click on   
+the ? button for a reference.       
+                                   
+For a nice intro on ray marching and
+signed distance functions, which are
+the techniques used by marching.js,
+see:                                
+                                   
+https://bit.ly/2qRMrpe              
                                    
 ** __--__--__--__--__--__--__--__*/`
 
@@ -12040,14 +12045,196 @@ callbacks.push( time => {
 // thanks to https://github.com/Softwave/glsl-superformula`
 
 },{}],17:[function(require,module,exports){
-module.exports = `m = march(
+module.exports = `/* __--__--__--__--__--__--__--__--
+                                    
+let's start by making a simple     
+scene with one sphere.  highlight   
+the lines below and hit ctrl+enter 
+to run them. make sure not to high- 
+light these instructions. you can  
+also hit alt+enter (option in macOS)
+to run an entire block at once. use
+ctrl+. (period) to clear graphics.  
+                                   
+** __--__--__--__--__--__--__--__*/
+
+sphere1 = Sphere()
+ 
+march( sphere1 )
+  .render( 2, true )
+
+/* __--__--__--__--__--__--__--__--
+                                    
+the march() method accepts an array
+of objects that can be geometric    
+primitives or transformations. we  
+can now change the radius of our    
+sphere:                            
+                                    
+** __--__--__--__--__--__--__--__*/
+
+sphere1.radius = 1.25
+
+/* __--__--__--__--__--__--__--__--
+                                    
+or its center point...note that the
+center point is a three-item vector 
+(for x,y, and z position), whereas 
+radius was a single float.          
+                                   
+** __--__--__--__--__--__--__--__*/
+
+sphere1.center.x = .5
+sphere1.center.y = -.5
+
+/* __--__--__--__--__--__--__--__--
+                                    
+note that we can only make these   
+changes after the initial render if 
+a value of true is passed to our   
+render function as its second       
+parameter. Depending on the        
+computer you use, you probably will 
+want to turn the resolution down   
+(the first arg) when animating the  
+scene. If no value or a value of   
+false is passed as the second       
+argument, marching.js will create a
+static image at maximum quality.   
+                                    
+we can also register a callback to 
+change properties over time. these  
+run once per video frame, and are  
+passed the current time. here we'll 
+use the time to change the sphere's
+position.                           
+                                   
+** __--__--__--__--__--__--__--__*/
+
+callbacks.push( time => {
+  sphere1.center.z = -10 + Math.sin( time ) * 10
+  sphere1.center.x = Math.sin( time * 2.5 ) * 4
+})
+
+/* __--__--__--__--__--__--__--__--
+                                    
+this library uses signed distance  
+functions (SDFs) to render geometry 
+and perform transformations. You   
+can do fun stuff with SDFs. Below   
+we'll render a box, but subtract a 
+sphere from its center.             
+                                   
+** __--__--__--__--__--__--__--__*/
+
+march( 
+  Difference( 
+    Sphere(1.35), Box() 
+  )
+)
+.render()
+
+/* __--__--__--__--__--__--__--__--
+                                    
+we can animate this as well. we'll 
+turn down the quality first...      
+try turning it back up and see if  
+your computer can handle it.        
+                                   
+** __--__--__--__--__--__--__--__*/
+
+sphere1 = Sphere( 1.35 )
+box1 = Box()
+ 
+march(
+  Difference( sphere1, box1 )
+)
+.render( 2, true )
+ 
+callbacks.push( time => 
+  sphere1.radius = 1.25 + Math.sin( time ) * .1 
+)
+
+/* __--__--__--__--__--__--__--__--
+                                    
+One fun transform we can do is to  
+repeat a shape throughout our scene,
+We can define how coarse/fine these
+repetitions are.                    
+                                   
+** __--__--__--__--__--__--__--__*/
+
+march(  
+  Repeat( 
+    Sphere( .25 ),
+    Vec3( 1 )
+  ) 
+) 
+.render()
+
+/* __--__--__--__--__--__--__--__--
+                                    
+The vector we pass as the second   
+argument to repeat determines the   
+spacing; higher numbers yield fewer
+repeats. What if we want to take two
+shapes and repeat them? In order to
+do that we need to create a union.  
+                                   
+** __--__--__--__--__--__--__--__*/
+
+sphere1 = Sphere( .35 )
+box1 = Box( Vec3( .35 ) ) 
+sphereBox = SmoothUnion( sphere1, box1, .9 )
+ 
+march(  
+  Repeat( sphereBox, Vec3( 2,2,2 ) )
+) 
+.render( 3, true )
+ 
+callbacks.push( time => sphere1.radius = Math.sin( time ) * .75 )
+
+/* __--__--__--__--__--__--__--__--
+                                    
+Hopefully your computer can handle 
+that, but if not, you can always    
+lower the resolution further or    
+shrink your browser window. Lowering
+your monitor resolution while doing
+realtime experiments or performances
+will also help (especially with    
+hidpi or "retina" displays). in     
+addition to improving efficiency,  
+we can also change the performance  
+of our raymarcher to get fun glitch
+effects.                            
+                                   
+** __--__--__--__--__--__--__--__*/
+
+march(  
+  Sphere( Noise() )
+)
+// halve the resolution
+.resolution(.5)
+// only take one sample per ray
+.steps(1)
+// how far do our rays go?
+.farPlane(10)
+// ignore quality parameter in favor
+// of the other settings we've defined
+// and animate
+.render(null, true)
+`
+
+},{}],18:[function(require,module,exports){
+module.exports =`m = march(
   Repeat(
     t = Twist(
       Rotation(
         PolarRepeat(
-          Cylinder( Vec2(.1,4.5), Vec3(0,2,0), Material(0)  ),
-          8,
-          .35
+          Cylinder( Vec2(.05,4.5), Vec3(0,2,0) ),
+          5,
+          .25
         ),
         Vec3(1,0,0),
         Math.PI / 2
@@ -12057,12 +12244,13 @@ module.exports = `m = march(
     Vec3(2,0,0)
   )
 )
+.background( Vec3(.5,.6,.7) )
 .render(3, true )
-.camera( 0, 5, 3 )
+.camera( 0, 4.5, 3.5 )
  
 callbacks.push( time => t.point = Vec3( time % 4 ) )`
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12086,6 +12274,10 @@ const demos = {
   ['twist deformation']: require( './demos/twist.js' ),
   //['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
+}
+
+const tutorials = {
+  ['start here']: require( './demos/tutorial_1.js' ),
 }
 
 window.onload = function() {
@@ -12152,10 +12344,12 @@ window.onload = function() {
       cm.getWrapperElement().style.display = 'none'
       document.querySelector('select').style.display = 'none'
       document.querySelector('button').style.display = 'none'
+      document.querySelector('img').style.display = 'none'
     }else{
       cm.getWrapperElement().style.display = 'block'
       document.querySelector('select').style.display = 'block'
       document.querySelector('button').style.display = 'block'
+      document.querySelector('img').style.display = 'block'
     }
 
     hidden = !hidden
@@ -12177,21 +12371,41 @@ window.onload = function() {
   })
   cm.setOption('fullScreen', true )
 
-    const sel = document.querySelector('select')
-  for( let key in demos ) {
-    const demoCode = demos[ key ]
+  const sel = document.querySelector('select')
+  const demoGroup = document.createElement('optgroup')
+  demoGroup.setAttribute( 'label', '----- demos -----' )
+  const tutorialGroup = document.createElement('optgroup')
+  tutorialGroup.setAttribute( 'label', '----- tutorials -----' )
 
+  for( let key in demos ) {
     const opt = document.createElement( 'option' )
     opt.innerText = key
 
-    sel.appendChild( opt )
+    demoGroup.appendChild( opt )
   }
-  
-  sel.onchange = e => {
+  sel.appendChild( demoGroup )
 
+  for( let key in tutorials ) {
+    const opt = document.createElement( 'option' )
+    opt.innerText = key
+
+    tutorialGroup.appendChild( opt )
+  }
+  sel.appendChild( tutorialGroup )
+
+
+  sel.onchange = e => {
+    let isDemo = true
     code = demos[ e.target.selectedOptions[0].innerText ]
+    if( code === undefined ) {
+      isDemo = false
+      code = tutorials[ e.target.selectedOptions[0].innerText ]
+    }
+
     SDF.clear()
-    eval( code )
+    if( isDemo === true ) {
+      eval( code )
+    }
 
     //switch( e.target.selectedOptions[0].innerText ) {
     //  case 'tutorial':
@@ -12274,4 +12488,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/geometries.js":11,"./demos/intro.js":12,"./demos/julia.js":13,"./demos/mandelbulb.js":14,"./demos/snare.js":15,"./demos/superformula.js":16,"./demos/twist.js":17,"codemirror":8}]},{},[18]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/geometries.js":11,"./demos/intro.js":12,"./demos/julia.js":13,"./demos/mandelbulb.js":14,"./demos/snare.js":15,"./demos/superformula.js":16,"./demos/tutorial_1.js":17,"./demos/twist.js":18,"codemirror":8}]},{},[19]);

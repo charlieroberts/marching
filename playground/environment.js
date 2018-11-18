@@ -23,6 +23,10 @@ const demos = {
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
 
+const tutorials = {
+  ['start here']: require( './demos/tutorial_1.js' ),
+}
+
 window.onload = function() {
   const ta = document.querySelector( '#cm' )
 
@@ -87,10 +91,12 @@ window.onload = function() {
       cm.getWrapperElement().style.display = 'none'
       document.querySelector('select').style.display = 'none'
       document.querySelector('button').style.display = 'none'
+      document.querySelector('img').style.display = 'none'
     }else{
       cm.getWrapperElement().style.display = 'block'
       document.querySelector('select').style.display = 'block'
       document.querySelector('button').style.display = 'block'
+      document.querySelector('img').style.display = 'block'
     }
 
     hidden = !hidden
@@ -112,21 +118,41 @@ window.onload = function() {
   })
   cm.setOption('fullScreen', true )
 
-    const sel = document.querySelector('select')
-  for( let key in demos ) {
-    const demoCode = demos[ key ]
+  const sel = document.querySelector('select')
+  const demoGroup = document.createElement('optgroup')
+  demoGroup.setAttribute( 'label', '----- demos -----' )
+  const tutorialGroup = document.createElement('optgroup')
+  tutorialGroup.setAttribute( 'label', '----- tutorials -----' )
 
+  for( let key in demos ) {
     const opt = document.createElement( 'option' )
     opt.innerText = key
 
-    sel.appendChild( opt )
+    demoGroup.appendChild( opt )
   }
-  
-  sel.onchange = e => {
+  sel.appendChild( demoGroup )
 
+  for( let key in tutorials ) {
+    const opt = document.createElement( 'option' )
+    opt.innerText = key
+
+    tutorialGroup.appendChild( opt )
+  }
+  sel.appendChild( tutorialGroup )
+
+
+  sel.onchange = e => {
+    let isDemo = true
     code = demos[ e.target.selectedOptions[0].innerText ]
+    if( code === undefined ) {
+      isDemo = false
+      code = tutorials[ e.target.selectedOptions[0].innerText ]
+    }
+
     SDF.clear()
-    eval( code )
+    if( isDemo === true ) {
+      eval( code )
+    }
 
     //switch( e.target.selectedOptions[0].innerText ) {
     //  case 'tutorial':

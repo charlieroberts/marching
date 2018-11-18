@@ -4,15 +4,17 @@ let's start by making a simple
 scene with one sphere.  highlight   
 the lines below and hit ctrl+enter 
 to run them. make sure not to high- 
-light these instructions or the    
-fancy borders :)                    
+light these instructions. you can  
+also hit alt+enter (option in macOS)
+to run an entire block at once. use
+ctrl+. (period) to clear graphics.  
                                    
 ** __--__--__--__--__--__--__--__*/
 
 sphere1 = Sphere()
  
 march( sphere1 )
-  .render( 3, true )
+  .render( 2, true )
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -48,7 +50,10 @@ parameter. Depending on the
 computer you use, you probably will 
 want to turn the resolution down   
 (the first arg) when animating the  
-scene.                             
+scene. If no value or a value of   
+false is passed as the second       
+argument, marching.js will create a
+static image at maximum quality.   
                                     
 we can also register a callback to 
 change properties over time. these  
@@ -70,14 +75,13 @@ this library uses signed distance
 functions (SDFs) to render geometry 
 and perform transformations. You   
 can do fun stuff with SDFs. Below   
-we'll render a box, but substract  
-(I know, the spelling, right?) a    
-sphere from its center.            
-                                    
+we'll render a box, but subtract a 
+sphere from its center.             
+                                   
 ** __--__--__--__--__--__--__--__*/
 
 march( 
-  Substraction( 
+  Difference( 
     Sphere(1.35), Box() 
   )
 )
@@ -96,9 +100,9 @@ sphere1 = Sphere( 1.35 )
 box1 = Box()
  
 march(
-  Substraction( sphere1, box1 )
+  Difference( sphere1, box1 )
 )
-.render( 3, true )
+.render( 2, true )
  
 callbacks.push( time => 
   sphere1.radius = 1.25 + Math.sin( time ) * .1 
@@ -148,7 +152,11 @@ callbacks.push( time => sphere1.radius = Math.sin( time ) * .75 )
 Hopefully your computer can handle 
 that, but if not, you can always    
 lower the resolution further or    
-shrink your browser window. In      
+shrink your browser window. Lowering
+your monitor resolution while doing
+realtime experiments or performances
+will also help (especially with    
+hidpi or "retina" displays). in     
 addition to improving efficiency,  
 we can also change the performance  
 of our raymarcher to get fun glitch
@@ -158,9 +166,15 @@ effects.
 
 march(  
   Sphere( Noise() )
-) 
+)
+// halve the resolution
 .resolution(.5)
+// only take one sample per ray
 .steps(1)
+// how far do our rays go?
 .farPlane(10)
-.threshold(.1)
-.render(null, true)`
+// ignore quality parameter in favor
+// of the other settings we've defined
+// and animate
+.render(null, true)
+`

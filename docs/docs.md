@@ -60,7 +60,7 @@ This will move and the camera used by the scene. Currently the camera always is 
 ### scene.fog ###
 This recreates the class OpenGL 'fog' effect, which adds fog color to objects as they get further from the camera, making them gradually vanish.
 
-**strength** &nbsp; *float* &nbsp; Default = 0. The strength of the fog effect. 
+**strength** &nbsp; *float* &nbsp; Default = 0. The strength of the fog effect.  
 **color** &nbsp; *Vec3* &nbsp; Default = {0,0,0}. The color of the fog effect. 
 
 ### scene.light ###
@@ -71,7 +71,7 @@ In conjunction with the `Marching.lighting.mode` property and various `Material`
 ### scene.render ###
 The render method renders its scene to the screen or to a vertex-based geometry.
 
-**qualtiy** &nbsp; *int* &nbsp; Default = 10. This value determines many aspects of how the scene renders, including the maximum number of steps for each ray, the maximum length each ray will travel, and the resolution of the final image in full scene renders. Lower values are useful for scenes that will be animated, while higher values are useful for screenshots and experimentation. 
+**quality** &nbsp; *int* &nbsp; Default = 10. This value determines many aspects of how the scene renders, including the maximum number of steps for each ray, the maximum length each ray will travel, and the resolution of the final image in full scene renders. Lower values are useful for scenes that will be animated, while higher values are useful for screenshots and experimentation. 
 
 ### scene.shadow ###
 Adds shadows to the scene.
@@ -227,7 +227,7 @@ This distance operation creates a smoothly rounded border where one geometry is 
 #### Constructor ####
 **sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**radius** &nbsp; *float* &nbsp; Default = .3; The radius of the stepped border to be generated between the objects.
+**radius** &nbsp; *float* &nbsp; Default = .3; The radius of the stepped border to be generated between the objects. 
 **number** &nbsp; *float* &nbsp; Default = 4; The number of steps along the border to be generated 
 
 StairsIntersection
@@ -237,7 +237,7 @@ This distance operation creates a smoothly rounded border around the intersectio
 #### Constructor ####
 **sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The size of the rounded border to be generated between the objects.
+**size** &nbsp; *float* &nbsp; Default = .3; The size of the rounded border to be generated between the objects. 
 
 StairsUnion
 ----
@@ -246,7 +246,7 @@ This distance operation creates a smoothly rounded border at the intersection be
 #### Constructor ####
 **sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects.
+**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. 
 
 Tongue
 ----
@@ -255,7 +255,7 @@ This takes the intersection of two SDFs and includes a raised, non-angled, borde
 #### Constructor ####
 **sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**angle** &nbsp; *float* &nbsp; The depth of the border.
+**angle** &nbsp; *float* &nbsp; The depth of the border. 
 
 Union
 ----
@@ -311,9 +311,9 @@ Capsule
 ----
 
 #### Constructor/Properties ####
-**start** &nbsp; *[Vec3](#other-vec3)* &nbsp; The starting coordinates (x,y,z) of the capsule. 
-**end** &nbsp; *[Vec3](#other-vec3)* &nbsp; The ending coordinates (x,y,z) of the capsule 
-**radius** &nbsp; *float* &nbsp; The radius of the capsule. 
+**start** &nbsp; *[Vec3](#other-vec3)* &nbsp; The starting coordinates (x,y,z) of the capsule.  
+**end** &nbsp; *[Vec3](#other-vec3)* &nbsp; The ending coordinates (x,y,z) of the capsule.  
+**radius** &nbsp; *float* &nbsp; The radius of the capsule.  
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
@@ -321,15 +321,15 @@ Cone
 ----
 
 #### Constructor/Properties ####
-**dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; Dimensions of the cone.
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
+**dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; Dimensions of the cone.   
+**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.   
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
 Cylinder
 ----
 
 #### Constructor/Properties ####
-**dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the cylinder (radius, length).
+**dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the cylinder (radius, length). 
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
@@ -337,7 +337,7 @@ HexPrism
 ----
 
 #### Constructor/Properties ####
-**dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the prism (radius, length).
+**dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the prism (radius, length). 
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
@@ -345,7 +345,7 @@ Octahedron
 ----
 
 #### Constructor/Properties ####
-**size** &nbsp; *float* &nbsp; The size of the octahedron (think spherical radius).
+**size** &nbsp; *float* &nbsp; The size of the octahedron (think spherical radius). 
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
@@ -355,8 +355,8 @@ Plane
 A flat plane that extends infinitely perpendicular to its normal.
 
 #### Constructor/Properties ####
-**normal** &nbsp; *[Vec3](#other-vec3)* &nbsp; The angle, along all three axes, that the plane faces. 
-**distance** &nbsp; *float* &nbsp; Distance from the origin along the normal axis. 
+**normal** &nbsp; *[Vec3](#other-vec3)* &nbsp; The angle, along all three axes, that the plane faces.   
+**distance** &nbsp; *float* &nbsp; Distance from the origin along the normal axis.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Quad
@@ -379,7 +379,7 @@ A box with rounded corners.
 
 #### Constructor/Properties ####
 **size** &nbsp; *[Vec3](#other-vec3)* &nbsp; The size of the box on the x,y, and z axes. Defaults to 1,1,1 (cube).  
-**radius** &nbsp; *float* &nbsp; The amount of rounding applied to the corners of the box. 
+**radius** &nbsp; *float* &nbsp; The amount of rounding applied to the corners of the box.  
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
@@ -387,7 +387,7 @@ Sphere
 ----
 
 #### Constructor/Properties ####
-**radius** &nbsp; *float* &nbsp; The radius of the sphere. 
+**radius** &nbsp; *float* &nbsp; The radius of the sphere.  
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
@@ -397,7 +397,7 @@ Torus
 By default, this geometry lies flat along the z-plane; you need to rotate it with a [Rotation](#domain-operations-rotation) to see the ring, or move the camera position on the y-axis.
 
 #### Constructor/Properties ####
-**radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the tubular radis on the y-axis. 
+**radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the tubular radis on the y-axis.   
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
@@ -407,7 +407,7 @@ Torus88
 A "squared" torus that is not tubular; the second member of the `radii` property effectively determines height. By default, this geometry lies flat along the z-plane; you need to rotate it with a [Rotation](#domain-operations-rotation) to see the ring, or move the camera position on the y-axis.
 
 #### Constructor/Properties ####
-**radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the height on the y-axis. 
+**radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the height on the y-axis.   
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object. 
 
@@ -417,9 +417,9 @@ Torus82
 A circular torus that is not tubular; the second member of the `radii` property effectively determines height. By default, this geometry lies flat along the z-plane; you need to rotate it with a [Rotation](#domain-operations-rotation) to see the ring, or move the camera position on the y-axis.
 
 #### Constructor/Properties ####
-**radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the height on the y-axis. 
+**radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the height on the y-axis.   
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object. 
+**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Triangle
 ----
@@ -437,8 +437,8 @@ TriPrism
 ----
 
 #### Constructor/Properties ####
-**dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; The radius and depth of the prism. 
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
+**dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; The radius and depth of the prism.   
+**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.   
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 # Domain Operations 
@@ -454,9 +454,9 @@ PolarRepeat
 This operation repeats a distance field in a circle. 
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.
-**count** &nbsp; *int* &nbsp; The number of radial repetitions. 
-**distance** &nbsp; *float* &nbsp; The spacing between radial repetitions. 
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.  
+**count** &nbsp; *int* &nbsp; The number of radial repetitions.  
+**distance** &nbsp; *float* &nbsp; The spacing between radial repetitions.  
 
 Repeat
 ----
@@ -464,7 +464,7 @@ This operation repeats a distance field infinitely across 3D space at a specifie
 
 #### Constructor ####
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.   
-**distance** &nbsp; *[Vec3](#other-vec3)* &nbsp; The spacing between repetitions of the sdf along the x,y, and z axes. Passing a value of 0 to any of these vector members means the SDF will not be repeated along that axis. 
+**distance** &nbsp; *[Vec3](#other-vec3)* &nbsp; The spacing between repetitions of the sdf along the x,y, and z axes. Passing a value of 0 to any of these vector members means the SDF will not be repeated along that axis.  
 
 Rotation
 ----
@@ -472,8 +472,8 @@ This operation rotates an SDF along a provided axis.
 
 #### Constructor ####
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.   
-**axis** &nbsp; *[Vec3](#other-vec3)* &nbsp; The axis for rotation. 
-**angle** &nbsp; *float* &nbsp; The angle of rotation, measured in radians.
+**axis** &nbsp; *[Vec3](#other-vec3)* &nbsp; The axis for rotation.  
+**angle** &nbsp; *float* &nbsp; The angle of rotation, measured in radians.  
  
 Scale
 ----
@@ -500,7 +500,7 @@ Bend
 This operation bends a distance field.
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be bent.
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be bent. 
 **amount** &nbsp; *[Vec2](#other-vec2)* &nbsp; Two coefficients that determine the amount of bending. 
 
 Twist
@@ -508,7 +508,7 @@ Twist
 This operation twists a distance field.
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be twist.
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be twist. 
 **amount** &nbsp; *[Vec3](#other-vec3)* &nbsp; Two coefficients that determine the amount of twisting. 
 
 Displace
@@ -516,7 +516,7 @@ Displace
 This operation displaces a distance field. This really isn't very useful at the moment.
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced. 
 **amount** &nbsp; *[Vec3](#other-vec3)* &nbsp; Two coefficients that determine the amount of displacing. 
 
 # Other
@@ -524,15 +524,15 @@ This operation displaces a distance field. This really isn't very useful at the 
 Vec2
 ----
 
-**x** &nbsp; *object* &nbsp; Optional, default = 0.  
-**y** &nbsp; *object* &nbsp; Optional, default = 0.  
+**x** &nbsp; *float* &nbsp; Optional, default = 0.  
+**y** &nbsp; *float* &nbsp; Optional, default = 0.  
 
 Vec3
 ----
 
-**x** &nbsp; *object* &nbsp; Optional, default = 0.  
-**y** &nbsp; *object* &nbsp; Optional, default = 0.  
-**z** &nbsp; *object* &nbsp; Optional, default = 0.  
+**x** &nbsp; *float* &nbsp; Optional, default = 0.  
+**y** &nbsp; *float* &nbsp; Optional, default = 0.  
+**z** &nbsp; *float* &nbsp; Optional, default = 0.  
 
 Material
 ----

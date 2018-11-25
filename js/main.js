@@ -3,6 +3,7 @@ const SDF = {
   __primitives:     require( './primitives.js' ),
   vectors:          require( './vec.js' ),
   distanceOps:      require( './distanceOperations.js' ),
+  alterations:      require( './alterations.js' ),
   distanceDeforms:  require( './distanceDeformations.js' ),
   __domainOps:      require( './domainOperations.js' ),
   __noise:          require( './noise.js' ),
@@ -41,7 +42,8 @@ const SDF = {
       this.vectors,
       this.distanceOps,
       this.domainOps,
-      this.distanceDeforms
+      this.distanceDeforms,
+      this.alterations
     )
 
     obj.Light = this.Light

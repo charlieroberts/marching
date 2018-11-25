@@ -13,12 +13,12 @@ const VarAlloc = {
 	}
 }
 
-let Var = function( value, fixedName = null ) {
+let Var = function( value, fixedName = null, __type ) {
   const v = Object.create( Var.prototype )
 	v.varName = fixedName !== null ? fixedName : 'var' + VarAlloc.alloc()
   v.value = value
   v.type = v.value.type
-  if( v.type === undefined ) v.type = 'float' 
+  if( v.type === undefined ) v.type = __type || 'float' 
 
   value.var = v
 
@@ -109,7 +109,11 @@ Var.prototype = {
 			gl.uniform4f(this.loc, v.x, v.y, v.z, v.w )
     } else {
       // for color variables
-      gl.uniform1f( this.loc, v.x )
+      if( this.type === 'float' ) {
+        gl.uniform1f( this.loc, v.x )
+      }else{
+        gl.uniform1i( this.loc, v.x )
+      }
     }
 
 
@@ -118,9 +122,16 @@ Var.prototype = {
 }
 
 
-function int_var_gen(x,name=null) { return ()=> Var( int(x), name ) }
+function int_var_gen(x,name=null) { 
+  let output = ()=> {
+    let out = Var( int(x), name, 'int' ) 
+    return out
+  }
 
-function float_var_gen(x,name=null) { return ()=> Var( float(x), name ) }
+  return output
+}
+
+function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
 
 function vec2_var_gen(x, y,name=null) { return ()=> Var( Vec2(x, y), name  ) }
 

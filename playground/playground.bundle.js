@@ -11791,6 +11791,161 @@ this._directMap={};return this};e.prototype.stopCallback=function(a,b){return-1<
 arguments)}}(b))};e.init();p.Mousetrap=e;"undefined"!==typeof module&&module.exports&&(module.exports=e);"function"===typeof define&&define.amd&&define(function(){return e})}})("undefined"!==typeof window?window:null,"undefined"!==typeof window?document:null);
 
 },{}],11:[function(require,module,exports){
+module.exports = `mat1 = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
+ 
+m = march(
+  StairsUnion(
+    PolarRepeat(
+      Rotation(
+        PolarRepeat(
+          Torus82(null,null,mat1),
+          20,
+          2.75
+        ),
+        Vec3( 1,0,0 ),
+        Math.PI / 2
+      ),
+      25,
+      2
+    ),
+    Plane( Vec3(0,.5,0), null, mat1 ),
+    .25
+  )
+)
+.fog( .15, Vec3(0) )
+.light( Light( Vec3(0,.65,0), Vec3(1), .25 ) )
+.render()
+.camera( 0, 0, 10 )`
+
+},{}],12:[function(require,module,exports){
+module.exports = `/* __--__--__--__--__--__--__--__--
+                                    
+"constructive solid geometry (CSG)"
+is the name given to techniques for
+combining various geometries in
+different ways. in this tutorial, 
+we'll re-create the example shown 
+on the wikipedia page for CSG:
+
+https://bit.ly/2Fs2GV6
+                                   
+our first step will be to create
+a rounded box, by taking the 
+intersection of a box and a sphere.
+we'll go ahead and render it to see
+what it looks like.
+
+** __--__--__--__--__--__--__--__*/
+
+roundedSphere = Intersection(
+  Box( Vec3(.775), Vec3(0), Material.red ),
+  Sphere( 1, Vec3(0), Material.blue )
+)
+ 
+march( roundedSphere ).render()
+
+/* __--__--__--__--__--__--__--__--
+
+it's a little tricky to get a feel
+for it viewing it straight on, so
+let's rotate it along two axes.
+
+** __--__--__--__--__--__--__--__*/
+
+roundedSphere = Intersection(
+  Box( Vec3(.775), Vec3(0), Material.red ),
+  Sphere( 1, Vec3(0), Material.blue )
+)
+ 
+march(
+  Rotation(
+    roundedSphere,
+    Vec3(1,1,0),
+    Math.PI / -4
+  )
+).render()
+
+/* __--__--__--__--__--__--__--__--
+
+great. next we want to make a cross
+that we'll subtract from our rounded
+sphere. We can do this by combining
+three cylinders. We'll rotate one
+on the z-axis and one on the x-axis.
+The Union2 operator is a shortcut
+to combine as many objects as we
+want (regular Union only lets us
+combine two).
+
+** __--__--__--__--__--__--__--__*/
+
+crossRadius = .5
+crossHeight = 1
+ 
+cross = Union2(
+  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
+  Rotation(
+    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
+    Vec3(0,0,1),
+    Math.PI / 2
+  ),
+  Rotation(
+    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
+    Vec3(1,0,0 ),
+    Math.PI / 2
+  )
+)
+ 
+march( cross ).render()
+
+/* __--__--__--__--__--__--__--__--
+
+OK, now we put it all together by
+subtracting the cross from our 
+rounded sphere. we will animate the
+rotation of ourfinal geometry to 
+get a good view from a bunch of 
+angles. 
+
+** __--__--__--__--__--__--__--__*/
+
+roundedSphere = Intersection(
+  Box( Vec3(.775), Vec3(0), Material.red ),
+  Sphere( 1, Vec3(0), Material.blue )
+)
+ 
+crossRadius = .5
+crossHeight = 1
+  
+cross = Union2(
+  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
+  Rotation(
+    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
+    Vec3(0,0,1),
+    Math.PI / 2
+  ),
+  Rotation(
+    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
+    Vec3(1,0,0 ),
+    Math.PI / 2
+  )
+)
+ 
+march(
+  r = Rotation(
+    Difference(
+      roundedSphere,
+      cross
+    ),
+    Vec3(1,.5,0),
+    Math.PI / 4
+  )
+)
+.render( 3, true )
+ 
+callbacks.push( t => r.angle = t )`
+
+},{}],13:[function(require,module,exports){
 module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
 
 mat1 = Material( 'phong', v3(.05),v3(1),v3(.5))
@@ -11852,7 +12007,7 @@ march(
 .render()
 .camera( 0,0, 6 )`
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = `repeatedSpheres = Repeat( 
   Sphere( .14 ), 
   Vec3( .25 ) 
@@ -11887,7 +12042,7 @@ https://bit.ly/2qRMrpe
                                    
 ** __--__--__--__--__--__--__--__*/`
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = `march(
   Julia( 1.45 ),
   Plane( Vec3(0,1,0), .75 )
@@ -11898,7 +12053,7 @@ module.exports = `march(
 .render()
 .camera( 0,0,2.25 )`
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(4,0,2),Vec3(1), 64, Vec3(2,2,.25) )
  
 march(
@@ -11934,7 +12089,97 @@ callbacks[1] = time => {
   m.a = 2 + time % 14
 }`
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
+module.exports = `mat1 = Material( 'phong', Vec3(.5), Vec3(1), Vec3(3), 64, Vec3( 0,1,4 ) )
+mat2 = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 2,4,8 ) )
+mat3 = Material( 'phong', Vec3(.5), Vec3(1), Vec3(0), 16, Vec3( 0,1,1 ) )
+mat4 = Material( 'phong', Vec3(.05), Vec3(1,0,0), Vec3(1), 16, Vec3( 4,2,5 ) )
+mat5 = Material( 'phong', Vec3(.05), Vec3(.5,.5,.5), Vec3(.5,.5,.5), 32, Vec3( 0,2,.25 ) )
+mat6 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 64, Vec3( 0,4,8 ) )
+mat7 = Material( 'orenn', Vec3(.05), Vec3(1), Vec3(1), 12, Vec3( 0,0,1 ) )
+ 
+lights = [
+  Light( Vec3(0,2,0), Vec3(1,.35,.35), 1 ),
+  Light( Vec3(4,0,-12), Vec3(1), .25 ),
+  Light( Vec3(-4,0,-12), Vec3(1), .25 ),  
+  Light( Vec3(0,-2,0), Vec3(1,.35,.35), 2 )
+]
+ 
+twopi = Math.PI * 2
+count = 25
+radius = 6
+for( let i = 0; i < count; i++ ) {
+  const percent = i / count
+  lights.push( Light( 
+    Vec3( Math.sin( percent * twopi ) * radius, 2, Math.cos( percent * twopi ) * radius ), 
+    Vec3(1,1,.75), 
+    2.
+  ))
+}
+ 
+lightSpheres = PolarRepeat( Sphere(.2, Vec3(0,4,0), mat5 ), 25, radius )
+ 
+column = Difference(
+  Cylinder( Vec2(.1,2.5), null, mat1 ),
+  Repeat(
+    Box( Vec3(.1), null, mat6 ),
+    Vec3(0,1,0)
+  ),
+  .1
+)
+columns = PolarRepeat( column, 12, .85 )
+ 
+candelabra = Union2(
+  StairsIntersection(
+    PolarRepeat(
+      Rotation(
+        PolarRepeat(
+          t = Torus88( Vec2(.75,.1), null, mat1 ),
+          15,
+          3.75
+        ),
+        Vec3( 1,0,0 ),
+        Math.PI / 2
+      ),
+      count,
+      2
+    ),
+    Plane( Vec3(0,-.25,0), null, mat1 ),
+    .1
+  ),
+  lightSpheres,
+  Sphere( .25, Vec3(0,3.5,0), mat5 ),
+  Sphere( .25, Vec3(0,-1,0), mat5 )
+)
+ 
+roomRadius = 8.5
+m = march(
+  Union2(
+    RoundUnion(
+      Translate(
+        candelabra,
+        Vec3(0,-1,0)
+      ),
+      Plane( Vec3( 0,-1,0 ), 2.5, mat3 ),
+      .5
+    ),
+    columns,
+ 	
+    Difference(
+      o2 = Onion(
+        Cylinder( Vec2( roomRadius, 2.5 ), Vec3(0,.45,0), mat7 ),
+        .175
+      ),
+      PolarRepeat( Box( Vec3(.7,1.5,.125), null, mat5 ), 40, roomRadius+.5 )
+    )
+  )
+)
+.fog( .125, Vec3(0) )
+.light( ...lights )
+.render()
+.camera( 0, 0, roomRadius-.5 )`
+
+},{}],18:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
@@ -12002,7 +12247,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
  
 m = march(
@@ -12044,7 +12289,7 @@ callbacks.push( time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],17:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -12129,7 +12374,7 @@ sphere from its center.
 
 march( 
   Difference( 
-    Sphere(1.35), Box() 
+    Box(), Sphere( 1.35 ) 
   )
 )
 .render()
@@ -12147,7 +12392,7 @@ sphere1 = Sphere( 1.35 )
 box1 = Box()
  
 march(
-  Difference( sphere1, box1 )
+  Difference( box1, sphere1 )
 )
 .render( 2, true )
  
@@ -12226,7 +12471,7 @@ march(
 .render(null, true)
 `
 
-},{}],18:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports =`m = march(
   Repeat(
     t = Twist(
@@ -12250,7 +12495,7 @@ module.exports =`m = march(
  
 callbacks.push( time => t.point = Vec3( time % 4 ) )`
 
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12270,14 +12515,15 @@ const demos = {
   ['snare and sticks']: require( './demos/snare.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
-  //['abusing the pipe operator']: require( './demos/pipe.js' ),
+  ['alien portal']: require( './demos/alien_portal.js' ),
+  ['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
-  //['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
 
 const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
+  ['constructive solid geometry']: require( './demos/csg.js' ),
 }
 
 window.onload = function() {
@@ -12488,4 +12734,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/geometries.js":11,"./demos/intro.js":12,"./demos/julia.js":13,"./demos/mandelbulb.js":14,"./demos/snare.js":15,"./demos/superformula.js":16,"./demos/tutorial_1.js":17,"./demos/twist.js":18,"codemirror":8}]},{},[19]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/csg.js":12,"./demos/geometries.js":13,"./demos/intro.js":14,"./demos/julia.js":15,"./demos/mandelbulb.js":16,"./demos/portal2.js":17,"./demos/snare.js":18,"./demos/superformula.js":19,"./demos/tutorial_1.js":20,"./demos/twist.js":21,"codemirror":8}]},{},[22]);

@@ -4,9 +4,11 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require
 
 const ops = { 
   Union( a,b )        { return `opU( ${a}, ${b} )` },
-  Intersection( a,b ) { return `opI( ${a}, ${b} )` },
-  Difference( a,b ) { return `opS( ${a}, ${b} )` },  
   SmoothUnion(  a,b,c) { return `opSmoothUnion( ${a}, ${b}, ${c} )` },
+  Intersection( a,b ) { return `opI( ${a}, ${b} )` },
+  SmoothIntersection( a,b,c ) { return `opSmoothIntersection( ${a}, ${b}, ${c} )` },  
+  Difference( a,b ) { return `opS( ${a}, ${b} )` },  
+  SmoothDifference( a,b,c ) { return `opSmoothSubtraction( ${b}, ${a}, ${c} )` },  
   StairsUnion(  a,b,c,d ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d} )` },
   StairsIntersection( a,b,c,d ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d} )` },
   StairsDifference( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
@@ -20,6 +22,7 @@ const ops = {
   Engrave( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
   Groove( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
   Tongue( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
+  Onion( a,b ) { return `opOnion( ${a}, ${b} )` }
 }
 
 const DistanceOps = {}

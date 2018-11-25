@@ -4,6 +4,67 @@ const { param_wrap, MaterialID } = require( './utils.js' )
 
 
 const getDomainOps = function( SDF ) {
+  
+const Elongation = function( primitive, distance ) {
+  const repeat = Object.create( Elongation.prototype )
+
+  // XXX make this DRY
+  const __var =  param_wrap( 
+    distance, 
+    param_wrap( distance, vec3_var_gen( 1,1,5 ) )    
+  )
+
+  Object.defineProperty( repeat, 'distance', {
+    get() { return __var },
+    set(v) {
+      if( typeof v === 'object' ) {
+        __var.set( v )
+      }else{
+        __var.value.x = v
+        __var.value.y = v
+        __var.value.z = v
+        __var.dirty = true
+      }
+    }
+  }) 
+
+  repeat.sdf = primitive
+
+  return repeat 
+}
+
+Elongation.prototype = SceneNode()
+
+Elongation.prototype.emit = function ( name='p' ) {
+  const pId = this.sdf.id
+  const pName = 'p' + pId
+
+  let preface =
+`        vec4 ${pName}_xyzw = opElongate( ${name}, ${this.distance.emit()} );\n
+        vec3 ${pName} = ${pName}_xyzw.xyz;\n`
+
+
+  const primitive = this.sdf.emit( pName )
+
+  if( typeof primitive.preface === 'string' ) preface += primitive.preface 
+
+  return { out:`vec2(${pName}_xyzw.w + ${primitive.out}.x, ${primitive.out}.y)`, preface }
+}
+
+Elongation.prototype.emit_decl = function () {
+	return this.distance.emit_decl() + this.sdf.emit_decl()
+};
+
+Elongation.prototype.update_location = function( gl, program ) {
+  this.distance.update_location( gl, program )
+  this.sdf.update_location( gl, program )
+}
+
+Elongation.prototype.upload_data = function( gl ) {
+  this.distance.upload_data( gl )
+  this.sdf.upload_data( gl )
+}
+
 
 const Repetition = function( primitive, distance ) {
   const repeat = Object.create( Repetition.prototype )
@@ -66,9 +127,33 @@ Repetition.prototype.upload_data = function( gl ) {
 
 const PolarRepetition = function( primitive, count, distance ) {
   const repeat = Object.create( PolarRepetition.prototype )
-  repeat.count = param_wrap( count, float_var_gen( 7) )
+  //repeat.count = param_wrap( count, float_var_gen( 7 ) )
   repeat.distance = param_wrap( distance, float_var_gen( 1 ) )
   repeat.sdf = primitive 
+
+  const __var =  param_wrap( 
+    count, 
+    param_wrap( count, float_var_gen( 7 ) )    
+  )
+
+  Object.defineProperty( repeat, 'count', {
+    get() { return __var },
+    set(v) {
+      __var.set( v ) 
+    }
+  }) 
+
+  const __var2 =  param_wrap( 
+    distance, 
+    param_wrap( distance, float_var_gen( 1 ) )    
+  )
+
+  Object.defineProperty( repeat, 'distance', {
+    get() { return __var2 },
+    set(v) {
+      __var2.set( v ) 
+    }
+  }) 
 
   return repeat 
 }
@@ -334,7 +419,7 @@ Scale.prototype.upload_data = function( gl ) {
   this.primitive.upload_data( gl )
 }
 
-return { Repeat:Repetition, Scale, Rotation, Translate, PolarRepeat:PolarRepetition }
+return { Repeat:Repetition, Scale, Rotation, Translate, PolarRepeat:PolarRepetition, Elongation }
 
 }
 

@@ -17,14 +17,15 @@ const demos = {
   ['snare and sticks']: require( './demos/snare.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
-  //['abusing the pipe operator']: require( './demos/pipe.js' ),
+  ['alien portal']: require( './demos/alien_portal.js' ),
+  ['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
-  //['constructive solid geometry']: require( './demos/csg.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
 
 const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
+  ['constructive solid geometry']: require( './demos/csg.js' ),
 }
 
 window.onload = function() {

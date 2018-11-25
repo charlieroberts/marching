@@ -1,6 +1,6 @@
 const emit_int = function( a ) {
 	if( a % 1 !== 0 )
-		return Math.ronud( a )
+		return Math.round( a )
 	else
 		return a
 }

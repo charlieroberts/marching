@@ -82,7 +82,7 @@ sphere from its center.
 
 march( 
   Difference( 
-    Sphere(1.35), Box() 
+    Box(), Sphere( 1.35 ) 
   )
 )
 .render()
@@ -100,7 +100,7 @@ sphere1 = Sphere( 1.35 )
 box1 = Box()
  
 march(
-  Difference( sphere1, box1 )
+  Difference( box1, sphere1 )
 )
 .render( 2, true )
  

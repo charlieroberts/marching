@@ -9,35 +9,6 @@ const glsl = require( 'glslify' )
 const __Materials = function( SDF ) {
 
   const Materials = {
-  //  emit() {
-  //    return `  color = applyMaterial( color, t.x, ${this.amount.emit()} );`
-  //  },
-   
-  //  emit_decl() {
-  //    let str = this.amount.emit_decl() + this.color.emit_decl()
-  //    const preface = `  vec3 applyMaterial( in vec3 rgb, in float distance, in float amount ) {
-  //  float materialAmount = 1. - exp( -distance * amount );
-  //  vec3  materialColor  = ${this.color.emit()};
-  //  return mix( rgb, materialColor, materialAmount );
-  //}
-  //`
-  //    if( SDF.memo.material === undefined ) {
-  //      str = str + preface
-  //      SDF.memo.material = true
-  //    }
-
-  //    return str
-  //  },
-
-  //  update_location( gl, program ) {
-  //    this.amount.update_location( gl, program )
-  //    this.color.update_location( gl, program )
-  //  },
-
-  //  upload_data( gl ) {
-  //    this.amount.upload_data( gl )
-  //    this.color.upload_data( gl )
-  //  },
     __materials:[],
     materials:[],
 /*      struct Material {
@@ -112,7 +83,8 @@ const __Materials = function( SDF ) {
     yellow : Materials.material( 'global', Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
     black : Materials.material( 'global', Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
     white: Materials.material( 'global', Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
-    grey : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) )
+    grey : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
+    normal: Materials.material( 'normal' )
   })
 
   return Materials

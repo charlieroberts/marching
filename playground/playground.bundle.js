@@ -12043,9 +12043,9 @@ https://bit.ly/2qRMrpe
 ** __--__--__--__--__--__--__--__*/`
 
 },{}],15:[function(require,module,exports){
-module.exports = `march(
-  Julia( 1.45 ),
-  Plane( Vec3(0,1,0), .75 )
+module.exports=`march(
+  Julia( 1.5, null, Material.grey ),
+  Plane( Vec3(0,1,0), .75, Material.grey )
 )
 .light( Light( Vec3(0,3,3), Vec3(1) ) )
 .background( Vec3(0) )
@@ -12054,6 +12054,220 @@ module.exports = `march(
 .camera( 0,0,2.25 )`
 
 },{}],16:[function(require,module,exports){
+module.exports =`/* __--__--__--__--__--__--__--__--
+                                    
+By default, marching.js uses a
+lighting system consisting of a
+skydome(fill), a single front light,
+and a back light. This lighting
+system includes ambient occlusion
+and basic shadows, as taken from
+this demo by Inigo Quilez:
+
+https://www.shadertoy.com/view/Xds3zN
+
+However, each Material in marching.js
+can uses its own lighting algorithm.
+In the example below, the left sphere and
+the ground plane use the default lighting
+algorithm while the right sphere uses
+the normal for each pixel to determine 
+its color.
+
+** __--__--__--__--__--__--__--__*/
+
+march(
+  Sphere( 1, Vec3(-1.25,0,0) ),
+  Sphere( 1, Vec3(1,0,0), Material.normal ),
+  Plane()
+)
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+For most shapes, the third values
+passed to constructors will determine
+the material used by the shape. In 
+the last example we saw that there is
+a "preset" to use normals for lighting;
+there are also presets for common 
+colors.
+
+** __--__--__--__--__--__--__--__*/
+
+march(
+  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
+  Sphere( 1, Vec3(1,0,0), Material.red ),
+  Plane(  null, null, Material.yellow )
+)
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+Note that each geomety's color is
+determined by both properties of its
+material and the lights in the scene.
+For example, we could change the scene
+above to use magenta light, our green
+sphere will essentially show up as
+black (magenta light contains no green).
+
+** __--__--__--__--__--__--__--__*/
+
+march(
+  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
+  Sphere( 1, Vec3(1,0,0), Material.red ),
+  Plane(  null, null, Material.yellow )
+)
+.light( Light( Vec3(2,2,3), Vec3(1,0,1) ) )
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+To really get full control over our
+lighting, we'll want to avoid the 
+default lighting scheme, which has
+some properties baked in, and 
+customize everything by hand. The
+example below uses the Phong
+lighting model, with an additioanl
+Fresnel effect added. We'll also
+use a simple white light positioned
+to the upper left of the scene's
+center.
+
+** __--__--__--__--__--__--__--__*/
+
+mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
+march(
+  Sphere( 1, Vec3(0), mat1 ),
+  Plane(  null, null, mat1 )
+)
+.light( Light( Vec3(2,2,3), Vec3(1) ) )
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+In the example above, our material
+uses the 'phong' lighting model, has
+a ambient RGB coefficient of .05,
+diffuse RGB coefficient of .5,
+specular RGB coefficients of 1. The
+last number determines the diffuseness
+of the specular highlights, with lower
+numbers yielding more diffuse highlights.
+
+We can add a final Vec3 to control
+the Fresnel effect on the material,
+which can create a halo effect around
+a geometry. The three parameters for
+the Fresnel effect are bias, scale, 
+and power.
+
+** __--__--__--__--__--__--__--__*/
+
+mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,50,5) )
+mat2 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
+march(
+  Sphere( 1, Vec3(0), mat1 ),
+  Plane(  null, null, mat2 )
+)
+.light( Light( Vec3(2,2,3), Vec3(1) ) )
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+We can have lots of lights! However,
+this will increase rendering time,
+so tread carefully if you're doing
+realtime work.
+
+** __--__--__--__--__--__--__--__*/
+
+mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,50,5) )
+mat2 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
+march(
+  Sphere( 1, Vec3(0), mat1 ),
+  Plane(  null, null, mat2 )
+)
+.light( 
+  Light( Vec3(2,2,3), Vec3(1) ),
+  Light( Vec3(-2,2,3), Vec3(1,0,0) ),
+  Light( Vec3(0,0,-3), Vec3(0,0,1) ),  
+)
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+Two other elements that affect 
+lighting in marching.js are fog and
+shadows. The fog() method accepts
+two arguments, a color for the fog
+and an intensity coefficient. For
+typical fog effects, set the fog
+color to be the same as the background
+color for the scene.
+
+** __--__--__--__--__--__--__--__*/
+
+march(
+  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
+  Sphere( 1, Vec3(1,0,0), Material.red ),
+  Plane(  null, null, Material.yellow )
+)
+.background( Vec3(0,0,.5) )
+.fog( .125, Vec3(0,0,.5) )
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+The effect is especially easy to see
+on fields of repeated geoemtries. Run
+the code below, and then uncomment
+the fog and run it again.
+
+** __--__--__--__--__--__--__--__*/
+
+mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,4,1) )
+march(
+  Repeat(
+    Sphere( .25, Vec3(0), mat1 ),
+    Vec3( .75)
+  )
+)
+.light( 
+  Light( Vec3(2,2,3), Vec3(1) ),
+  Light( Vec3(-2,2,3), Vec3(1,0,0) ),
+)
+.background( Vec3(0) )
+//.fog( .5, Vec3(0) )
+.render()
+
+/* __--__--__--__--__--__--__--__--
+
+Last but not least, we can change 
+the softness of shadows in our scene
+by adjusting a shadow coefficient.
+Lower values (such as 2) yield soft,
+diffuse shadows while high values
+(like 16 or 32) yield shadows with
+hard edges. You can also pass a value
+of 0 to remove shadows from a scene.
+Experiment with passing different
+values to the shadow method below.
+
+** __--__--__--__--__--__--__--__*/
+
+mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(0,1,2) )
+march(
+  Box( Vec3(.75), Vec3(0,.25,1), mat1 ),
+  Plane(  null, null, mat1 )
+)
+.light( Light( Vec3(-1,2,2), Vec3(1) ) )
+.shadow(2)
+.render()`
+
+},{}],17:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(4,0,2),Vec3(1), 64, Vec3(2,2,.25) )
  
 march(
@@ -12088,96 +12302,6 @@ callbacks[1] = time => {
   rx.angle = x * 6.28
   m.a = 2 + time % 14
 }`
-
-},{}],17:[function(require,module,exports){
-module.exports = `mat1 = Material( 'phong', Vec3(.5), Vec3(1), Vec3(3), 64, Vec3( 0,1,4 ) )
-mat2 = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 2,4,8 ) )
-mat3 = Material( 'phong', Vec3(.5), Vec3(1), Vec3(0), 16, Vec3( 0,1,1 ) )
-mat4 = Material( 'phong', Vec3(.05), Vec3(1,0,0), Vec3(1), 16, Vec3( 4,2,5 ) )
-mat5 = Material( 'phong', Vec3(.05), Vec3(.5,.5,.5), Vec3(.5,.5,.5), 32, Vec3( 0,2,.25 ) )
-mat6 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 64, Vec3( 0,4,8 ) )
-mat7 = Material( 'orenn', Vec3(.05), Vec3(1), Vec3(1), 12, Vec3( 0,0,1 ) )
- 
-lights = [
-  Light( Vec3(0,2,0), Vec3(1,.35,.35), 1 ),
-  Light( Vec3(4,0,-12), Vec3(1), .25 ),
-  Light( Vec3(-4,0,-12), Vec3(1), .25 ),  
-  Light( Vec3(0,-2,0), Vec3(1,.35,.35), 2 )
-]
- 
-twopi = Math.PI * 2
-count = 25
-radius = 6
-for( let i = 0; i < count; i++ ) {
-  const percent = i / count
-  lights.push( Light( 
-    Vec3( Math.sin( percent * twopi ) * radius, 2, Math.cos( percent * twopi ) * radius ), 
-    Vec3(1,1,.75), 
-    2.
-  ))
-}
- 
-lightSpheres = PolarRepeat( Sphere(.2, Vec3(0,4,0), mat5 ), 25, radius )
- 
-column = Difference(
-  Cylinder( Vec2(.1,2.5), null, mat1 ),
-  Repeat(
-    Box( Vec3(.1), null, mat6 ),
-    Vec3(0,1,0)
-  ),
-  .1
-)
-columns = PolarRepeat( column, 12, .85 )
- 
-candelabra = Union2(
-  StairsIntersection(
-    PolarRepeat(
-      Rotation(
-        PolarRepeat(
-          t = Torus88( Vec2(.75,.1), null, mat1 ),
-          15,
-          3.75
-        ),
-        Vec3( 1,0,0 ),
-        Math.PI / 2
-      ),
-      count,
-      2
-    ),
-    Plane( Vec3(0,-.25,0), null, mat1 ),
-    .1
-  ),
-  lightSpheres,
-  Sphere( .25, Vec3(0,3.5,0), mat5 ),
-  Sphere( .25, Vec3(0,-1,0), mat5 )
-)
- 
-roomRadius = 8.5
-m = march(
-  Union2(
-    RoundUnion(
-      Translate(
-        candelabra,
-        Vec3(0,-1,0)
-      ),
-      Plane( Vec3( 0,-1,0 ), 2.5, mat3 ),
-      .5
-    ),
-    columns,
- 	
-    Difference(
-      o2 = Onion(
-        Cylinder( Vec2( roomRadius, 2.5 ), Vec3(0,.45,0), mat7 ),
-        .175
-      ),
-      PolarRepeat( Box( Vec3(.7,1.5,.125), null, mat5 ), 40, roomRadius+.5 )
-    )
-  )
-)
-.fog( .125, Vec3(0) )
-.light( ...lights )
-.render()
-.camera( 0, 0, roomRadius-.5 )`
 
 },{}],18:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
@@ -12516,7 +12640,7 @@ const demos = {
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
-  ['alien portal #2']: require( './demos/portal2.js' ),
+  //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
@@ -12524,6 +12648,7 @@ const demos = {
 const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
+  ['lighting and materials']: require( './demos/lighting.js' ),
 }
 
 window.onload = function() {
@@ -12734,4 +12859,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/csg.js":12,"./demos/geometries.js":13,"./demos/intro.js":14,"./demos/julia.js":15,"./demos/mandelbulb.js":16,"./demos/portal2.js":17,"./demos/snare.js":18,"./demos/superformula.js":19,"./demos/tutorial_1.js":20,"./demos/twist.js":21,"codemirror":8}]},{},[22]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/csg.js":12,"./demos/geometries.js":13,"./demos/intro.js":14,"./demos/julia.js":15,"./demos/lighting.js":16,"./demos/mandelbulb.js":17,"./demos/snare.js":18,"./demos/superformula.js":19,"./demos/tutorial_1.js":20,"./demos/twist.js":21,"codemirror":8}]},{},[22]);

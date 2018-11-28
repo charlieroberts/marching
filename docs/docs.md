@@ -77,226 +77,9 @@ The render method renders its scene to the screen or to a vertex-based geometry.
 Adds shadows to the scene.
 
 **diffuseness** &nbsp; *int* &nbsp; Default = 8. A term used as an exponent to determine the diffuseness of shadows that are used. Higher numbers result in harder shadows. Providing a value of `0` when `Marching.lighting.mode='directional'` will remove shadows from the scene, which can be useful in scenarios where shadows would do not properly render due to errors in signed distance functions. 
-
-# Distance Operations 
-
-Distance Operations are used to combine multiple signed distance fields together. The simplest example is the [Union](#distance-operations-union), which combines to SDFs together with hard edges; there are a variety of additional options that combine distance fields in more interesting and unique ways. Other important operations include various flavors of [Differrnce(#distance-opeations=difference) (removing one geometry from another) and [Intersection](#distance-operations-intersection) (calculating the shared space occupied by two objects).
-
-ChamferDifference
-----
-This distance operation creates a rounded, yet discretely identifiable, border at the point where one geometry is subtracted from another..  
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .8; The size of the rounded border to be generated between the objects.
-
-ChamferIntersection
-----
-This distance operation creates a rounded, yet discretely identifiable, border around the shared surfaces of two SDFs. 
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .8; The size of the rounded border to be generated between the objects.
-
-ChamferUnion
-----
-This distance operation creates a rounded, yet discretely identifiable, border at the intersection between two SDFs.  
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .8; The size of the rounded border to be generated between the objects. 
-
-Difference
-----
-This distance operation subtracts one signed distance field from the other and returns the result. 
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined. 
-
-Engrave
-----
-This takes the intersection of two SDFs and includes a lowered, angled, border between them.
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**angle** &nbsp; *float* &nbsp; The depth of the angled border. 
-
-Groove
-----
-This takes the intersection of two SDFs and includes a lowered, non-angled, border between them.
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**angle** &nbsp; *float* &nbsp; The depth of the border. 
-
-Pipe
-----
-This takes the intersection of two SDFs and *only* includes the border in the form of a cylindrical pipe. 
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**angle** &nbsp; *float* &nbsp; The depth of the pipe.
-
-RoundDifference
-----
-This distance operation creates a smoothly rounded border where one geometry is subtracted from another.  
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The amount of the rounded border to be generated between the objects.
-
-RoundIntersection
-----
-This distance operation creates a smoothly rounded border around the intersection of two sdfs. 
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The size of the rounded border to be generated between the objects.
-
-RoundUnion
-----
-This distance operation creates a smoothly rounded border at the intersection between two SDFs. It is similar to [SmoothUnion](#distance-operations-smoothunion) but generates results that are more optimal mathematically in many situations.
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects.
-
-SmoothUnion
----
-This distance operation creates a smoothly transition between two SDFs. 
-
-#### Constructor ####
-**a** &nbsp; *sdf* &nbsp; A signed distance field to be combined.   
-**b** &nbsp; *sdf* &nbsp; A signed distance field to be combined.  
-**c** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. High values can cause relatively large distances between SDFs to be bridged to form a continuous surface.
-
-```js
-// make a peanut by smoothing gap between two spheres.
-march(
-  SmoothUnion(
-    Sphere(1, Vec3(-1,0,0) ),
-    Sphere(1, Vec3(1,0,0) ),
-    1
-  )
-).render()
-```
-SmoothUnion2
----
-This distance operation creates a smoothly transition between an unlimited number of SDFs. The last parameter passed to the constructor will determine the amount of smoothing used.
-
-#### Constructor ####
-**...sdfs** &nbsp; *sdf* &nbsp; A list of signed distance fields to be combined.   
-**c** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. High values can cause relatively large distances between SDFs to be bridged to form a continuous surface.
-
-```js
-// makie a 3D jumping jack. 
-march(
-  r = Rotation(
-    SmoothUnion2(
-      Sphere(1, Vec3(-2,0,0) ),
-      Sphere(1, Vec3(2,0,0) ),
-      Sphere(1, Vec3(0,0,0) ),
-      Sphere(1, Vec3(0,2,0) ),
-      Sphere(1, Vec3(0,-2,0) ),
-      Sphere(1, Vec3(0,0,-2) ),
-      Sphere(1, Vec3(0,0,2) ),
-      .5 // smoothing value
-    ),
-    Vec3(1)
-  )
-)
-.render(4, true )
-  
-callbacks.push( time => r.angle = time )
-```
-
-StairsDifference
-----
-This distance operation creates a smoothly rounded border where one geometry is subtracted from another.  
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**radius** &nbsp; *float* &nbsp; Default = .3; The radius of the stepped border to be generated between the objects. 
-**number** &nbsp; *float* &nbsp; Default = 4; The number of steps along the border to be generated 
-
-StairsIntersection
-----
-This distance operation creates a smoothly rounded border around the intersection of two sdfs. 
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The size of the rounded border to be generated between the objects. 
-
-StairsUnion
-----
-This distance operation creates a smoothly rounded border at the intersection between two SDFs. It is similar to [SmoothUnion](#distance-operations-smoothunion) but generates results that are more optimal mathematically in many situations.
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. 
-
-Tongue
-----
-This takes the intersection of two SDFs and includes a raised, non-angled, border between them.
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**angle** &nbsp; *float* &nbsp; The depth of the border. 
-
-Union
-----
-This distance operation combines two signed distance functions using hard edges. 
-
-#### Constructor ####
-**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
-
-Union2
-----
-Combine an arbitrary number of SDFs. 
-
-#### Constructor ####
-**...sdfs** &nbsp; *object* &nbsp; A comma-separated list of SDFs to combine.
-
-```js
-// the following two SDFs are equivalent:
-
-sdf1 = Union(
-  Sphere( .5 ),
-  Union(
-    Box(),
-    Union(
-      Capsule(),
-      Octahedron()
-    )
-  ) 
-) 
-
-sdf2 = Union2(
-  Sphere(),
-  Box(),
-  Capsule(),
-  Octahedron() 
-)
-```
-
 # Geometries 
 
-These are the core geometric primitives available in marching.js. Most constructors for primitives begin with properties that are unique to each geometry, and then end with optional `center` and `material` properties. 
+These are the core geometric primitives available in marching.js, and the starting points for creating the signed distance functions used for rendering by marching.js. Most constructors for primitives begin with properties that are unique to each geometry, and then end with optional `center` and `material` properties. 
 
 Box
 ----
@@ -441,7 +224,233 @@ TriPrism
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.   
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
-# Domain Operations 
+
+
+# Combinators 
+
+Combinators are used to combine multiple signed distance fields together to create a new SDF. The simplest example is the [Union](#combinators-union), which combines two SDFs together with hard edges; there are a variety of additional options that combine distance fields in more interesting and unique ways. Other important operations include various flavors of [Difference](#combinators-difference) (removing one geometry from another) and [Intersection](#combinators-intersection) (calculating the shared space occupied by two objects).
+
+ChamferDifference
+----
+This combinator creates a rounded, yet discretely identifiable, border at the point where one geometry is subtracted from another..  
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .8; The size of the rounded border to be generated between the objects.
+
+ChamferIntersection
+----
+This combinator creates a rounded, yet discretely identifiable, border around the shared surfaces of two SDFs. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .8; The size of the rounded border to be generated between the objects.
+
+ChamferUnion
+----
+This combinator creates a rounded, yet discretely identifiable, border at the intersection between two SDFs.  
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .8; The size of the rounded border to be generated between the objects. 
+
+Difference
+----
+This combinator subtracts one signed distance field from the other and returns the result. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined. 
+
+Engrave
+----
+This takes the intersection of two SDFs and includes a lowered, angled, border between them.
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**angle** &nbsp; *float* &nbsp; The depth of the angled border. 
+
+Groove
+----
+This takes the intersection of two SDFs and includes a lowered, non-angled, border between them.
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**angle** &nbsp; *float* &nbsp; The depth of the border. 
+
+Intersection
+----
+This combinator creates a SDF containing the shared area of two SDF inputs. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+
+Pipe
+----
+This takes the intersection of two SDFs and *only* includes the border in the form of a cylindrical pipe. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**angle** &nbsp; *float* &nbsp; The depth of the pipe.
+
+RoundDifference
+----
+This combinator creates a smoothly rounded border where one geometry is subtracted from another.  
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .3; The amount of the rounded border to be generated between the objects.
+
+RoundIntersection
+----
+This combinator creates a smoothly rounded border around the intersection of two sdfs. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .3; The size of the rounded border to be generated between the objects.
+
+RoundUnion
+----
+This combinator creates a smoothly rounded border at the intersection between two SDFs. It is similar to [SmoothUnion](#distance-operations-smoothunion) but generates results that are more optimal mathematically in many situations.
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects.
+
+SmoothUnion
+---
+This combinator creates a smoothly transition between two SDFs. 
+
+#### Constructor ####
+**a** &nbsp; *sdf* &nbsp; A signed distance field to be combined.   
+**b** &nbsp; *sdf* &nbsp; A signed distance field to be combined.  
+**c** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. High values can cause relatively large distances between SDFs to be bridged to form a continuous surface.
+
+```js
+// make a peanut by smoothing gap between two spheres.
+march(
+  SmoothUnion(
+    Sphere(1, Vec3(-1,0,0) ),
+    Sphere(1, Vec3(1,0,0) ),
+    1
+  )
+).render()
+```
+SmoothUnion2
+---
+This combinator creates a smoothly transition between an unlimited number of SDFs. The last parameter passed to the constructor will determine the amount of smoothing used.
+
+#### Constructor ####
+**...sdfs** &nbsp; *sdf* &nbsp; A list of signed distance fields to be combined.   
+**c** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. High values can cause relatively large distances between SDFs to be bridged to form a continuous surface.
+
+```js
+// makie a 3D jumping jack. 
+march(
+  r = Rotation(
+    SmoothUnion2(
+      Sphere(1, Vec3(-2,0,0) ),
+      Sphere(1, Vec3(2,0,0) ),
+      Sphere(1, Vec3(0,0,0) ),
+      Sphere(1, Vec3(0,2,0) ),
+      Sphere(1, Vec3(0,-2,0) ),
+      Sphere(1, Vec3(0,0,-2) ),
+      Sphere(1, Vec3(0,0,2) ),
+      .5 // smoothing value
+    ),
+    Vec3(1)
+  )
+)
+.render(4, true )
+  
+callbacks.push( time => r.angle = time )
+```
+
+StairsDifference
+----
+This combinator creates a smoothly rounded border where one geometry is subtracted from another.  
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**radius** &nbsp; *float* &nbsp; Default = .3; The radius of the stepped border to be generated between the objects. 
+**number** &nbsp; *float* &nbsp; Default = 4; The number of steps along the border to be generated 
+
+StairsIntersection
+----
+This combinator creates a smoothly rounded border around the intersection of two sdfs. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .3; The size of the rounded border to be generated between the objects. 
+
+StairsUnion
+----
+This combinator creates a smoothly rounded border at the intersection between two SDFs. It is similar to [SmoothUnion](#distance-operations-smoothunion) but generates results that are more optimal mathematically in many situations.
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects. 
+
+Tongue
+----
+This takes the intersection of two SDFs and includes a raised, non-angled, border between them.
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**angle** &nbsp; *float* &nbsp; The depth of the border. 
+
+Union
+----
+This combinator combines two signed distance functions using hard edges. 
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+
+Union2
+----
+Combine an arbitrary number of SDFs. 
+
+#### Constructor ####
+**...sdfs** &nbsp; *object* &nbsp; A comma-separated list of SDFs to combine.
+
+```js
+// the following two SDFs are equivalent:
+
+sdf1 = Union(
+  Sphere( .5 ),
+  Union(
+    Box(),
+    Union(
+      Capsule(),
+      Octahedron()
+    )
+  ) 
+) 
+
+sdf2 = Union2(
+  Sphere(),
+  Box(),
+  Capsule(),
+  Octahedron() 
+)
+```
+
+# Positioning
 
 This library works via ray marching, where a line is drawn from the camera through every pixel in the scene; that line (called a ray) continues through the scene until it hits an object. If an object is hit, the color of the object, after applying lighting, is applied to the pixel that the ray traveled through.
 
@@ -491,16 +500,12 @@ This operation moves the position of a distance field along three axes.
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.   
 **amount** &nbsp; *[Vec3](#other-vec3)* &nbsp; The amount to translate the distance field by on each axis. 
 
-# Distance Deformations 
-
-Deformations are operations that can quite easily create irrgularities in distance fields, leading to visual artifacts. However, if used deliberately and with care they can create a variety of interesting effects.
-
 Bend
 ----
 This operation bends a distance field.
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be bent. 
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be bent.  
 **amount** &nbsp; *[Vec2](#other-vec2)* &nbsp; Two coefficients that determine the amount of bending. 
 
 Twist
@@ -508,16 +513,69 @@ Twist
 This operation twists a distance field.
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be twist. 
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be twist.   
 **amount** &nbsp; *[Vec3](#other-vec3)* &nbsp; Two coefficients that determine the amount of twisting. 
+
+# Displacement / Deformation
+
+The positioning operations work by changing the location of points that we feed into signed distance functions. Alternatively, we can say that positioning operations modify *inputs* to our signed distance functions. In contrast, displacement operations work by modifying *outputs*, and can quite easily create irrgularities in distance fields, leading to visual artifacts. However, if used deliberately and with care they can create a variety of interesting effects.
 
 Displace
 ----
-This operation displaces a distance field. This really isn't very useful at the moment.
+This operation displaces a distance field using sine and cosine operations. This really isn't very useful at the moment.
 
 #### Constructor ####
-**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced. 
-**amount** &nbsp; *[Vec3](#other-vec3)* &nbsp; Two coefficients that determine the amount of displacing. 
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.  
+**amount** &nbsp; *[Vec2](#other-vec2)* &nbsp; Two coefficients that determine the amount of displacing. 
+
+Halve
+----
+This operation cuts a distance field in half. Because the operation is applied *after* the SDF is calculated, manipulating the results further (such as with rotation or translation) will often create significant artifacts.
+
+#### Constructor ####
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.  
+**direction** &nbsp; *int* &nbsp; An integer indicating how to 'cut' the object in halve. The following values can be used:   
+Halve.UP (0): Cut off the upper half of the SDF.   
+Halve.DOWN (1): Cut off the lower half of the SDF.   
+Halve.LEFT (2): Cut off the left half of the SDF.   
+Halve.RIGHT (3): Cut off the right half of the SDF.    
+
+Onion
+----
+This operation 'hollows out' a signed distance fields, letting you choose the width of the outer wall. Note that you'll need to view the inside of the SDF (either by moving the camera inside of it or by cutting the SDF in half using Halve) in order to see the effects.
+
+#### Constructor ####
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.   
+**thickness** &nbsp; *float* &nbsp; Default:.1. An amount to subtract from the computed signed distance field.
+
+#### Example ####
+```js
+march(
+  Halve(
+    Onion(
+      Onion(
+        Onion(
+          Sphere( null,null,Material.normal ),
+          .1
+        ),
+        .05
+      ),
+      .025
+    ),
+    Halve.UP
+  )
+)
+.render()
+.camera( 0,3,4 )
+```
+
+Round
+----
+This operation subtracts a fixed amount from a computer signed distance fields, which has the effect of rounding corners.
+
+#### Constructor ####
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.   
+**amount** &nbsp; *float* &nbsp; Default:.1. An amount to subtract from the computed signed distance field.
 
 # Other
 

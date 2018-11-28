@@ -98,7 +98,7 @@ for( let name in ops ) {
 
 Alterations.Halve.UP = 0
 Alterations.Halve.DOWN = 1
-Alterations.Halve.LEFT = 2
-Alterations.Halve.RIGHT = 3
+Alterations.Halve.LEFT = 3
+Alterations.Halve.RIGHT = 2
 
 module.exports = Alterations

@@ -18,7 +18,7 @@ const demos = {
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
-  ['alien portal #2']: require( './demos/portal2.js' ),
+  //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
 }
@@ -26,6 +26,7 @@ const demos = {
 const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
+  ['lighting and materials']: require( './demos/lighting.js' ),
 }
 
 window.onload = function() {

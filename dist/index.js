@@ -1282,6 +1282,7 @@ const SDF = {
   __scene:          require( './scene.js' ),
   __lighting:       require( './lighting.js' ),
   __materials:      require( './material.js' ),
+  Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
 
   // a function that generates the fragment shader
@@ -1610,7 +1611,7 @@ const SDF = {
 
 module.exports = SDF
 
-},{"./alterations.js":2,"./camera.js":4,"./color.js":5,"./distanceDeformations.js":6,"./distanceOperations.js":7,"./domainOperations.js":8,"./lighting.js":13,"./material.js":15,"./noise.js":16,"./primitives.js":18,"./renderFragmentShader.js":19,"./scene.js":20,"./vec.js":24}],15:[function(require,module,exports){
+},{"./alterations.js":2,"./camera.js":4,"./color.js":5,"./distanceDeformations.js":6,"./distanceOperations.js":7,"./domainOperations.js":8,"./lighting.js":13,"./material.js":15,"./noise.js":16,"./primitives.js":18,"./renderFragmentShader.js":19,"./scene.js":20,"./var.js":23,"./vec.js":24}],15:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' ),
@@ -2479,6 +2480,14 @@ let Var = function( value, fixedName = null, __type ) {
   return v
 }
 
+Var.hardcode = false
+const emit_float = function( a ) {
+	if (a % 1 === 0)
+		return a.toFixed( 1 )
+	else
+		return a
+}
+
 Var.prototype = {
 	dirty: true,
 
@@ -2502,7 +2511,22 @@ Var.prototype = {
     if( this.value.isGen ) {
       out = this.value.emit_decl()
     }else{
-      out = `uniform ${this.type} ${this.varName};\n`
+      if( Var.hardcode === true ) {
+
+        if( typeof this.value.emit !== 'function' ) {
+          if( this.type === 'float' ) {
+            out = `${this.type} ${this.varName} = ${emit_float(this.value)};\n`
+          }else{
+            out = `${this.type} ${this.varName} = ${this.value};\n`
+          }
+        }else{
+          let val = this.value.emit()
+          if( typeof val !== 'string' ) val = val.out
+          out = val !== undefined ? `${this.type} ${this.varName} = ${val};\n` : ''
+        }
+      }else{
+        out = `uniform ${this.type} ${this.varName};\n`
+      }
     }
     return out
   },

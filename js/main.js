@@ -10,6 +10,7 @@ const SDF = {
   __scene:          require( './scene.js' ),
   __lighting:       require( './lighting.js' ),
   __materials:      require( './material.js' ),
+  Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
 
   // a function that generates the fragment shader

@@ -52,6 +52,14 @@ let Var = function( value, fixedName = null, __type ) {
   return v
 }
 
+Var.hardcode = false
+const emit_float = function( a ) {
+	if (a % 1 === 0)
+		return a.toFixed( 1 )
+	else
+		return a
+}
+
 Var.prototype = {
 	dirty: true,
 
@@ -75,7 +83,22 @@ Var.prototype = {
     if( this.value.isGen ) {
       out = this.value.emit_decl()
     }else{
-      out = `uniform ${this.type} ${this.varName};\n`
+      if( Var.hardcode === true ) {
+
+        if( typeof this.value.emit !== 'function' ) {
+          if( this.type === 'float' ) {
+            out = `${this.type} ${this.varName} = ${emit_float(this.value)};\n`
+          }else{
+            out = `${this.type} ${this.varName} = ${this.value};\n`
+          }
+        }else{
+          let val = this.value.emit()
+          if( typeof val !== 'string' ) val = val.out
+          out = val !== undefined ? `${this.type} ${this.varName} = ${val};\n` : ''
+        }
+      }else{
+        out = `uniform ${this.type} ${this.varName};\n`
+      }
     }
     return out
   },

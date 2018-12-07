@@ -27,7 +27,7 @@ const Color = function( __r=0, __g=0, __b=0 ) {
 
 module.exports = Color
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],2:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],2:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen } = require( './var.js' )
@@ -133,7 +133,88 @@ Alterations.Halve.RIGHT = 2
 
 module.exports = Alterations
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],3:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],3:[function(require,module,exports){
+const Audio = {
+  __hasInput: false,
+  ctx: null,
+
+  start() {
+    if( Audio.__hasInput === false ) {
+      Audio.ctx = new AudioContext()
+      Audio.createInput().then( input => {
+        Audio.createFFT()
+        input.connect( Audio.FFT )
+
+        Audio.interval = setInterval( Audio.fftCallback, 1000/60 )
+        window.FFT = Audio.FFT
+      })
+    }
+    Audio.__hasInput = true
+  },
+
+  createInput() {
+    console.log( 'connecting audio input...' )
+    
+    const p = new Promise( resolve => {
+      console.log( 'start?' )
+      navigator.mediaDevices.getUserMedia({ audio:true, video:false })
+        .then( stream => {
+          console.log( 'audio input connected' )
+          Audio.input = Audio.ctx.createMediaStreamSource( stream )
+          //Audio.mediaStreamSource.connect( Gibberish.node )
+          Audio.__hasInput = true
+          resolve( Audio.input )
+        })
+        .catch( err => { 
+          console.log( 'error opening audio input:', err )
+        })
+    })
+    return p
+  },
+
+  createFFT() {
+    Audio.FFT = Audio.ctx.createAnalyser()
+    Audio.windowSize = 512 
+    Audio.FFT.fftSize = Audio.windowSize
+    Audio.FFT.values = new Uint8Array( Audio.FFT.frequencyBinCount )
+  },
+
+  fftCallback() {
+    Audio.FFT.getByteFrequencyData( Audio.FFT.values )
+    
+    let lowSum, midSum, highSum, lowCount, midCount, highCount
+    lowSum = midSum = highSum = lowCount = midCount = highCount = 0
+
+    let frequencyCounter = 0
+
+    // does this start at 0Hz? ack... can't remember... does it include DC offset?
+    const hzPerBin = (Audio.ctx.sampleRate / 2) / Audio.windowSize
+    const lowRange = 150, midRange = 1400, highRange = Audio.ctx.sampleRate / 2
+
+    for( let i = 1; i < Audio.FFT.frequencyBinCount; i++ ) {
+      if( frequencyCounter < lowRange ) {
+        lowSum += Audio.FFT.values[ i ]
+        lowCount++
+      }else if( frequencyCounter < midRange ) {
+        midSum += Audio.FFT.values[ i ]
+        midCount++
+      }else{
+        highSum += Audio.FFT.values[ i ]
+        highCount++
+      }
+
+      frequencyCounter += hzPerBin
+    }
+
+    Audio.FFT.low = (lowSum / lowCount) / 255
+    Audio.FFT.mid = (midSum / midCount) / 255
+    Audio.FFT.high = (highSum / highCount) / 255
+  }
+}
+
+module.exports = Audio
+
+},{}],4:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' )
@@ -189,7 +270,7 @@ const BG = function( Scene, SDF ) {
 
 module.exports = BG 
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],4:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],5:[function(require,module,exports){
 const Camera = {
   init( gl, program, handler ) {
     const camera_pos = gl.getUniformLocation( program, 'camera_pos' )
@@ -253,9 +334,9 @@ const Camera = {
 
 module.exports = Camera
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23,"dup":1}],6:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24,"dup":1}],7:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
@@ -386,7 +467,7 @@ for( let name in ops ) {
 module.exports = DistanceOps
 
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],7:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],8:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' )
@@ -526,7 +607,7 @@ DistanceOps.RoundUnion2 = function( ...args ) {
 module.exports = DistanceOps
 
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],8:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],9:[function(require,module,exports){
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
@@ -954,7 +1035,7 @@ return { Repeat:Repetition, Scale, Rotation, Translate, PolarRepeat:PolarRepetit
 
 module.exports = getDomainOps
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],9:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],10:[function(require,module,exports){
 const emit_float = function( a ) {
 	if (a % 1 === 0)
 		return a.toFixed( 1 )
@@ -977,7 +1058,7 @@ const Float = function( x=0 ) {
 
 module.exports = Float
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
@@ -1051,7 +1132,7 @@ const Fogger = function( Scene, SDF ) {
 
 module.exports = Fogger
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],11:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],12:[function(require,module,exports){
 'use strict'
 
 const Marching = require( './main.js' )
@@ -1066,7 +1147,7 @@ window.Marching = Marching
 
 module.exports = Marching
 
-},{"./main.js":14}],12:[function(require,module,exports){
+},{"./main.js":15}],13:[function(require,module,exports){
 const emit_int = function( a ) {
 	if( a % 1 !== 0 )
 		return Math.round( a )
@@ -1089,7 +1170,7 @@ const Int = function( x=0 ) {
 
 module.exports = Int
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' ),
@@ -1269,7 +1350,7 @@ module.exports = Lights
 /*
 */
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23,"./vec.js":24,"glslify":25}],14:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24,"./vec.js":25,"glslify":26}],15:[function(require,module,exports){
 const SDF = {
   camera:           require( './camera.js' ),
   __primitives:     require( './primitives.js' ),
@@ -1284,6 +1365,7 @@ const SDF = {
   __materials:      require( './material.js' ),
   Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
+  Audio:            require( './audio.js' ),
 
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),
@@ -1611,7 +1693,7 @@ const SDF = {
 
 module.exports = SDF
 
-},{"./alterations.js":2,"./camera.js":4,"./color.js":5,"./distanceDeformations.js":6,"./distanceOperations.js":7,"./domainOperations.js":8,"./lighting.js":13,"./material.js":15,"./noise.js":16,"./primitives.js":18,"./renderFragmentShader.js":19,"./scene.js":20,"./var.js":23,"./vec.js":24}],15:[function(require,module,exports){
+},{"./alterations.js":2,"./audio.js":3,"./camera.js":5,"./color.js":6,"./distanceDeformations.js":7,"./distanceOperations.js":8,"./domainOperations.js":9,"./lighting.js":14,"./material.js":16,"./noise.js":17,"./primitives.js":19,"./renderFragmentShader.js":20,"./scene.js":21,"./var.js":24,"./vec.js":25}],16:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' ),
@@ -1706,7 +1788,7 @@ const __Materials = function( SDF ) {
 
 module.exports = __Materials
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23,"./vec.js":24,"glslify":25}],16:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24,"./vec.js":25,"glslify":26}],17:[function(require,module,exports){
 const glsl = require( 'glslify' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
@@ -1793,7 +1875,7 @@ return Noise
 
 module.exports = getNoise 
 
-},{"./sceneNode.js":21,"./utils.js":22,"./var.js":23,"glslify":25}],17:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24,"glslify":26}],18:[function(require,module,exports){
 
 const glsl = require( 'glslify' )
 const Color = require( './Color' )
@@ -2087,7 +2169,7 @@ module.exports = {
 
 }
 
-},{"./Color":1,"glslify":25}],18:[function(require,module,exports){
+},{"./Color":1,"glslify":26}],19:[function(require,module,exports){
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
@@ -2264,7 +2346,7 @@ const createPrimitives = function( SDF ) {
 
 module.exports = createPrimitives
 
-},{"./color.js":5,"./primitiveDescriptions.js":17,"./sceneNode.js":21,"./utils.js":22,"./var.js":23}],19:[function(require,module,exports){
+},{"./color.js":6,"./primitiveDescriptions.js":18,"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],20:[function(require,module,exports){
 const glsl = require( 'glslify' )
 
 module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20 ) {
@@ -2273,7 +2355,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
     return fs_source
   }
 
-},{"glslify":25}],20:[function(require,module,exports){
+},{"glslify":26}],21:[function(require,module,exports){
 const getFog = require( './fog.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const __lighting = require( './lighting.js' )
@@ -2384,7 +2466,7 @@ const getScene = function( SDF ) {
 
 module.exports = getScene 
 
-},{"./background.js":3,"./fog.js":10,"./lighting.js":13,"./utils.js":22,"./var.js":23}],21:[function(require,module,exports){
+},{"./background.js":4,"./fog.js":11,"./lighting.js":14,"./utils.js":23,"./var.js":24}],22:[function(require,module,exports){
 // SceneNode
 
 let SceneNode = ()=> Object.create( SceneNode.prototype )
@@ -2401,7 +2483,7 @@ SceneNode.prototype = {
 
 module.exports = SceneNode
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 const Var = require('./var.js').Var
 
 
@@ -2425,7 +2507,7 @@ const MaterialID = {
 
 module.exports = { param_wrap, MaterialID }
 
-},{"./var.js":23}],23:[function(require,module,exports){
+},{"./var.js":24}],24:[function(require,module,exports){
 const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 const float = require( './float.js' )
 const int   = require( './int.js' )
@@ -2592,7 +2674,7 @@ function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ),
 
 module.exports = { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }
 
-},{"./float.js":9,"./int.js":12,"./vec.js":24}],24:[function(require,module,exports){
+},{"./float.js":10,"./int.js":13,"./vec.js":25}],25:[function(require,module,exports){
 const float = require( './float.js' )
 
 const Vec2 = function (x=0, y=0) {
@@ -2818,7 +2900,7 @@ Vec4.prototype = {
 
 module.exports = { Vec2, Vec3, Vec4 } 
 
-},{"./float.js":9}],25:[function(require,module,exports){
+},{"./float.js":10}],26:[function(require,module,exports){
 module.exports = function(strings) {
   if (typeof strings === 'string') strings = [strings]
   var exprs = [].slice.call(arguments,1)
@@ -2830,4 +2912,4 @@ module.exports = function(strings) {
   return parts.join('')
 }
 
-},{}]},{},[11]);
+},{}]},{},[12]);

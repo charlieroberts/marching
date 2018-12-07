@@ -12,6 +12,7 @@ const SDF = {
   __materials:      require( './material.js' ),
   Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
+  Audio:            require( './audio.js' ),
 
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),

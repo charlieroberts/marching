@@ -84,7 +84,28 @@ const __Materials = function( SDF ) {
       }
 
       return str
+    },
+
+    update_location( gl, program ) {
+      for( let mat of this.materials ) {
+        if( mat.ambient.dirty === true )   mat.ambient.update_location( gl, program )
+        if( mat.diffuse.dirty === true )   mat.diffuse.update_location( gl, program )
+        if( mat.specular.dirty === true )  mat.specular.update_location( gl, program )
+        if( mat.shininess.dirty === true ) mat.shininess.update_location( gl, program )
+        if( mat.fresnel.dirty === true )   mat.fresnel.update_location( gl, program )
+      }
+    },
+
+    upload_data( gl, program='' ) {
+      for( let mat of this.materials ) {
+        if( mat.ambient.dirty === true )   mat.ambient.upload_data( gl, program )
+        if( mat.diffuse.dirty === true )   mat.diffuse.upload_data( gl, program )
+        if( mat.specular.dirty === true )  mat.specular.upload_data( gl, program )
+        if( mat.shininess.dirty === true ) mat.shininess.upload_data( gl, program )
+        if( mat.fresnel.dirty === true )   mat.fresnel.upload_data( gl, program )
+      }
     }
+
   }
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 

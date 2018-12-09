@@ -251,6 +251,7 @@ const SDF = {
       pp.update_location( gl, program ) 
     })
     this.scene.update_location( gl, program )
+    this.materials.update_location( gl, program )
 
     gl.enableVertexAttribArray(loc_a_pos)
     gl.enableVertexAttribArray(loc_a_uv)
@@ -293,6 +294,7 @@ const SDF = {
       }
 
       this.scene.upload_data( gl )
+      this.materials.upload_data( gl )
       this.postprocessing.forEach( pp => pp.upload_data( gl ) )
 
       gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )

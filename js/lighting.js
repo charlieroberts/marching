@@ -85,10 +85,10 @@ const Lights = function( SDF ) {
     // a switch statement selecting lighting. They are overridden by actual lighting functions if any
     // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
-      'vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      'vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      'vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      'vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
     ],
 
     shell( numlights, lights, materials, shadow=0 ) {
@@ -104,7 +104,8 @@ const Lights = function( SDF ) {
     ${lights}
     `
 
-    let func = `  vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
+      let func = `
+    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
       // applies to all lights (actually, not 'normal' mode... TODO)
       //float occlusion = calcAO( surfacePosition, normal );
 

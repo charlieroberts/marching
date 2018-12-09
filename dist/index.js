@@ -1258,10 +1258,10 @@ const Lights = function( SDF ) {
     // a switch statement selecting lighting. They are overridden by actual lighting functions if any
     // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
-      'vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      'vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      'vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      'vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
     ],
 
     shell( numlights, lights, materials, shadow=0 ) {
@@ -1272,7 +1272,8 @@ const Lights = function( SDF ) {
 
       let preface = glsl(["#define GLSLIFY 1\n  int MAX_LIGHTS = ",";\n    float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n    ","\n    ",""],numlights,lights)
 
-    let func = `  vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
+      let func = `
+    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
       // applies to all lights (actually, not 'normal' mode... TODO)
       //float occlusion = calcAO( surfacePosition, normal );
 
@@ -1605,6 +1606,7 @@ const SDF = {
       pp.update_location( gl, program ) 
     })
     this.scene.update_location( gl, program )
+    this.materials.update_location( gl, program )
 
     gl.enableVertexAttribArray(loc_a_pos)
     gl.enableVertexAttribArray(loc_a_uv)
@@ -1647,6 +1649,7 @@ const SDF = {
       }
 
       this.scene.upload_data( gl )
+      this.materials.upload_data( gl )
       this.postprocessing.forEach( pp => pp.upload_data( gl ) )
 
       gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
@@ -1748,7 +1751,28 @@ const __Materials = function( SDF ) {
       }
 
       return str
+    },
+
+    update_location( gl, program ) {
+      for( let mat of this.materials ) {
+        if( mat.ambient.dirty === true )   mat.ambient.update_location( gl, program )
+        if( mat.diffuse.dirty === true )   mat.diffuse.update_location( gl, program )
+        if( mat.specular.dirty === true )  mat.specular.update_location( gl, program )
+        if( mat.shininess.dirty === true ) mat.shininess.update_location( gl, program )
+        if( mat.fresnel.dirty === true )   mat.fresnel.update_location( gl, program )
+      }
+    },
+
+    upload_data( gl, program='' ) {
+      for( let mat of this.materials ) {
+        if( mat.ambient.dirty === true )   mat.ambient.upload_data( gl, program )
+        if( mat.diffuse.dirty === true )   mat.diffuse.upload_data( gl, program )
+        if( mat.specular.dirty === true )  mat.specular.upload_data( gl, program )
+        if( mat.shininess.dirty === true ) mat.shininess.upload_data( gl, program )
+        if( mat.fresnel.dirty === true )   mat.fresnel.upload_data( gl, program )
+      }
     }
+
   }
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
@@ -2507,6 +2531,7 @@ const VarAlloc = {
 }
 
 let Var = function( value, fixedName = null, __type ) {
+  if( fixedName !== null ) console.log( fixedName )
   const v = Object.create( Var.prototype )
 	v.varName = fixedName !== null ? fixedName : 'var' + VarAlloc.alloc()
   v.value = value

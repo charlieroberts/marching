@@ -2692,11 +2692,30 @@ Vec2.prototype = {
 
 const Vec3 = function (x=0, y, z) {
   const v = Object.create( Vec3.prototype )
+  let vx =0,vy=0,vz=0
+  Object.defineProperties( v, {
+    x: {
+      get()  { return vx },
+      set(v) { vx = v; this.dirty = true; }
+    },
+
+    y: {
+      get()  { return vy },
+      set(v) { vy = v; this.dirty = true; }
+    },
+
+    z: {
+      get()  { return vz },
+      set(v) { vz = v; this.dirty = true; }
+    },
+  })
+
   if( y === undefined && z === undefined) {
     v.x = v.y = v.z = x
   }else{
     v.x = x; v.y = y; v.z = z;
   }
+ 
   v.isGen = v.x.type === 'string' || v.y.type === 'string' || v.z.type === 'string'
   return v
 };

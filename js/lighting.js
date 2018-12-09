@@ -26,22 +26,27 @@ const Lights = function( SDF ) {
     `,
 
     light( pos=Vec3(2,2,3), color=Vec3(0,0,1), attenuation=1, intensity=1 ) {
-      const light = { pos, color, attenuation, intensity }
+      const light = { 
+        pos: param_wrap( pos, vec3_var_gen(2,2,3) ), 
+        color: param_wrap( color, vec3_var_gen( 0,0,1 ) ),
+        attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
+        intensity 
+      }
       return light
     },
 
     emit_lights() {
       if( this.lights.length === 0 ) return this.defaultLights
 
-      let str = `      Light lights[${this.lights.length}] = Light[${this.lights.length}](`
+      let str = `Light lights[${this.lights.length}] = Light[${this.lights.length}](`
 
       for( let light of this.lights ) {
-        str += `\n        Light( ${light.pos.emit().out}, ${light.color.emit().out}, ${light.attenuation.toFixed(1)}),` 
+        str += `\n        Light( ${light.pos.emit()}, ${light.color.emit()}, ${light.attenuation.emit()}),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma
 
-      str += ');'
+      str += '\n      );'
 
       return str
     },
@@ -79,16 +84,44 @@ const Lights = function( SDF ) {
       return lighting[0] + lightingFunctions.join('\n') + lighting[1]
     },
 
+    emit_decl() {
+      let str = ''
+      for( let light of this.lights ) {
+        str += light.pos.emit_decl()
+        str += light.color.emit_decl()
+        str += light.attenuation.emit_decl()
+      }
+
+      return str
+    },
+
+    update_location( gl, program ) {
+      for( let light of this.lights ) {
+        if( light.pos.dirty === true )  light.pos.update_location( gl, program )
+        if( light.color.dirty === true )  light.color.update_location( gl, program )
+        if( light.attenuation.dirty === true ) light.attenuation.update_location( gl, program )
+      }
+
+    },
+
+    upload_data( gl, program='' ) {
+      for( let light of this.lights ) {
+        if( light.pos.dirty === true )   light.pos.upload_data( gl, program )
+        if( light.color.dirty === true )  light.color.upload_data( gl, program )
+        if( light.attenuation.dirty === true )  light.attenuation.upload_data( gl, program )
+      }
+    },
+
     modesEmployed:[],
 
     // these stubs are placed in the shader by default as placeholders so that they can be referenced in 
     // a switch statement selecting lighting. They are overridden by actual lighting functions if any
     // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
-      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
-      '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
+      '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
+      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
+      '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
     ],
 
     shell( numlights, lights, materials, shadow=0 ) {
@@ -101,7 +134,6 @@ const Lights = function( SDF ) {
     #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
 
 
-    ${lights}
     `
 
       let func = `
@@ -114,12 +146,13 @@ const Lights = function( SDF ) {
 
       int MAX_LIGHTS = ${numlights};     
 
+      ${lights}
       vec3 clr;
       switch( mat.mode ) {
-        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat ); break;
+        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
         case 1: clr = normal; break;
-        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat ); break;
-        case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat ); break;
+        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
+        case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
         default:
           clr = normal;
       }
@@ -137,7 +170,7 @@ const Lights = function( SDF ) {
 
         const str = glsl`
 
-        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat ) {
+        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[2] ) {
           Light light = lights[ 0 ];
           vec3  ref = reflect( rd, nor ); // reflection angle
           float occ = ao( pos, nor );
@@ -179,7 +212,7 @@ const Lights = function( SDF ) {
           : ''
 
         const str = glsl`  
-        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) {
+        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) {
           vec3  outputColor   = vec3( 0. );
    
           // applies to all lights
@@ -241,7 +274,7 @@ const Lights = function( SDF ) {
         #pragma glslify: orenND  = require( 'glsl-diffuse-oren-nayar' )
         #pragma glslify: gauss  = require( 'glsl-specular-gaussian' )
 
-        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) {
+        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) {
           vec3  outputColor   = vec3( 0. );
    
           // applies to all lights

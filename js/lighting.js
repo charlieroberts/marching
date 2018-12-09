@@ -81,6 +81,8 @@ const Lights = function( SDF ) {
 
       const lighting = this.shell( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
 
+      let lightingFuncStr = lightingFunctions.join('\n')
+      lightingFuncStr = lightingFuncStr.replace( /MAX_LIGHTS/g, this.lights.length )
       return lighting[0] + lightingFunctions.join('\n') + lighting[1]
     },
 
@@ -118,10 +120,10 @@ const Lights = function( SDF ) {
     // a switch statement selecting lighting. They are overridden by actual lighting functions if any
     // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
-      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
-      '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
-      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
-      '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) { return vec3(0.); }',
+      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
+      '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
+      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
+      '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
     ],
 
     shell( numlights, lights, materials, shadow=0 ) {

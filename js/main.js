@@ -26,6 +26,9 @@ const SDF = {
   // the scene is a chain of Unions combining all elements together
   scene:  null,
 
+  // a speed of 1 corresponds to 60 fps.
+  delay: 0,
+
   defaultVertexSource:`    #version 300 es
     in vec3 a_pos;
 		in vec2 a_uv;
@@ -110,16 +113,6 @@ const SDF = {
     this.requiredGeometries = []
     this.memo = {}
 
-    //const [ variablesDeclaration, sceneRendering, shapes ] = this.generateSDF( ...objs )
-
-    //this.fs = this.renderFragmentShader( 
-    //  variablesDeclaration, 
-    //  sceneRendering.out, 
-    //  sceneRendering.preface,
-    //  this.requiredGeometries.join('\n'), 
-    //  steps, minDistance, maxDistance.toFixed(1) 
-    //)
-
     return scene
   },
 
@@ -161,7 +154,6 @@ const SDF = {
 
     // create an fancy emit() function that wraps the scene
     // with an id #.
-    // XXX does every SDF need an id? this has always confused me...
 
     scene.output.__emit = scene.output.emit.bind( scene.output )
     scene.output.emit = ()=> {
@@ -258,7 +250,6 @@ const SDF = {
     })
     this.scene.update_location( gl, program )
 
-
     gl.enableVertexAttribArray(loc_a_pos)
     gl.enableVertexAttribArray(loc_a_uv)
 
@@ -268,45 +259,13 @@ const SDF = {
     gl.viewport( 0,0,width,height )
     gl.uniform2f( loc_u_resolution, width, height )
 
-    const matTexSize = 4
-    let matTexData = new Uint8Array( matTexSize * 4 )
-    let matTexDataDirty = false
-
-    const matTex = gl.createTexture()
-    gl.bindTexture( gl.TEXTURE_2D, matTex )
-    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, matTexSize, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, matTexData )
-    
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT )
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT )
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR )
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR  )
-
-    const matTexLoc = gl.getUniformLocation(program, "uMatSampler" )
-    const matTexSizeLoc = gl.getUniformLocation(program, "matTexSize" )
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.uniform1i(matTexLoc, 0);
-    gl.uniform1f(matTexSizeLoc, matTexSize);
-
     let total_time = 0.0;
 
     function clamp255(v) {
       return Math.min( Math.max( 0, v * 255 ), 255 )
     }
 
-    function updateMaterial( id, color ) {
-      matTexData[id * 4]     = clamp255( color[0] )
-      matTexData[id * 4 + 1] = clamp255( color[1] )
-      matTexData[id * 4 + 2] = clamp255( color[2] )
-      matTexData[id * 4 + 3] = clamp255( color[3] )
-      matTexDataDirty = true;
-    }
-
-    updateMaterial( 0, [1, 0.0, 0.0, 1] )
-    updateMaterial( 1, [0.0, 1, 0.0, 1] )
-    updateMaterial( 2, [0.0, 0.0, 1, 1] )
-    updateMaterial( 3, [0.0, 0.0, 1, 1] )
-
+    let frameCount = 0
     const render = function( timestamp ){
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
@@ -315,18 +274,24 @@ const SDF = {
         return
       }
       
+      if( this.delay !== 0 && this.delay >= frameCount ) {
+        frameCount++
+        return
+      }else if( this.delay !== 0 ) {
+        frameCount = 0
+      }
+
       total_time = timestamp / 1000.0
       gl.uniform1f( loc_u_time, total_time )
 
       this.callbacks.forEach( cb => cb( total_time ) )
 
+      if( typeof window.onframe === 'function' ) {
+        window.onframe( total_time )
+      }
+
       this.scene.upload_data( gl )
       this.postprocessing.forEach( pp => pp.upload_data( gl ) )
-
-      if (matTexDataDirty) {
-        gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, matTexSize, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, matTexData )
-        matTexDataDirty = false
-      }
 
       gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
 

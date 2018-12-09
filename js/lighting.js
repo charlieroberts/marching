@@ -82,8 +82,8 @@ const Lights = function( SDF ) {
       const lighting = this.shell( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
 
       let lightingFuncStr = lightingFunctions.join('\n')
-      lightingFuncStr = lightingFuncStr.replace( /MAX_LIGHTS/g, this.lights.length )
-      return lighting[0] + lightingFunctions.join('\n') + lighting[1]
+      lightingFuncStr = lightingFuncStr.replace( /(MAX\_LIGHTS)/g, this.lights.length || 2 )
+      return lighting[0] + lightingFuncStr + lighting[1]
     },
 
     emit_decl() {
@@ -172,7 +172,7 @@ const Lights = function( SDF ) {
 
         const str = glsl`
 
-        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[2] ) {
+        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS] ) {
           Light light = lights[ 0 ];
           vec3  ref = reflect( rd, nor ); // reflection angle
           float occ = ao( pos, nor );
@@ -214,7 +214,7 @@ const Lights = function( SDF ) {
           : ''
 
         const str = glsl`  
-        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) {
+        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {
           vec3  outputColor   = vec3( 0. );
    
           // applies to all lights
@@ -276,7 +276,7 @@ const Lights = function( SDF ) {
         #pragma glslify: orenND  = require( 'glsl-diffuse-oren-nayar' )
         #pragma glslify: gauss  = require( 'glsl-specular-gaussian' )
 
-        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[2] ) {
+        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {
           vec3  outputColor   = vec3( 0. );
    
           // applies to all lights

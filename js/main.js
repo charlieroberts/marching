@@ -178,6 +178,8 @@ const SDF = {
       variablesDeclaration += processor.emit_decl()
     }
 
+    variablesDeclaration += this.materials.emit_decl() 
+
     this.postprocessing = __scene.postprocessing
 
     return [ variablesDeclaration, sceneRendering, pp ]

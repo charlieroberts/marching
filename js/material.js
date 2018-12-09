@@ -34,13 +34,18 @@ const __Materials = function( SDF ) {
       );
     `,
 
-    material( mode='global', ambient=Vec3(.05), diffuse=Vec3(0,0,1), specular=Vec3(1,1,1), shininess=8, fresnel=Vec3(0,1,2) ){
+    material( mode='global', __ambient, __diffuse, __specular, __shininess, fresnel=Vec3(0,1,2) ){
       let modeIdx = Materials.modeConstants.indexOf( mode )
       if( modeIdx === -1 ) {
         console.warn( `There is no material type named ${mode}. Using the default material, ${Materials.default}, instead.` )
         mode = Materials.default
         modeIdx = Materials.modeConstants.indexOf( mode )
       }
+
+      const ambient = param_wrap( __ambient, vec3_var_gen(.1,.1,.1) )
+      const diffuse = param_wrap( __diffuse, vec3_var_gen(0,0,1) )
+      const specular = param_wrap( __specular, vec3_var_gen(1,1,1) )
+      const shininess = param_wrap( __shininess, float_var_gen(8) )
 
       const mat = { mode, ambient, diffuse, specular, shininess, fresnel, id:MaterialID.alloc() }
       Materials.materials.push( mat )
@@ -56,12 +61,9 @@ const __Materials = function( SDF ) {
       this.materials.sort( (a,b) => a.id > b.id ? 1 : -1 ) 
 
       for( let mat of this.materials ) {
-        const ambient = `vec3( ${f(mat.ambient.x)}, ${f(mat.ambient.y)}, ${f(mat.ambient.z)} )`
-        const diffuse = `vec3( ${f(mat.diffuse.x)}, ${f(mat.diffuse.y)}, ${f(mat.diffuse.z)} )`
-        const specular = `vec3( ${f(mat.specular.x)}, ${f(mat.specular.y)}, ${f(mat.specular.z)} )`
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
-        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${ambient}, ${diffuse}, ${specular}, ${f(mat.shininess)}, ${fresnel} ),` 
+        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${fresnel} ),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma
@@ -70,21 +72,34 @@ const __Materials = function( SDF ) {
 
       return str
     },
+
+    emit_decl() {
+      let str = ''
+      for( let mat of this.materials ) {
+        str += mat.ambient.emit_decl()
+        str += mat.diffuse.emit_decl()
+        str += mat.specular.emit_decl()
+        str += mat.shininess.emit_decl()
+        str += mat.fresnel.emit_decl()
+      }
+
+      return str
+    }
   }
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
 
   Object.assign( Materials.material, {
-    green : Materials.material( 'global', Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
-    red   : Materials.material( 'global', Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
-    blue  : Materials.material( 'global', Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
-    cyan  : Materials.material( 'global', Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
+    green   : Materials.material( 'global', Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
+    red     : Materials.material( 'global', Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
+    blue    : Materials.material( 'global', Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
+    cyan    : Materials.material( 'global', Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
     magenta : Materials.material( 'global', Vec3(.25,0,.25), Vec3(1,0,1), Vec3(0), 2, Vec3(0) ),
-    yellow : Materials.material( 'global', Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
-    black : Materials.material( 'global', Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
-    white: Materials.material( 'global', Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
-    grey : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
-    normal: Materials.material( 'normal' )
+    yellow  : Materials.material( 'global', Vec3(.25,.25,.0), Vec3(1,1,0), Vec3(0), 2, Vec3(0) ),
+    black   : Materials.material( 'global', Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
+    white   : Materials.material( 'global', Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
+    grey    : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
+    normal  : Materials.material( 'normal' )
   })
 
   return Materials

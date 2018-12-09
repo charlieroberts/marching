@@ -85,10 +85,10 @@ const Lights = function( SDF ) {
     // a switch statement selecting lighting. They are overridden by actual lighting functions if any
     // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
-      'vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
-      'vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
-      'vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
-      'vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) { return vec3(0.); }',
+      'vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      'vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      'vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
+      'vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) { return vec3(0.); }',
     ],
 
     shell( numlights, lights, materials, shadow=0 ) {
@@ -100,7 +100,6 @@ const Lights = function( SDF ) {
       let preface = glsl`  int MAX_LIGHTS = ${numlights};
     #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
 
-    ${materials}
 
     ${lights}
     `
@@ -109,16 +108,17 @@ const Lights = function( SDF ) {
       // applies to all lights (actually, not 'normal' mode... TODO)
       //float occlusion = calcAO( surfacePosition, normal );
 
+      ${materials}
       Material mat = materials[ int(materialID) ];
 
       int MAX_LIGHTS = ${numlights};     
 
       vec3 clr;
       switch( mat.mode ) {
-        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, materialID ); break;
+        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat ); break;
         case 1: clr = normal; break;
-        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, materialID ); break;
-        case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, materialID ); break;
+        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat ); break;
+        case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat ); break;
         default:
           clr = normal;
       }
@@ -136,7 +136,7 @@ const Lights = function( SDF ) {
 
         const str = glsl`
 
-        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {
+        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat ) {
           Light light = lights[ 0 ];
           vec3  ref = reflect( rd, nor ); // reflection angle
           float occ = ao( pos, nor );
@@ -154,8 +154,6 @@ const Lights = function( SDF ) {
 
           dif *= softshadow( pos, lig, 0.02, 2.5, ${shadow.toFixed(1)} );
           dom *= softshadow( pos, ref, 0.02, 2.5, ${shadow.toFixed(1)} );
-
-          Material mat = materials[ int(materialID) ];
 
           vec3 brdf = vec3( 0.0 );
           brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;
@@ -180,13 +178,12 @@ const Lights = function( SDF ) {
           : ''
 
         const str = glsl`  
-        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
+        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) {
           vec3  outputColor   = vec3( 0. );
    
           // applies to all lights
           float occlusion = ao( surfacePosition, normal );
 
-          Material mat = materials[ int(materialID) ];
 
           for( int i = 0; i < 20000; i++ ) {
             if( i >= MAX_LIGHTS ) break;
@@ -243,13 +240,11 @@ const Lights = function( SDF ) {
         #pragma glslify: orenND  = require( 'glsl-diffuse-oren-nayar' )
         #pragma glslify: gauss  = require( 'glsl-specular-gaussian' )
 
-        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
+        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat ) {
           vec3  outputColor   = vec3( 0. );
    
           // applies to all lights
           float occlusion = ao( surfacePosition, normal );
-
-          Material mat = materials[ int(materialID) ];
 
           for( int i = 0; i < 20000; i++ ) {
             if( i >= MAX_LIGHTS ) break;

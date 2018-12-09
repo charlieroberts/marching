@@ -31,8 +31,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
       uniform float time;
       uniform vec2 resolution;
-      uniform float matTexSize;
-      uniform sampler2D uMatSampler;
       uniform vec3 camera_pos;
       uniform vec3 camera_normal;
 

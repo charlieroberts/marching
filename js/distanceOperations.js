@@ -25,6 +25,51 @@ const ops = {
   Onion( a,b ) { return `opOnion( ${a}, ${b} )` }
 }
 
+ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+        return mix( d2, -d1, h ) + k*h*(1.0-h); 
+      }
+      vec2 opSmoothSubtraction( vec2 d1, vec2 d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2.x+d1.x)/k, 0.0, 1.0 );
+        return vec2( mix( d2.x, -d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) );
+      }
+`
+
+ops.SmoothIntersection.code = `      float opSmoothIntersection( float d1, float d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+        return mix( d2, d1, h ) + k*h*(1.0-h); 
+      }
+      vec2  opSmoothIntersection( vec2 d1, vec2 d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
+        return vec2( mix( d2.x, d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) ); 
+      }
+`      
+
+ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
+        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );
+        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );
+
+
+        // material blending... i am proud.
+        float starty = clamp( (b.x - a.x) / k, 0., 1. );
+        float hy = 1. - (a.y + ( b.y - a.y ) * starty); 
+
+        return vec2( hx, hy ); 
+      }
+
+      float opS( float d1, float d2 ) { return max(d1,-d2); }
+      vec2  opS( vec2 d1, vec2 d2 ) {
+        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
+      }
+
+      float opSmoothUnion( float a, float b, float k) {
+        return smin( a, b, k );
+      }
+
+      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {
+        return smin( a, b, k);
+      }
+`
 const DistanceOps = {}
 
 for( let name in ops ) {
@@ -81,6 +126,13 @@ for( let name in ops ) {
     let str =  this.a.emit_decl() + this.b.emit_decl()
     if( this.c !== undefined ) str += this.c.emit_decl()
     if( this.d !== undefined ) str += this.d.emit_decl()
+
+    if( ops[ name ].code !== undefined ) {
+      //str += ops[ name ].code
+      if( Marching.requiredOps.indexOf( ops[ name ].code ) === - 1 ) {
+        Marching.requiredOps.push( ops[ name ].code )
+      }
+    }
 
     return str
   };

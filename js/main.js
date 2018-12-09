@@ -111,6 +111,7 @@ const SDF = {
     const scene = this.Scene( args, this.canvas )
 
     this.requiredGeometries = []
+    this.requiredOps = []
     this.memo = {}
 
     return scene

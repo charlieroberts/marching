@@ -85,7 +85,7 @@ const getScene = function( SDF ) {
         variablesDeclaration, 
         sceneRendering.out, 
         sceneRendering.preface,
-        SDF.requiredGeometries.join('\n'),
+        SDF.requiredGeometries.join('\n') + SDF.requiredOps.join('\n'),
         lighting,
         postprocessing, 
         this.__steps, this.__threshold, this.__farPlane.toFixed(1)

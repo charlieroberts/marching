@@ -495,51 +495,6 @@ const ops = {
   Onion( a,b ) { return `opOnion( ${a}, ${b} )` }
 }
 
-ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
-        return mix( d2, -d1, h ) + k*h*(1.0-h); 
-      }
-      vec2 opSmoothSubtraction( vec2 d1, vec2 d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2.x+d1.x)/k, 0.0, 1.0 );
-        return vec2( mix( d2.x, -d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) );
-      }
-`
-
-ops.SmoothIntersection.code = `      float opSmoothIntersection( float d1, float d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
-        return mix( d2, d1, h ) + k*h*(1.0-h); 
-      }
-      vec2  opSmoothIntersection( vec2 d1, vec2 d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
-        return vec2( mix( d2.x, d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) ); 
-      }
-`      
-
-ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
-        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );
-        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );
-
-
-        // material blending... i am proud.
-        float starty = clamp( (b.x - a.x) / k, 0., 1. );
-        float hy = 1. - (a.y + ( b.y - a.y ) * starty); 
-
-        return vec2( hx, hy ); 
-      }
-
-      float opS( float d1, float d2 ) { return max(d1,-d2); }
-      vec2  opS( vec2 d1, vec2 d2 ) {
-        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
-      }
-
-      float opSmoothUnion( float a, float b, float k) {
-        return smin( a, b, k );
-      }
-
-      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {
-        return smin( a, b, k);
-      }
-`
 const DistanceOps = {}
 
 for( let name in ops ) {
@@ -656,6 +611,52 @@ DistanceOps.RoundUnion2 = function( ...args ) {
 
   return u
 }
+
+ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+        return mix( d2, -d1, h ) + k*h*(1.0-h); 
+      }
+      vec2 opSmoothSubtraction( vec2 d1, vec2 d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2.x+d1.x)/k, 0.0, 1.0 );
+        return vec2( mix( d2.x, -d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) );
+      }
+`
+
+ops.SmoothIntersection.code = `      float opSmoothIntersection( float d1, float d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+        return mix( d2, d1, h ) + k*h*(1.0-h); 
+      }
+      vec2  opSmoothIntersection( vec2 d1, vec2 d2, float k ) {
+        float h = clamp( 0.5 - 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
+        return vec2( mix( d2.x, d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) ); 
+      }
+`      
+
+ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
+        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );
+        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );
+
+
+        // material blending... i am proud.
+        float starty = clamp( (b.x - a.x) / k, 0., 1. );
+        float hy = 1. - (a.y + ( b.y - a.y ) * starty); 
+
+        return vec2( hx, hy ); 
+      }
+
+      float opS( float d1, float d2 ) { return max(d1,-d2); }
+      vec2  opS( vec2 d1, vec2 d2 ) {
+        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
+      }
+
+      float opSmoothUnion( float a, float b, float k) {
+        return smin( a, b, k );
+      }
+
+      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {
+        return smin( a, b, k);
+      }
+`
 module.exports = DistanceOps
 
 
@@ -1254,9 +1255,17 @@ const Lights = function( SDF ) {
       const light = { 
         pos: param_wrap( pos, vec3_var_gen(2,2,3) ), 
         color: param_wrap( color, vec3_var_gen( 0,0,1 ) ),
-        attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
+        __attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
         intensity 
       }
+
+      Object.defineProperty( light, 'attenuation', {
+        get() { return light.__attenuation.value },
+        set(v){
+          light.__attenuation.value = v
+          light.__attenuation.dirty = true
+        }
+      })
       return light
     },
 
@@ -1266,7 +1275,7 @@ const Lights = function( SDF ) {
       let str = `Light lights[${this.lights.length}] = Light[${this.lights.length}](`
 
       for( let light of this.lights ) {
-        str += `\n        Light( ${light.pos.emit()}, ${light.color.emit()}, ${light.attenuation.emit()}),` 
+        str += `\n        Light( ${light.pos.emit()}, ${light.color.emit()}, ${light.__attenuation.emit()}),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma
@@ -1316,7 +1325,7 @@ const Lights = function( SDF ) {
       for( let light of this.lights ) {
         str += light.pos.emit_decl()
         str += light.color.emit_decl()
-        str += light.attenuation.emit_decl()
+        str += light.__attenuation.emit_decl()
       }
 
       return str
@@ -1326,7 +1335,7 @@ const Lights = function( SDF ) {
       for( let light of this.lights ) {
         if( light.pos.dirty === true )  light.pos.update_location( gl, program )
         if( light.color.dirty === true )  light.color.update_location( gl, program )
-        if( light.attenuation.dirty === true ) light.attenuation.update_location( gl, program )
+        if( light.__attenuation.dirty === true ) light.__attenuation.update_location( gl, program )
       }
 
     },
@@ -1335,7 +1344,7 @@ const Lights = function( SDF ) {
       for( let light of this.lights ) {
         if( light.pos.dirty === true )   light.pos.upload_data( gl, program )
         if( light.color.dirty === true )  light.color.upload_data( gl, program )
-        if( light.attenuation.dirty === true )  light.attenuation.upload_data( gl, program )
+        if( light.__attenuation.dirty === true )  light.__attenuation.upload_data( gl, program )
       }
     },
 

@@ -29,9 +29,17 @@ const Lights = function( SDF ) {
       const light = { 
         pos: param_wrap( pos, vec3_var_gen(2,2,3) ), 
         color: param_wrap( color, vec3_var_gen( 0,0,1 ) ),
-        attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
+        __attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
         intensity 
       }
+
+      Object.defineProperty( light, 'attenuation', {
+        get() { return light.__attenuation.value },
+        set(v){
+          light.__attenuation.value = v
+          light.__attenuation.dirty = true
+        }
+      })
       return light
     },
 
@@ -41,7 +49,7 @@ const Lights = function( SDF ) {
       let str = `Light lights[${this.lights.length}] = Light[${this.lights.length}](`
 
       for( let light of this.lights ) {
-        str += `\n        Light( ${light.pos.emit()}, ${light.color.emit()}, ${light.attenuation.emit()}),` 
+        str += `\n        Light( ${light.pos.emit()}, ${light.color.emit()}, ${light.__attenuation.emit()}),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma
@@ -91,7 +99,7 @@ const Lights = function( SDF ) {
       for( let light of this.lights ) {
         str += light.pos.emit_decl()
         str += light.color.emit_decl()
-        str += light.attenuation.emit_decl()
+        str += light.__attenuation.emit_decl()
       }
 
       return str
@@ -101,7 +109,7 @@ const Lights = function( SDF ) {
       for( let light of this.lights ) {
         if( light.pos.dirty === true )  light.pos.update_location( gl, program )
         if( light.color.dirty === true )  light.color.update_location( gl, program )
-        if( light.attenuation.dirty === true ) light.attenuation.update_location( gl, program )
+        if( light.__attenuation.dirty === true ) light.__attenuation.update_location( gl, program )
       }
 
     },
@@ -110,7 +118,7 @@ const Lights = function( SDF ) {
       for( let light of this.lights ) {
         if( light.pos.dirty === true )   light.pos.upload_data( gl, program )
         if( light.color.dirty === true )  light.color.upload_data( gl, program )
-        if( light.attenuation.dirty === true )  light.attenuation.upload_data( gl, program )
+        if( light.__attenuation.dirty === true )  light.__attenuation.upload_data( gl, program )
       }
     },
 

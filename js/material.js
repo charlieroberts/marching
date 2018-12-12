@@ -9,15 +9,8 @@ const glsl = require( 'glslify' )
 const __Materials = function( SDF ) {
 
   const Materials = {
-    __materials:[],
     materials:[],
-/*      struct Material {
-        vec3 ambient;
-        vec3 diffuse;
-        vec3 specular;
-        float shininess;
-        Fresnel fresnel;
-        };  */
+    __materials:[],
     modeConstants : [
       'global',
       'normal',
@@ -27,12 +20,23 @@ const __Materials = function( SDF ) {
 
     default: 'global',
 
-    defaultMaterials:`
-      Material materials[2] = Material[2](
-        Material( 0, vec3( .15 ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) ),
-        Material( 0, vec3( .05 ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 4.) )
-      );
-    `,
+    addMaterial( mat ) {
+      if( mat === undefined ) mat = Materials.material.default
+
+      if( Materials.materials.indexOf( mat ) === -1 ) {
+        mat.id = MaterialID.alloc()
+
+        // we have to dirty the material so that its data
+        // will be uploaded to new shaders, otherwise the
+        // material will only work the first time it's used, when
+        // it's dirty on initialization.
+        Materials.dirty( mat )
+
+        Materials.materials.push( mat )
+      } 
+
+      return mat
+    },
 
     material( mode='global', __ambient, __diffuse, __specular, __shininess, fresnel=Vec3(0,1,2) ){
       let modeIdx = Materials.modeConstants.indexOf( mode )
@@ -48,9 +52,16 @@ const __Materials = function( SDF ) {
       const shininess = param_wrap( __shininess, float_var_gen(8) )
 
       const mat = { mode, ambient, diffuse, specular, shininess, fresnel, id:MaterialID.alloc() }
-      Materials.materials.push( mat )
       
       return mat 
+    },
+
+    dirty( mat ) {
+      mat.ambient.dirty = true
+      mat.diffuse.dirty = true
+      mat.specular.dirty = true
+      mat.shininess.dirty = true
+      mat.fresnel.dirty = true
     },
    
     emit_materials() {
@@ -70,12 +81,15 @@ const __Materials = function( SDF ) {
 
       str += '\n      );'
 
+      this.__materials = this.materials.slice( 0 )
+      this.materials.length = 0
+
       return str
     },
 
     emit_decl() {
       let str = ''
-      for( let mat of this.materials ) {
+      for( let mat of this.__materials ) {
         str += mat.ambient.emit_decl()
         str += mat.diffuse.emit_decl()
         str += mat.specular.emit_decl()
@@ -87,7 +101,7 @@ const __Materials = function( SDF ) {
     },
 
     update_location( gl, program ) {
-      for( let mat of this.materials ) {
+      for( let mat of this.__materials ) {
         if( mat.ambient.dirty === true )   mat.ambient.update_location( gl, program )
         if( mat.diffuse.dirty === true )   mat.diffuse.update_location( gl, program )
         if( mat.specular.dirty === true )  mat.specular.update_location( gl, program )
@@ -97,7 +111,7 @@ const __Materials = function( SDF ) {
     },
 
     upload_data( gl, program='' ) {
-      for( let mat of this.materials ) {
+      for( let mat of this.__materials ) {
         if( mat.ambient.dirty === true )   mat.ambient.upload_data( gl, program )
         if( mat.diffuse.dirty === true )   mat.diffuse.upload_data( gl, program )
         if( mat.specular.dirty === true )  mat.specular.upload_data( gl, program )
@@ -111,8 +125,9 @@ const __Materials = function( SDF ) {
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
 
   Object.assign( Materials.material, {
-    green   : Materials.material( 'global', Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
+    default : Materials.material( 'global', Vec3( .15 ), Vec3(0), Vec3(1), 8, Vec3( 0, 1, .5 ) ),  
     red     : Materials.material( 'global', Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
+    green   : Materials.material( 'global', Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
     blue    : Materials.material( 'global', Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
     cyan    : Materials.material( 'global', Vec3(0,.25,.25), Vec3(0,1,1), Vec3(0), 2, Vec3(0) ),
     magenta : Materials.material( 'global', Vec3(.25,0,.25), Vec3(1,0,1), Vec3(0), 2, Vec3(0) ),

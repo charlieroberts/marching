@@ -9,10 +9,8 @@ const getScene = function( SDF ) {
     const scene  = Object.create( Scene.prototype )
 
     MaterialID.clear()
-    //VarAlloc.clear()
 
     SDF.lighting.lights = []
-    SDF.materials.materials = SDF.materials.__materials.slice(0)
 
     Object.assign( scene, { 
       objs, 
@@ -93,7 +91,7 @@ const getScene = function( SDF ) {
 
       SDF.start( this.fs, this.width, this.height, this.__animate )
 
-      SDF.materials.__materials = []
+      //SDF.materials.materials.length = 0
 
       this.useQuality = true
 

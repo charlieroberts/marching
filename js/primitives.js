@@ -38,10 +38,13 @@ const createPrimitives = function( SDF ) {
           p.color = args[ count ] === undefined ? param.default : args[ count++ ]
           continue
         }else if( param.name === 'material' ) {
-          p.material = args[ count++ ] || SDF.Material()
-          if( SDF.materials.__materials.indexOf( p.material ) === -1 ) {
-            SDF.materials.__materials.push( p.material )
-          }
+          p.material = args[ count++ ] 
+          p.material = SDF.materials.addMaterial( p.material )
+          //if( SDF.materials.materials.indexOf( p.material ) === -1 ) {
+          //  console.log( 'pushing material' )
+          //  p.material.id = MaterialID.alloc()
+          //  SDF.materials.materials.push( p.material )
+          //}
           continue
         }
         if( param.type === 'obj' ) {
@@ -125,7 +128,7 @@ const createPrimitives = function( SDF ) {
 
       const pname = __name === undefined ? 'p' : __name
 
-      const id = this.material !== undefined ? SDF.materials.materials.indexOf( this.material ) : 0
+      const id = SDF.materials.__materials.indexOf( this.material )
 
       const primitive = `        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this, pname )}, ${id} );\n`
 

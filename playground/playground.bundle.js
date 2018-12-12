@@ -12763,24 +12763,6 @@ window.onload = function() {
       eval( code )
     }
 
-    //switch( e.target.selectedOptions[0].innerText ) {
-    //  case 'tutorial':
-    //    code = tutorialCode
-    //    SDF.main.clear()
-    //    break;
-    //  case 'noise & displace':
-    //    code = displaceCode
-    //    SDF.main.clear()
-    //    break
-    //   case 'unions & smooth unions':
-    //    code = unionCode
-    //    SDF.main.clear()
-    //    break
-    //  default:
-    //    code = introCode
-    //    eval( code )
-    //}
-
     cm.setValue( code )
   }
 

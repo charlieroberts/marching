@@ -139,7 +139,6 @@ Var.prototype = {
       }
     }
 
-
 		this.dirty = false
 	}
 }

@@ -55,9 +55,7 @@ const SDF = {
     obj.Material = this.Material
     obj.Color = this.Color
     obj.camera = this.camera
-    obj.createScene = this.createScene
-    obj.callbacks = this.callbacks
-    obj.noise = this.noise
+    obj.callbacks = this.callbacks // XXX remove once API stops using callbacks
   },
 
   init( canvas ) {
@@ -78,7 +76,6 @@ const SDF = {
     this.gl = this.canvas.getContext( 'webgl2' )
 
     this.initBuffers()
-    //this.createDefaultScene()
   },
 
   initBuffers() {
@@ -113,6 +110,7 @@ const SDF = {
     this.requiredGeometries = []
     this.requiredOps = []
     this.memo = {}
+    //this.materials.__materials = this.materials.__materials.slice(0,2)
 
     return scene
   },
@@ -173,6 +171,7 @@ const SDF = {
     let variablesDeclaration = scene.output.emit_decl()
     const sceneRendering = scene.output.emit()
 
+    // fog etc. maybe msaa?
     let pp = ''
     for( let processor of __scene.postprocessing ) {
       pp += processor.emit()
@@ -271,6 +270,7 @@ const SDF = {
       return Math.min( Math.max( 0, v * 255 ), 255 )
     }
 
+
     let frameCount = 0
     const render = function( timestamp ){
       if( render.running === true && shouldAnimate === true ) {
@@ -296,8 +296,8 @@ const SDF = {
         window.onframe( total_time )
       }
 
-      this.scene.upload_data( gl )
       this.materials.upload_data( gl )
+      this.scene.upload_data( gl )
       this.lighting.upload_data( gl )
       this.postprocessing.forEach( pp => pp.upload_data( gl ) )
 

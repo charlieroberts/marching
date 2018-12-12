@@ -49,7 +49,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       #pragma glslify: raytrace = require( 'glsl-raytrace', map = scene, steps = ${steps} )
       #pragma glslify: getNormal = require( 'glsl-sdf-normal', map = scene )
       #pragma glslify: camera = require( 'glsl-camera-ray' )
-      #pragma glslify: smin = require( 'glsl-smooth-min' )
       //#pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
       // OPS
@@ -142,8 +141,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       float fOpPipe(float a, float b, float r) {
         return length(vec2(a, b)) - r;
       }
-
-
       float fOpEngrave(float a, float b, float r) {
         return max(a, (a + r - abs(b))*sqrt(0.5));
       }
@@ -163,11 +160,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       float opOnion( in float sdf, in float thickness ){
         return abs(sdf)-thickness;
       }
-      /*
- ops.Halve.func.UP = 0
-ops.Halve.func.DOWN = 1
-ops.Halve.func.LEFT = 2
-ops.Halve.func.RIGHT = 3     */
 
       float opHalve( in float sdf, vec3 p, in int dir ){
         float _out = 0.;

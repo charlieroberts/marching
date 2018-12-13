@@ -12,7 +12,7 @@ const SDF = {
   __materials:      require( './material.js' ),
   Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
-  Audio:            require( './audio.js' ),
+  FFT:              require( './audio.js' ),
 
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),
@@ -56,6 +56,7 @@ const SDF = {
     obj.Color = this.Color
     obj.camera = this.camera
     obj.callbacks = this.callbacks // XXX remove once API stops using callbacks
+    obj.FFT = this.FFT
   },
 
   init( canvas ) {

@@ -146,7 +146,7 @@ const Audio = {
         input.connect( Audio.FFT )
 
         Audio.interval = setInterval( Audio.fftCallback, 1000/60 )
-        window.FFT = Audio.FFT
+        //window.FFT = Audio.FFT
       })
     }
     Audio.__hasInput = true
@@ -176,7 +176,7 @@ const Audio = {
     Audio.FFT = Audio.ctx.createAnalyser()
 
     let __windowSize = 512
-    Object.defineProperty( Audio.FFT, 'windowSize', {
+    Object.defineProperty( Audio, 'windowSize', {
       get() { return __windowSize },
       set(v){
         __windowSize = v
@@ -185,7 +185,7 @@ const Audio = {
       }
     })
 
-    Audio.FFT.windowSize = 512
+    Audio.windowSize = 512
   },
 
   fftCallback() {
@@ -215,9 +215,9 @@ const Audio = {
       frequencyCounter += hzPerBin
     }
 
-    Audio.FFT.low = (lowSum / lowCount) / 255
-    Audio.FFT.mid = (midSum / midCount) / 255 || 0
-    Audio.FFT.high = (highSum / highCount) / 255
+    Audio.low = (lowSum / lowCount) / 255
+    Audio.mid = (midSum / midCount) / 255 || 0
+    Audio.high = (highSum / highCount) / 255
   }
 }
 
@@ -1477,7 +1477,7 @@ const SDF = {
   __materials:      require( './material.js' ),
   Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
-  Audio:            require( './audio.js' ),
+  FFT:              require( './audio.js' ),
 
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),
@@ -1521,6 +1521,7 @@ const SDF = {
     obj.Color = this.Color
     obj.camera = this.camera
     obj.callbacks = this.callbacks // XXX remove once API stops using callbacks
+    obj.FFT = this.FFT
   },
 
   init( canvas ) {

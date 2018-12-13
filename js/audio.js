@@ -10,7 +10,7 @@ const Audio = {
         input.connect( Audio.FFT )
 
         Audio.interval = setInterval( Audio.fftCallback, 1000/60 )
-        window.FFT = Audio.FFT
+        //window.FFT = Audio.FFT
       })
     }
     Audio.__hasInput = true
@@ -40,7 +40,7 @@ const Audio = {
     Audio.FFT = Audio.ctx.createAnalyser()
 
     let __windowSize = 512
-    Object.defineProperty( Audio.FFT, 'windowSize', {
+    Object.defineProperty( Audio, 'windowSize', {
       get() { return __windowSize },
       set(v){
         __windowSize = v
@@ -49,7 +49,7 @@ const Audio = {
       }
     })
 
-    Audio.FFT.windowSize = 512
+    Audio.windowSize = 512
   },
 
   fftCallback() {
@@ -79,9 +79,9 @@ const Audio = {
       frequencyCounter += hzPerBin
     }
 
-    Audio.FFT.low = (lowSum / lowCount) / 255
-    Audio.FFT.mid = (midSum / midCount) / 255 || 0
-    Audio.FFT.high = (highSum / highCount) / 255
+    Audio.low = (lowSum / lowCount) / 255
+    Audio.mid = (midSum / midCount) / 255 || 0
+    Audio.high = (highSum / highCount) / 255
   }
 }
 

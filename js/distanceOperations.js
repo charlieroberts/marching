@@ -22,7 +22,8 @@ const ops = {
   Engrave( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
   Groove( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
   Tongue( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
-  Onion( a,b ) { return `opOnion( ${a}, ${b} )` }
+  Onion( a,b ) { return `opOnion( ${a}, ${b} )` },
+  Switch( a,b,c ) { return `( ${c} < .5 ? ${a} : ${b} )` }
 }
 
 const DistanceOps = {}

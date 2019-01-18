@@ -63,6 +63,11 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);
       }
 
+      float opS( float d1, float d2 ) { return max(d1,-d2); }
+      vec2  opS( vec2 d1, vec2 d2 ) {
+        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
+      }
+
       /* ******** from http://mercury.sexy/hg_sdf/ ********* */
 
       float fOpUnionStairs(float a, float b, float r, float n) {

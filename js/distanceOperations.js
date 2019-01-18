@@ -178,10 +178,10 @@ ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
         float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
         return mix(b, a, h) - k * h * (1.0 - h);
       }
-      float opS( float d1, float d2 ) { return max(d1,-d2); }
-      vec2  opS( vec2 d1, vec2 d2 ) {
-        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
-      }
+      //float opS( float d1, float d2 ) { return max(d1,-d2); }
+      //vec2  opS( vec2 d1, vec2 d2 ) {
+      //  return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
+      //}
 
       float opSmoothUnion( float a, float b, float k) {
         return smin( a, b, k );

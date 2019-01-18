@@ -2,7 +2,7 @@
 
 ![Screenshot](https://raw.github.com/charlieroberts/marching/screenshots/crazyball.png) 
 
-[Playground](http://www.charlie-roberts.com/marching/playground)
+[Playground](https://charlieroberts.github.io/marching/playground/)
 
 Marching.js is a JavaScript shader compiler specifically focused on ray marching via signed distance functions. The goals of this project are:
 

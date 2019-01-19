@@ -1,6 +1,6 @@
 # marching.js
 
-[Playground](https://charlieroberts.github.io/marching/playground/)
+[Playground (Chrome/Firefox)](https://charlieroberts.github.io/marching/playground/)
 
 ![Screenshot](https://raw.github.com/charlieroberts/marching/screenshots/crazyball.png) 
 

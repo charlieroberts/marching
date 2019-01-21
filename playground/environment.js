@@ -27,6 +27,7 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
+  ['audio input / fft']: require( './demos/audio.js' )
 }
 
 window.onload = function() {

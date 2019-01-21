@@ -327,6 +327,30 @@ This combinator creates a smoothly rounded border at the intersection between tw
 **sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
 **size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects.
 
+Switch
+----
+This combinator alternates between two SDFs based on the value of its `c` property. When `c` is below .5, the first SDF is displayed, when above, the second one is displayed. One nice effect is to assign FFT analysis results to the `c` property, so that when the audio exceeds a certain threshold a different geometry is displayed.
+
+#### Constructor ####
+**sdf1** &nbsp; *object* &nbsp; A signed distance field to be combined.   
+**sdf2** &nbsp; *object* &nbsp; A signed distance field to be combined.  
+**size** &nbsp; *float* &nbsp; Default = .3; The amount of smoothing to be generated between the objects.
+
+```js
+// from the audio input / fft tutorial
+// super-simple Switch example
+march(
+  s = Switch(
+    Sphere(),
+    Box()
+  )
+).render( 3, true )
+ 
+// the threshold property is unhelpfully
+// named 'c' for now...
+onframe = t => s.c = t/2 % 1  
+```
+
 SmoothUnion
 ---
 This combinator creates a smoothly transition between two SDFs. 
@@ -578,6 +602,16 @@ This operation subtracts a fixed amount from a computer signed distance fields, 
 **amount** &nbsp; *float* &nbsp; Default:.1. An amount to subtract from the computed signed distance field.
 
 # Other
+FFT
+----
+The `FFT` object is a singleton that analyzes an incoming audio stream for the magnitude of frequency content after calling `FFT.start()`. The magnitudes are stored in three averaged bins, `FFT.low`, `FFT.mid`, and `FFT.high`. See the audio input / fft tutorial for more information. 
+
+**low** &nbsp; *float* &nbsp; Read-only, float. The low frequency content of the analyzed audio (up to 150 Hz).  
+**mid** &nbsp; *float* &nbsp; Read-only, float. The mid frequency content of the analyzed audio (150--1400 Hz).  
+**high** &nbsp; *float* &nbsp; Read-only, float. The high frequency content of the analyzed audio (1400 Hz and higher).  
+**windowSize** &nbsp; *int* &nbsp; int, default 4096. The number of samples analyzed each time the FFT runs. This number must be a power of two.  
+
+**start** &nbsp; This method only needs to be called once per page load; calling it additional times will have no affect. The method starts the FFT analysis
 
 Vec2
 ----

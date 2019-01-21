@@ -9,9 +9,9 @@ const ops = {
 
     const primitiveStr = `float d1${this.id} = ${primitive.out}.x;\n`
 
-    let displaceString = `float d2${this.id} = sin( ${this.point.emit()}.x * ${name}.x ) * `  
-    displaceString += `sin( ${this.point.emit()}.y * ${name}.y ) * `
-    displaceString += `sin( ${this.point.emit()}.z * ${name}.z );\n`
+    let displaceString = `float d2${this.id} = sin( ${this.amount.emit()}.x * ${name}.x ) * `  
+    displaceString += `sin( ${this.amount.emit()}.y * ${name}.y ) * `
+    displaceString += `sin( ${this.amount.emit()}.z * ${name}.z );\n`
 
     const output = {
       out: `vec2(d1${this.id} + d2${this.id}, ${primitive.out}.y)`, 
@@ -25,8 +25,8 @@ const ops = {
     let name = __name === undefined ? 'p' : __name
     const primitive = this.primitive.emit( 'q'+this.id );
 
-    let preface=`        float c${this.id} = cos( ${this.point.emit()}.x * ${name}.y );
-        float s${this.id} = sin( ${this.point.emit()}.y * ${name}.y );
+    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
+        float s${this.id} = sin( ${this.amount.emit()}.y * ${name}.y );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
         vec3  q${this.id} = vec3( m${this.id} * ${name}.xy, ${name}.z );\n`
 
@@ -41,8 +41,8 @@ const ops = {
     let name = __name === undefined ? 'p' : __name
     const primitive = this.primitive.emit( 'q'+this.id );
 
-    let preface=`        float c${this.id} = cos( ${this.point.emit()}.x * ${name}.y );
-        float s${this.id} = sin( ${this.point.emit()}.y * ${name}.y );
+    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
+        float s${this.id} = sin( ${this.amount.emit()}.y * ${name}.y );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
         vec3  q${this.id} = vec3( m${this.id} * ${name}.xz, ${name}.y );\n`
 
@@ -66,7 +66,7 @@ for( let name in ops ) {
   DistanceOps[ name ] = function( a,b ) {
     const op = Object.create( DistanceOps[ name ].prototype )
     op.primitive = a
-    op.point = b
+    op.amount = b
     op.emit = __op
 
     const defaultValues = [.5,.5,.5]
@@ -80,7 +80,7 @@ for( let name in ops ) {
     )
 
     // for assigning entire new vectors to property
-    Object.defineProperty( op, 'point', {
+    Object.defineProperty( op, 'amount', {
       get() { return __var },
       set(v) {
         __var.set( v )
@@ -98,7 +98,7 @@ for( let name in ops ) {
 
   //  const primitiveStr = `float d1 = ${primitive.out}.x;\n`
 
-  //  const displaceString = `float d2 = sin( ${this.point.emit()}.x * ${name}.x ) * sin( ${this.point.emit()}.y * ${name}.y ) * sin( ${this.point.emit()}.z * ${name}.z );\n`
+  //  const displaceString = `float d2 = sin( ${this.amount.emit()}.x * ${name}.x ) * sin( ${this.amount.emit()}.y * ${name}.y ) * sin( ${this.amount.emit()}.z * ${name}.z );\n`
 
   //  const output = {
   //    out: `vec2(d1 + d2, ${primitive.out}.y)`, 
@@ -109,19 +109,19 @@ for( let name in ops ) {
   //}
 
   DistanceOps[name].prototype.emit_decl = function () {
-    let str =  this.primitive.emit_decl() + this.point.emit_decl()
+    let str =  this.primitive.emit_decl() + this.amount.emit_decl()
 
     return str
   };
 
   DistanceOps[name].prototype.update_location = function(gl, program) {
     this.primitive.update_location( gl, program )
-    this.point.update_location( gl, program )
+    this.amount.update_location( gl, program )
   }
 
   DistanceOps[name].prototype.upload_data = function(gl) {
     this.primitive.upload_data( gl )
-    this.point.upload_data( gl )
+    this.amount.upload_data( gl )
   }
 }
 

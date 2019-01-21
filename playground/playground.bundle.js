@@ -11818,6 +11818,125 @@ m = march(
 .camera( 0, 0, 10 )`
 
 },{}],12:[function(require,module,exports){
+module.exports=`/* __--__--__--__--__--__--__--____
+Audio-Reactive Visuals
+
+marching.js will perform an FFT analysis
+of any sound/music fed to the browser. When
+you first start the FFT, you'll be asked to
+choose an audio device to listen to. You can
+later change this in Chrome by clicking on
+the camera icon in the browser window's location
+bar.
+
+By using software like SoundFlower or JACK you
+can virtually route audio from your favorite music 
+software into marching.js... or you can simply use a 
+microphone / standard audio input.
+__--__--__--__--__--__--__--____ */
+
+// create a scene to play with
+march(
+  rot = Rotation(
+    StairsIntersection(
+      Sphere(2, null, Material.white),
+      repeat = Repeat(
+        sphere = Sphere(.125),
+        Vec3(.25)
+      ),
+      .125
+    ),
+    Vec3(1)
+  )
+).render( 4, true )
+ 
+// start our FFT
+FFT.start()
+ 
+// animate
+onframe = time => {
+  rot.angle = time / 4
+  
+  // our FFT object has low,mid, and high
+  // properties that we can assign to elements
+  // of our ray marching scene
+  repeat.distance.x = FFT.low
+  repeat.distance.y = FFT.mid
+  repeat.distance.z = FFT.high
+  sphere.radius = FFT.mid * FFT.high
+}
+
+/* __--__--__--__--__--__--__--____
+increasing the window size (how many samples 
+of audio the FFT looks at) will result in
+less hectic animations. The window size must
+be a power of 2; doubling and halving it is
+an easy way to experiment with different sizes.
+__--__--__--__--__--__--__--____ */
+
+// run multiple times for greater effect
+FFT.windowSize *= 2
+
+/* __--__--__--__--__--__--__--____
+One fun combinator use with the FFT is
+Switch, which enables you to alternate
+between two geometries depending on whether
+or not an input exceeds a certain threshold.
+__--__--__--__--__--__--__--____ */
+
+// super-simple Switch example
+march(
+  s = Switch(
+    Sphere(),
+    Box()
+  )
+).render( 3, true )
+ 
+// the threshold property is unhelpfully
+// named 'c' for now...
+onframe = t => s.c = t/2 % 1  
+
+
+// extending our first example with Switch...
+march(
+  rot = Rotation(
+    StairsIntersection(
+      swt = Switch( 
+        s = Sphere(2, null, Material.red),
+        b = Box(Vec3(1.75), null, Material.white )
+      ),
+      repeat = Repeat(
+        sphere = Sphere(.125),
+        Vec3(.25)
+      ),
+      .125/2
+    ),
+    Vec3(1)
+  ),
+  Plane( Vec3(0,1,0), 1.35 )
+)
+.fog(.25, Vec3(0) )
+.render( 4, true )
+ 
+onframe = t => {
+  rot.angle = t / 4
+  // try scaling the FFT results
+  // by different values to control
+  // the switch effect
+  swt.c = FFT.low * 1
+  
+  repeat.distance.x = FFT.mid * FFT.low
+  fft = (FFT.low + FFT.mid + FFT.high)
+  
+  // scale both our sphere and our box on every
+  // frame, since we don't know which will be active
+  s.radius = fft
+  b.size = Vec3( fft * .75 )
+  
+  sphere.radius = FFT.high / 2 
+}`
+
+},{}],13:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 "constructive solid geometry (CSG)"
@@ -11945,7 +12064,7 @@ march(
  
 callbacks.push( t => r.angle = t )`
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
 
 mat1 = Material( 'phong', v3(.05),v3(1),v3(.5))
@@ -12007,7 +12126,7 @@ march(
 .render()
 .camera( 0,0, 6 )`
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = `repeatedSpheres = Repeat( 
   Sphere( .14 ), 
   Vec3( .25 ) 
@@ -12042,7 +12161,7 @@ https://bit.ly/2qRMrpe
                                    
 ** __--__--__--__--__--__--__--__*/`
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports=`march(
   Julia( 1.5, null, Material.grey ),
   Plane( Vec3(0,1,0), .75, Material.grey )
@@ -12053,7 +12172,7 @@ module.exports=`march(
 .render()
 .camera( 0,0,2.25 )`
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -12267,7 +12386,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5,0,0),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -12288,7 +12407,7 @@ march(
  
 callbacks[1] = t => m.a = 7 + Math.sin( t / 4 ) * 4`
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
@@ -12356,7 +12475,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
  
 m = march(
@@ -12398,7 +12517,7 @@ callbacks.push( time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -12580,7 +12699,7 @@ march(
 .render(null, true)
 `
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports =`m = march(
   Repeat(
     t = Twist(
@@ -12602,9 +12721,9 @@ module.exports =`m = march(
 .render(3, true )
 .camera( 0, 4.5, 3.5 )
  
-callbacks.push( time => t.point = Vec3( time % 4 ) )`
+callbacks.push( time => t.amount = Vec3( time % 4 ) )`
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12634,6 +12753,7 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
+  ['audio input / fft']: require( './demos/audio.js' )
 }
 
 window.onload = function() {
@@ -12826,4 +12946,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/csg.js":12,"./demos/geometries.js":13,"./demos/intro.js":14,"./demos/julia.js":15,"./demos/lighting.js":16,"./demos/mandelbulb.js":17,"./demos/snare.js":18,"./demos/superformula.js":19,"./demos/tutorial_1.js":20,"./demos/twist.js":21,"codemirror":8}]},{},[22]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/csg.js":13,"./demos/geometries.js":14,"./demos/intro.js":15,"./demos/julia.js":16,"./demos/lighting.js":17,"./demos/mandelbulb.js":18,"./demos/snare.js":19,"./demos/superformula.js":20,"./demos/tutorial_1.js":21,"./demos/twist.js":22,"codemirror":8}]},{},[23]);

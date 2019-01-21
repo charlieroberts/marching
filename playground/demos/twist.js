@@ -19,4 +19,4 @@ module.exports =`m = march(
 .render(3, true )
 .camera( 0, 4.5, 3.5 )
  
-callbacks.push( time => t.point = Vec3( time % 4 ) )`
+callbacks.push( time => t.amount = Vec3( time % 4 ) )`

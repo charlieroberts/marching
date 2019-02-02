@@ -59,6 +59,7 @@ window.onload = function() {
       }
     },
     'Shift-Ctrl-H'() { toggleGUI() },
+    'Shift-Ctrl-G'() { toggleToolbar() },
     'Alt-Enter'( cm ) {
       try {
         var selectedCode = getSelectionCodeColumn( cm, true )
@@ -89,20 +90,27 @@ window.onload = function() {
     }
   }
 
-  const toggleGUI = function() {
+  const toggleToolbar = function() {
     if( hidden === false ) {
-      cm.getWrapperElement().style.display = 'none'
       document.querySelector('select').style.display = 'none'
       document.querySelector('button').style.display = 'none'
       document.querySelector('img').style.display = 'none'
     }else{
-      cm.getWrapperElement().style.display = 'block'
       document.querySelector('select').style.display = 'block'
       document.querySelector('button').style.display = 'block'
       document.querySelector('img').style.display = 'block'
     }
-
     hidden = !hidden
+  }
+
+  const toggleGUI = function() {
+    if( hidden === false ) {
+      cm.getWrapperElement().style.display = 'none'
+    }else{
+      cm.getWrapperElement().style.display = 'block'
+    }
+
+    toggleToolbar() 
   }
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+h', toggleGUI )
@@ -217,5 +225,93 @@ window.onload = function() {
     window.setTimeout( cb, 250 )
   
   }
+
+  //const ease = t => ( 1 + Math.sin( Math.PI * t - Math.PI / 2 ) ) / 2
+  const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
+
+  window.fade = ( objname, propname, target, seconds ) => {
+    const split = propname.indexOf('.') === -1 ? null : propname.split('.')
+
+    const currentValue = split === null 
+      ? window[ objname ][ propname ].value 
+      : window[ objname ][ split[0] ][ split[1] ]
+    
+    const diff = target - currentValue
+
+    const inc  = diff / ( seconds * 60 )
+    const isVec = split === null && window[ objname ][ propname ].type.indexOf( 'vec' ) !== -1
+    let vecCount = isVec === true ? parseInt( window[ objname ][ propname ].type.slice(3) ) : null
+    let vecValues = null, vecInc = null, targetsMet = null
+
+    if( isVec ) {
+      vecValues = [], vecInc = [], targetsMet = [ false, false, false ]
+      vecValues[0] = window[ objname ][ propname ].x 
+      vecValues[1] = window[ objname ][ propname ].y
+      if( vecCount > 2 ) vecValues[2] = window[ objname ][ propname ].z
+
+      vecInc[0] = (target - vecValues[0]) / ( seconds * 60 )
+      vecInc[1] = (target - vecValues[1]) / ( seconds * 60 )
+      if( vecCount > 2 ) vecInc[2] = (target - vecValues[2]) / ( seconds * 60 )
+    }
+
+    const fnc = () => {
+      if( split === null ) {
+        if( isVec === false ) {
+          window[ objname ][ propname ] = window[ objname ][ propname ].value + inc
+        }else{
+          if( targetsMet[0] === false ) window[ objname ][ propname ].x = vecValues[0] = window[ objname ][ propname ].x + vecInc[ 0 ]
+          if( targetsMet[1] === false ) window[ objname ][ propname ].y = vecValues[1] = window[ objname ][ propname ].y + vecInc[ 1 ]
+
+          if( vecCount > 2 ) {
+            if( targetsMet[2] === false )  window[ objname ][ propname ].z = vecValues[2] = window[ objname ][ propname ].z + vecInc[ 2 ]
+          }
+        }
+      }else{
+        window[ objname ][ split[0] ][ split[1] ] = window[ objname ][ split[0] ][ split[1] ] + inc
+      }
+      
+      if( isVec === false ) {
+        const value = split === null ? window[ objname ][ propname ].value : window[ objname ][ split[0] ][ split[1] ]
+        
+        if( (inc > 0 && value >= target ) || (inc < 0 && value <= target ) ) {
+          fnc.cancel()
+          
+          if( split === null ) {
+            window[ objname ][ propname ].value = target
+          }else{
+            window[ objname ][ split[0] ][ split[1] ] = target
+          }
+        }
+      }else{
+        if( (vecInc[0] > 0 && vecValues[0] >= target ) || (vecInc[0] < 0 && vecValues[0] <= target ) ) {
+          targetsMet[0] = true
+          window[ objname ][ propname ].x = target
+        }
+        if( (vecInc[1] > 0 && vecValues[1] >= target ) || (vecInc[1] < 0 && vecValues[1] <= target ) ) {
+          targetsMet[1] = true
+          window[ objname ][ propname ].y = target
+        }
+
+        if( vecCount > 2 ) {
+          if( (vecInc[2] > 0 && vecValues[2] >= target ) || (vecInc[2] < 0 && vecValues[2] <= target ) ) {
+            targetsMet[2] = true
+            window[ objname ][ propname ].z = target
+          }
+        }
+
+        if( targetsMet.indexOf( false ) === -1 ) fnc.cancel()
+      }
+    }
+    
+    callbacks.push( fnc )
+    
+    fnc.cancel = ()=> {
+      const idx = callbacks.indexOf( fnc )
+      callbacks.splice( idx, 1 )
+    }
+    
+    return fnc
+  }
+
   eval( demos.introduction )
 }

@@ -226,80 +226,57 @@ window.onload = function() {
   
   }
 
-  //const ease = t => ( 1 + Math.sin( Math.PI * t - Math.PI / 2 ) ) / 2
   const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
 
   window.fade = ( objname, propname, target, seconds ) => {
     const split = propname.indexOf('.') === -1 ? null : propname.split('.')
-
-    const currentValue = split === null 
-      ? window[ objname ][ propname ].value 
-      : window[ objname ][ split[0] ][ split[1] ]
-    
-    const diff = target - currentValue
-
-    const inc  = diff / ( seconds * 60 )
+    const startValue = [], diff = []
+    const inc  = 1 / ( seconds * 60 )   
     const isVec = split === null && window[ objname ][ propname ].type.indexOf( 'vec' ) !== -1
+
     let vecCount = isVec === true ? parseInt( window[ objname ][ propname ].type.slice(3) ) : null
-    let vecValues = null, vecInc = null, targetsMet = null
+    let t = 0
 
     if( isVec ) {
-      vecValues = [], vecInc = [], targetsMet = [ false, false, false ]
-      vecValues[0] = window[ objname ][ propname ].x 
-      vecValues[1] = window[ objname ][ propname ].y
-      if( vecCount > 2 ) vecValues[2] = window[ objname ][ propname ].z
+      startValue[0] = window[ objname ][ propname ].x 
+      startValue[1] = window[ objname ][ propname ].y
+      if( vecCount > 2 ) startValue[2] = window[ objname ][ propname ].z
 
-      vecInc[0] = (target - vecValues[0]) / ( seconds * 60 )
-      vecInc[1] = (target - vecValues[1]) / ( seconds * 60 )
-      if( vecCount > 2 ) vecInc[2] = (target - vecValues[2]) / ( seconds * 60 )
+      diff[0] = target - startValue[0] 
+      diff[1] = target - startValue[1]
+      if( vecCount > 2 ) diff[2] = target - startValue[2]
+    }else{
+      startValue[ 0 ] = split === null 
+        ? window[ objname ][ propname ].value 
+        : window[ objname ][ split[0] ][ split[1] ]
+
+      diff[ 0 ] = target - startValue
     }
 
     const fnc = () => {
+      const easeValue = ease( t )
       if( split === null ) {
         if( isVec === false ) {
-          window[ objname ][ propname ] = window[ objname ][ propname ].value + inc
+          window[ objname ][ propname ] = startValue[0] + easeValue * diff[0]
         }else{
-          if( targetsMet[0] === false ) window[ objname ][ propname ].x = vecValues[0] = window[ objname ][ propname ].x + vecInc[ 0 ]
-          if( targetsMet[1] === false ) window[ objname ][ propname ].y = vecValues[1] = window[ objname ][ propname ].y + vecInc[ 1 ]
+          window[ objname ][ propname ].x = startValue[0] + easeValue * diff[0]
+          window[ objname ][ propname ].y = startValue[1] + easeValue * diff[1]
 
           if( vecCount > 2 ) {
-            if( targetsMet[2] === false )  window[ objname ][ propname ].z = vecValues[2] = window[ objname ][ propname ].z + vecInc[ 2 ]
+            window[ objname ][ propname ].z = startValue[2] + easeValue * diff[2]
           }
         }
       }else{
-        window[ objname ][ split[0] ][ split[1] ] = window[ objname ][ split[0] ][ split[1] ] + inc
+        window[ objname ][ split[0] ][ split[1] ] = startValue[0] + easeValue * diff[0]
       }
       
-      if( isVec === false ) {
-        const value = split === null ? window[ objname ][ propname ].value : window[ objname ][ split[0] ][ split[1] ]
-        
-        if( (inc > 0 && value >= target ) || (inc < 0 && value <= target ) ) {
-          fnc.cancel()
-          
-          if( split === null ) {
-            window[ objname ][ propname ].value = target
-          }else{
-            window[ objname ][ split[0] ][ split[1] ] = target
-          }
+      t += inc
+      if( t >= 1 ) {
+        if( split !== null ) {
+          window[ objname ][ split[0] ][ split[1] ] = target 
+        }else{
+          window[ objname ][ propname ] = target
         }
-      }else{
-        if( (vecInc[0] > 0 && vecValues[0] >= target ) || (vecInc[0] < 0 && vecValues[0] <= target ) ) {
-          targetsMet[0] = true
-          window[ objname ][ propname ].x = target
-        }
-        if( (vecInc[1] > 0 && vecValues[1] >= target ) || (vecInc[1] < 0 && vecValues[1] <= target ) ) {
-          targetsMet[1] = true
-          window[ objname ][ propname ].y = target
-        }
-
-        if( vecCount > 2 ) {
-          if( (vecInc[2] > 0 && vecValues[2] >= target ) || (vecInc[2] < 0 && vecValues[2] <= target ) ) {
-            targetsMet[2] = true
-            window[ objname ][ propname ].z = target
-          }
-        }
-
-        if( targetsMet.indexOf( false ) === -1 ) fnc.cancel()
       }
     }
     

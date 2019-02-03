@@ -45,15 +45,21 @@ window.onload = function() {
 
     'Ctrl-Enter'( cm ) {
       try {
-        var selectedCode = getSelectionCodeColumn( cm, false )
+        const selectedCode = getSelectionCodeColumn( cm, false )
 
         flash( cm, selectedCode.selection )
 
-        var code = selectedCode.code
+        const code = selectedCode.code
 
-        var func = new Function( code )
-
+        const func = new Function( code )
+        
+        const preWindowMembers = Object.keys( window )
         func()
+        const postWindowMembers = Object.keys( window )
+
+        if( preWindowMembers.length !== postWindowMembers.length ) {
+          createProxies( preWindowMembers, postWindowMembers, window )
+        }
       } catch (e) {
         console.log( e )
       }
@@ -75,6 +81,7 @@ window.onload = function() {
     },
     'Ctrl-.'( cm ) {
       SDF.clear() 
+      proxies.length = 0
     },
 
     "Shift-Ctrl-=": function(cm) {
@@ -277,6 +284,8 @@ window.onload = function() {
         }else{
           window[ objname ][ propname ] = target
         }
+
+        fnc.cancel()
       }
     }
     
@@ -288,6 +297,37 @@ window.onload = function() {
     }
     
     return fnc
+  }
+
+  const proxies = []
+
+  const createProxies = function( pre, post, proxiedObj ) {
+    const newProps = post.filter( prop => pre.indexOf( prop ) === -1 )
+
+    for( let prop of newProps ) {
+      let obj = proxiedObj[ prop ]
+
+      console.log( prop, obj )
+      Object.defineProperty( proxiedObj, prop, {
+        get() { return obj },
+        set(value) {
+
+          console.log( 'setting:', value )
+          if( obj !== undefined && value !== undefined) {
+            for( let param of obj.params ) {
+              if( param.name !== 'material' ) {
+              value[ param.name ] = obj[ param.name ].value
+              console.log( param.name, obj[ param.name ] )
+              }
+            }
+          }
+
+          obj = value
+        }
+      })
+
+      proxies.push( prop )
+    }
   }
 
   eval( demos.introduction )

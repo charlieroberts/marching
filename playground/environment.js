@@ -74,7 +74,13 @@ window.onload = function() {
 
         var func = new Function( code )
 
+        const preWindowMembers = Object.keys( window )
         func()
+        const postWindowMembers = Object.keys( window )
+
+        if( preWindowMembers.length !== postWindowMembers.length ) {
+          createProxies( preWindowMembers, postWindowMembers, window )
+        }
       } catch (e) {
         console.log( e )
       }
@@ -307,17 +313,14 @@ window.onload = function() {
     for( let prop of newProps ) {
       let obj = proxiedObj[ prop ]
 
-      console.log( prop, obj )
       Object.defineProperty( proxiedObj, prop, {
         get() { return obj },
         set(value) {
 
-          console.log( 'setting:', value )
           if( obj !== undefined && value !== undefined) {
             for( let param of obj.params ) {
               if( param.name !== 'material' ) {
-              value[ param.name ] = obj[ param.name ].value
-              console.log( param.name, obj[ param.name ] )
+                value[ param.name ] = obj[ param.name ].value
               }
             }
           }

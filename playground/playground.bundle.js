@@ -12387,6 +12387,126 @@ march(
 .render()`
 
 },{}],18:[function(require,module,exports){
+module.exports = `/* __--__--__--__--__--__--__--____
+Live Coding
+
+There are a couple of techniques 
+that can make live coding a bit 
+easier in marching.js. First, if
+you're doing any audio-reactive
+visuals, be sure to check out the
+audio / FFT tutorial.
+
+You'll notice that many demos
+and tutorials use a pattern where
+we name objects in our graph for
+subsequent manipulations. This is
+an important step to get used to
+when you're setting up your graph.
+__--__--__--__--__--__--__--____ */
+
+march(
+  rpt = Repeat(
+    s = Sphere(.125),
+    Vec3(.5)
+  )
+).render( 3, true )
+
+// now we can change the distance later...
+rpt.distance.x = 1
+
+/* __--__--__--__--__--__--__--____
+Easy enough. But there's an odd
+behavior when we do this. If you
+try changing the distance, and then
+re-execute the graph (without selecting
+the line that changes the distance)
+you'll notice that the value you set
+the distance to is preserved upon 
+re-execution.
+
+Whenever you create an object in
+the global namespace, a 'proxy' is
+created. IF you reassign a new
+object to this proxy, the proxy
+will copy all the properties of
+the previous object to the new one.
+This enables you to re-execute
+the graph while maintaining state,
+and makes it much easier to acheive
+continuity when live coding.
+__--__--__--__--__--__--__--____ */
+
+/* __--__--__--__--__--__--__--____
+Another useful technique, that relies
+on assigning names to objects, is
+to "fade", or transition gradually,
+to a new state in objects. 
+__--__--__--__--__--__--__--____ */
+
+march( s = Sphere(0) ).render( 3, true )
+fade( 's','radius', 2, 10 )
+
+/* __--__--__--__--__--__--__--____
+In the example above, we give the 
+name of the object we want to manipulate,
+the name of the property, the value
+we want to transition to, and the
+length in seconds of the transition.
+There is quadratic easing on the fade.
+
+By using dot notation in the property
+string, we can fade individual vector
+members.
+__--__--__--__--__--__--__--____ */
+
+
+march( b = Box() ).render( 3, true )
+fade( 'b','size.x', 2, 10 )
+
+/* __--__--__--__--__--__--__--____
+it's also worth noting we can
+fade a whole vector by simply
+leaving out the dot notation. The
+example below fades the size on
+the x,y,and z axis in one line of
+code. Note we have to use a new name
+to avoid the proxy effect!
+__--__--__--__--__--__--__--____ */
+
+march( b2 = Box() ).render( 3, true )
+fade( 'b2','size', 1.5, 10 )
+
+/* __--__--__--__--__--__--__--____
+We can use the same vector shortcut when 
+manipulate animation at the frame level.
+__--__--__--__--__--__--__--____ */
+
+march(
+  rpt2 = Repeat(
+    b3 = Box(),
+    Vec3(1)
+  )
+)
+.fog( .25, Vec3(0) )
+.render( 3, true )
+ 
+onframe = t => {
+  // manipulate one vector member
+  rpt2.distance.x = .5 + Math.sin( t/3 ) * .125
+  
+  // manipulate entire vector at once
+  b3.size = .1 + Math.cos( t/2 ) * .075
+}
+
+/* __--__--__--__--__--__--__--____
+Hopefully this is enough to get you
+started live coding. Between the use of
+onframe, fade, the fft, and proxies, there's
+a number of tools to get started.
+__--__--__--__--__--__--__--____ */`
+
+},{}],19:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5,0,0),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -12405,9 +12525,9 @@ march(
 .render(3, true)
 .camera( 0,0,3 )
  
-callbacks[1] = t => m.a = 7 + Math.sin( t / 4 ) * 4`
+onframe = t => m.a = 7 + Math.sin( t / 4 ) * 4`
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
@@ -12475,7 +12595,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
  
 m = march(
@@ -12517,7 +12637,7 @@ callbacks.push( time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -12575,19 +12695,19 @@ false is passed as the second
 argument, marching.js will create a
 static image at maximum quality.   
                                     
-we can also register a callback to 
-change properties over time. these  
-run once per video frame, and are  
+we can also register a onframe function 
+to change properties over time. this  
+runs once per video frame, and is  
 passed the current time. here we'll 
 use the time to change the sphere's
 position.                           
                                    
 ** __--__--__--__--__--__--__--__*/
 
-callbacks.push( time => {
+onframe = time => {
   sphere1.center.z = -10 + Math.sin( time ) * 10
   sphere1.center.x = Math.sin( time * 2.5 ) * 4
-})
+}
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -12624,9 +12744,8 @@ march(
 )
 .render( 2, true )
  
-callbacks.push( time => 
-  sphere1.radius = 1.25 + Math.sin( time ) * .1 
-)
+onframe = time => sphere1.radius = 1.25 + Math.sin( time ) * .1 
+
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -12665,7 +12784,7 @@ march(
 ) 
 .render( 3, true )
  
-callbacks.push( time => sphere1.radius = Math.sin( time ) * .75 )
+onframe = time => sphere1.radius = Math.sin( time ) * .75
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -12699,7 +12818,7 @@ march(
 .render(null, true)
 `
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports =`m = march(
   Repeat(
     t = Twist(
@@ -12721,9 +12840,9 @@ module.exports =`m = march(
 .render(3, true )
 .camera( 0, 4.5, 3.5 )
  
-callbacks.push( time => t.amount = Vec3( time % 4 ) )`
+onframe = time => t.amount = Vec3( time % 4 )`
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12753,7 +12872,8 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
-  ['audio input / fft']: require( './demos/audio.js' )
+  ['audio input / fft']: require( './demos/audio.js' ),
+  ['live coding']: require( './demos/livecoding.js' )
 }
 
 window.onload = function() {
@@ -12771,20 +12891,27 @@ window.onload = function() {
 
     'Ctrl-Enter'( cm ) {
       try {
-        var selectedCode = getSelectionCodeColumn( cm, false )
+        const selectedCode = getSelectionCodeColumn( cm, false )
 
         flash( cm, selectedCode.selection )
 
-        var code = selectedCode.code
+        const code = selectedCode.code
 
-        var func = new Function( code )
-
+        const func = new Function( code )
+        
+        const preWindowMembers = Object.keys( window )
         func()
+        const postWindowMembers = Object.keys( window )
+
+        if( preWindowMembers.length !== postWindowMembers.length ) {
+          createProxies( preWindowMembers, postWindowMembers, window )
+        }
       } catch (e) {
         console.log( e )
       }
     },
     'Shift-Ctrl-H'() { toggleGUI() },
+    'Shift-Ctrl-G'() { toggleToolbar() },
     'Alt-Enter'( cm ) {
       try {
         var selectedCode = getSelectionCodeColumn( cm, true )
@@ -12793,13 +12920,20 @@ window.onload = function() {
 
         var func = new Function( code )
 
+        const preWindowMembers = Object.keys( window )
         func()
+        const postWindowMembers = Object.keys( window )
+
+        if( preWindowMembers.length !== postWindowMembers.length ) {
+          createProxies( preWindowMembers, postWindowMembers, window )
+        }
       } catch (e) {
         console.log( e )
       }
     },
     'Ctrl-.'( cm ) {
       SDF.clear() 
+      proxies.length = 0
     },
 
     "Shift-Ctrl-=": function(cm) {
@@ -12815,20 +12949,27 @@ window.onload = function() {
     }
   }
 
-  const toggleGUI = function() {
+  const toggleToolbar = function() {
     if( hidden === false ) {
-      cm.getWrapperElement().style.display = 'none'
       document.querySelector('select').style.display = 'none'
       document.querySelector('button').style.display = 'none'
       document.querySelector('img').style.display = 'none'
     }else{
-      cm.getWrapperElement().style.display = 'block'
       document.querySelector('select').style.display = 'block'
       document.querySelector('button').style.display = 'block'
       document.querySelector('img').style.display = 'block'
     }
-
     hidden = !hidden
+  }
+
+  const toggleGUI = function() {
+    if( hidden === false ) {
+      cm.getWrapperElement().style.display = 'none'
+    }else{
+      cm.getWrapperElement().style.display = 'block'
+    }
+
+    toggleToolbar() 
   }
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+h', toggleGUI )
@@ -12943,7 +13084,104 @@ window.onload = function() {
     window.setTimeout( cb, 250 )
   
   }
+
+  const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
+
+  window.fade = ( objname, propname, target, seconds ) => {
+    const split = propname.indexOf('.') === -1 ? null : propname.split('.')
+    const startValue = [], diff = []
+    const inc  = 1 / ( seconds * 60 )   
+    const isVec = split === null && window[ objname ][ propname ].type.indexOf( 'vec' ) !== -1
+
+    let vecCount = isVec === true ? parseInt( window[ objname ][ propname ].type.slice(3) ) : null
+    let t = 0
+
+    if( isVec ) {
+      startValue[0] = window[ objname ][ propname ].x 
+      startValue[1] = window[ objname ][ propname ].y
+      if( vecCount > 2 ) startValue[2] = window[ objname ][ propname ].z
+
+      diff[0] = target - startValue[0] 
+      diff[1] = target - startValue[1]
+      if( vecCount > 2 ) diff[2] = target - startValue[2]
+    }else{
+      startValue[ 0 ] = split === null 
+        ? window[ objname ][ propname ].value 
+        : window[ objname ][ split[0] ][ split[1] ]
+
+      diff[ 0 ] = target - startValue
+    }
+
+    const fnc = () => {
+      const easeValue = ease( t )
+      if( split === null ) {
+        if( isVec === false ) {
+          window[ objname ][ propname ] = startValue[0] + easeValue * diff[0]
+        }else{
+          window[ objname ][ propname ].x = startValue[0] + easeValue * diff[0]
+          window[ objname ][ propname ].y = startValue[1] + easeValue * diff[1]
+
+          if( vecCount > 2 ) {
+            window[ objname ][ propname ].z = startValue[2] + easeValue * diff[2]
+          }
+        }
+      }else{
+        window[ objname ][ split[0] ][ split[1] ] = startValue[0] + easeValue * diff[0]
+      }
+      
+      t += inc
+      if( t >= 1 ) {
+        if( split !== null ) {
+          window[ objname ][ split[0] ][ split[1] ] = target 
+        }else{
+          window[ objname ][ propname ] = target
+        }
+
+        fnc.cancel()
+      }
+    }
+    
+    callbacks.push( fnc )
+    
+    fnc.cancel = ()=> {
+      const idx = callbacks.indexOf( fnc )
+      callbacks.splice( idx, 1 )
+    }
+    
+    return fnc
+  }
+
+  const proxies = []
+
+  const createProxies = function( pre, post, proxiedObj ) {
+    const newProps = post.filter( prop => pre.indexOf( prop ) === -1 )
+
+    for( let prop of newProps ) {
+      let obj = proxiedObj[ prop ]
+      if( obj.params !== undefined ) {
+        Object.defineProperty( proxiedObj, prop, {
+          get() { return obj },
+          set(value) {
+
+            if( obj !== undefined && value !== undefined) {
+              
+              for( let param of obj.params ) {
+                if( param.name !== 'material' ) {
+                  value[ param.name ] = obj[ param.name ].value
+                }
+              }
+            }
+
+            obj = value
+          }
+        })
+
+        proxies.push( prop )
+      }
+    }
+  }
+
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/csg.js":13,"./demos/geometries.js":14,"./demos/intro.js":15,"./demos/julia.js":16,"./demos/lighting.js":17,"./demos/mandelbulb.js":18,"./demos/snare.js":19,"./demos/superformula.js":20,"./demos/tutorial_1.js":21,"./demos/twist.js":22,"codemirror":8}]},{},[23]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/csg.js":13,"./demos/geometries.js":14,"./demos/intro.js":15,"./demos/julia.js":16,"./demos/lighting.js":17,"./demos/livecoding.js":18,"./demos/mandelbulb.js":19,"./demos/snare.js":20,"./demos/superformula.js":21,"./demos/tutorial_1.js":22,"./demos/twist.js":23,"codemirror":8}]},{},[24]);

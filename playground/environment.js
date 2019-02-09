@@ -27,7 +27,8 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
-  ['audio input / fft']: require( './demos/audio.js' )
+  ['audio input / fft']: require( './demos/audio.js' ),
+  ['live coding']: require( './demos/livecoding.js' )
 }
 
 window.onload = function() {
@@ -312,24 +313,26 @@ window.onload = function() {
 
     for( let prop of newProps ) {
       let obj = proxiedObj[ prop ]
+      if( obj.params !== undefined ) {
+        Object.defineProperty( proxiedObj, prop, {
+          get() { return obj },
+          set(value) {
 
-      Object.defineProperty( proxiedObj, prop, {
-        get() { return obj },
-        set(value) {
-
-          if( obj !== undefined && value !== undefined) {
-            for( let param of obj.params ) {
-              if( param.name !== 'material' ) {
-                value[ param.name ] = obj[ param.name ].value
+            if( obj !== undefined && value !== undefined) {
+              
+              for( let param of obj.params ) {
+                if( param.name !== 'material' ) {
+                  value[ param.name ] = obj[ param.name ].value
+                }
               }
             }
+
+            obj = value
           }
+        })
 
-          obj = value
-        }
-      })
-
-      proxies.push( prop )
+        proxies.push( prop )
+      }
     }
   }
 

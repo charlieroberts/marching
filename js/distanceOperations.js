@@ -59,6 +59,8 @@ for( let name in ops ) {
 
     op.matId = MaterialID.alloc()
 
+    op.params = [{name:'c'},{ name:'d'}]
+
     return op
   } 
 

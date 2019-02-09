@@ -1,6 +1,5 @@
 const Var = require('./var.js').Var
 
-
 // Wrapper
 function param_wrap( v, __default, name=null ) {
 	if( v === undefined || v === null ) return __default()

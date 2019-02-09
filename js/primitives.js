@@ -93,6 +93,7 @@ const createPrimitives = function( SDF ) {
             gens[ param.type ]( defaultValues ) 
           )
 
+          //__var.set( defaultValues )
           Object.defineProperty( p, param.name, {
             get() { return __var },
             set(v) {

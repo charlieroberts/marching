@@ -16,4 +16,4 @@ march(
 .render(3, true)
 .camera( 0,0,3 )
  
-callbacks[1] = t => m.a = 7 + Math.sin( t / 4 ) * 4`
+onframe = t => m.a = 7 + Math.sin( t / 4 ) * 4`

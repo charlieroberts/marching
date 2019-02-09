@@ -83,10 +83,19 @@ for( let name in ops ) {
     Object.defineProperty( op, 'amount', {
       get() { return __var },
       set(v) {
-        __var.set( v )
+        if( typeof v === 'object' ) {
+          __var.set( v )
+        }else{
+          __var.value.x = v
+          __var.value.y = v
+          __var.value.z = v
+          __var.value.w = v
+          __var.dirty = true
+        }
       }
     })
 
+    op.params = [{ name:'amount' }]
     return op
   } 
 

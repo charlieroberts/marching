@@ -431,10 +431,19 @@ for( let name in ops ) {
     Object.defineProperty( op, 'amount', {
       get() { return __var },
       set(v) {
-        __var.set( v )
+        if( typeof v === 'object' ) {
+          __var.set( v )
+        }else{
+          __var.value.x = v
+          __var.value.y = v
+          __var.value.z = v
+          __var.value.w = v
+          __var.dirty = true
+        }
       }
     })
 
+    op.params = [{ name:'amount' }]
     return op
   } 
 
@@ -537,6 +546,8 @@ for( let name in ops ) {
     })
 
     op.matId = MaterialID.alloc()
+
+    op.params = [{name:'c'},{ name:'d'}]
 
     return op
   } 
@@ -705,6 +716,7 @@ const Elongation = function( primitive, distance ) {
   }) 
 
   repeat.sdf = primitive
+  repeat.params = [{ name:'distance' }]
 
   return repeat 
 }
@@ -766,6 +778,7 @@ const Repetition = function( primitive, distance ) {
   }) 
 
   repeat.sdf = primitive
+  repeat.params = [{ name:'distance' }]
 
   return repeat 
 }
@@ -831,6 +844,7 @@ const PolarRepetition = function( primitive, count, distance ) {
     }
   }) 
 
+  repeat.params = [{ name:'distance' }, { name:'count' }]
   return repeat 
 }
 
@@ -904,6 +918,7 @@ const Rotation = function( primitive, axis, angle=0 ) {
     }
   })
 
+  rotate.params = [{ name:'axis' }, { name:'angle' }]
   return rotate 
 }
 
@@ -1005,6 +1020,7 @@ const Translate = function( primitive, amount ) {
     }
   })
 
+  rotate.params = [{ name:'amount' }]
   return rotate 
 }
 Translate.prototype = SceneNode()
@@ -1063,6 +1079,7 @@ const Scale = function( primitive,amount ) {
     }
   })
 
+  scale.params = [{ name:'amount' }]
   return scale 
 }
 
@@ -1539,7 +1556,7 @@ const SDF = {
 
     //this.canvas.width = window.innerWidth * size
     //this.canvas.height = window.innerHeight * size
-    this.gl = this.canvas.getContext( 'webgl2' )
+    this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:false })
 
     this.initBuffers()
   },
@@ -1917,6 +1934,9 @@ const __Materials = function( SDF ) {
     black   : Materials.material( 'global', Vec3(0, 0, 0), Vec3(0,0,0), Vec3(0), 2, Vec3(0) ),
     white   : Materials.material( 'global', Vec3(.25), Vec3(1), Vec3(1), 2, Vec3(0) ),
     grey    : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
+
+    'white glow' : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,200,5) ),
+
     normal  : Materials.material( 'normal' )
   })
 
@@ -2402,6 +2422,7 @@ const createPrimitives = function( SDF ) {
             gens[ param.type ]( defaultValues ) 
           )
 
+          //__var.set( defaultValues )
           Object.defineProperty( p, param.name, {
             get() { return __var },
             set(v) {
@@ -2554,7 +2575,7 @@ const getScene = function( SDF ) {
     quality( quality=10 ) {
       this.threshold( .1 / (quality * quality * quality ) )
       this.steps( quality * 20 )
-      this.farPlane( quality * 20 )
+      this.farPlane( quality * 5 )
       this.resolution( .2 * quality )
 
       return this
@@ -2623,7 +2644,6 @@ module.exports = SceneNode
 
 },{}],23:[function(require,module,exports){
 const Var = require('./var.js').Var
-
 
 // Wrapper
 function param_wrap( v, __default, name=null ) {

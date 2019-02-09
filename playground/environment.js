@@ -27,7 +27,8 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
-  ['audio input / fft']: require( './demos/audio.js' )
+  ['audio input / fft']: require( './demos/audio.js' ),
+  ['live coding']: require( './demos/livecoding.js' )
 }
 
 window.onload = function() {
@@ -45,20 +46,27 @@ window.onload = function() {
 
     'Ctrl-Enter'( cm ) {
       try {
-        var selectedCode = getSelectionCodeColumn( cm, false )
+        const selectedCode = getSelectionCodeColumn( cm, false )
 
         flash( cm, selectedCode.selection )
 
-        var code = selectedCode.code
+        const code = selectedCode.code
 
-        var func = new Function( code )
-
+        const func = new Function( code )
+        
+        const preWindowMembers = Object.keys( window )
         func()
+        const postWindowMembers = Object.keys( window )
+
+        if( preWindowMembers.length !== postWindowMembers.length ) {
+          createProxies( preWindowMembers, postWindowMembers, window )
+        }
       } catch (e) {
         console.log( e )
       }
     },
     'Shift-Ctrl-H'() { toggleGUI() },
+    'Shift-Ctrl-G'() { toggleToolbar() },
     'Alt-Enter'( cm ) {
       try {
         var selectedCode = getSelectionCodeColumn( cm, true )
@@ -67,13 +75,20 @@ window.onload = function() {
 
         var func = new Function( code )
 
+        const preWindowMembers = Object.keys( window )
         func()
+        const postWindowMembers = Object.keys( window )
+
+        if( preWindowMembers.length !== postWindowMembers.length ) {
+          createProxies( preWindowMembers, postWindowMembers, window )
+        }
       } catch (e) {
         console.log( e )
       }
     },
     'Ctrl-.'( cm ) {
       SDF.clear() 
+      proxies.length = 0
     },
 
     "Shift-Ctrl-=": function(cm) {
@@ -89,20 +104,27 @@ window.onload = function() {
     }
   }
 
-  const toggleGUI = function() {
+  const toggleToolbar = function() {
     if( hidden === false ) {
-      cm.getWrapperElement().style.display = 'none'
       document.querySelector('select').style.display = 'none'
       document.querySelector('button').style.display = 'none'
       document.querySelector('img').style.display = 'none'
     }else{
-      cm.getWrapperElement().style.display = 'block'
       document.querySelector('select').style.display = 'block'
       document.querySelector('button').style.display = 'block'
       document.querySelector('img').style.display = 'block'
     }
-
     hidden = !hidden
+  }
+
+  const toggleGUI = function() {
+    if( hidden === false ) {
+      cm.getWrapperElement().style.display = 'none'
+    }else{
+      cm.getWrapperElement().style.display = 'block'
+    }
+
+    toggleToolbar() 
   }
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+h', toggleGUI )
@@ -217,5 +239,102 @@ window.onload = function() {
     window.setTimeout( cb, 250 )
   
   }
+
+  const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
+
+  window.fade = ( objname, propname, target, seconds ) => {
+    const split = propname.indexOf('.') === -1 ? null : propname.split('.')
+    const startValue = [], diff = []
+    const inc  = 1 / ( seconds * 60 )   
+    const isVec = split === null && window[ objname ][ propname ].type.indexOf( 'vec' ) !== -1
+
+    let vecCount = isVec === true ? parseInt( window[ objname ][ propname ].type.slice(3) ) : null
+    let t = 0
+
+    if( isVec ) {
+      startValue[0] = window[ objname ][ propname ].x 
+      startValue[1] = window[ objname ][ propname ].y
+      if( vecCount > 2 ) startValue[2] = window[ objname ][ propname ].z
+
+      diff[0] = target - startValue[0] 
+      diff[1] = target - startValue[1]
+      if( vecCount > 2 ) diff[2] = target - startValue[2]
+    }else{
+      startValue[ 0 ] = split === null 
+        ? window[ objname ][ propname ].value 
+        : window[ objname ][ split[0] ][ split[1] ]
+
+      diff[ 0 ] = target - startValue
+    }
+
+    const fnc = () => {
+      const easeValue = ease( t )
+      if( split === null ) {
+        if( isVec === false ) {
+          window[ objname ][ propname ] = startValue[0] + easeValue * diff[0]
+        }else{
+          window[ objname ][ propname ].x = startValue[0] + easeValue * diff[0]
+          window[ objname ][ propname ].y = startValue[1] + easeValue * diff[1]
+
+          if( vecCount > 2 ) {
+            window[ objname ][ propname ].z = startValue[2] + easeValue * diff[2]
+          }
+        }
+      }else{
+        window[ objname ][ split[0] ][ split[1] ] = startValue[0] + easeValue * diff[0]
+      }
+      
+      t += inc
+      if( t >= 1 ) {
+        if( split !== null ) {
+          window[ objname ][ split[0] ][ split[1] ] = target 
+        }else{
+          window[ objname ][ propname ] = target
+        }
+
+        fnc.cancel()
+      }
+    }
+    
+    callbacks.push( fnc )
+    
+    fnc.cancel = ()=> {
+      const idx = callbacks.indexOf( fnc )
+      callbacks.splice( idx, 1 )
+    }
+    
+    return fnc
+  }
+
+  const proxies = []
+
+  const createProxies = function( pre, post, proxiedObj ) {
+    const newProps = post.filter( prop => pre.indexOf( prop ) === -1 )
+
+    for( let prop of newProps ) {
+      let obj = proxiedObj[ prop ]
+      if( obj.params !== undefined ) {
+        Object.defineProperty( proxiedObj, prop, {
+          get() { return obj },
+          set(value) {
+
+            if( obj !== undefined && value !== undefined) {
+              
+              for( let param of obj.params ) {
+                if( param.name !== 'material' ) {
+                  value[ param.name ] = obj[ param.name ].value
+                }
+              }
+            }
+
+            obj = value
+          }
+        })
+
+        proxies.push( prop )
+      }
+    }
+  }
+
   eval( demos.introduction )
 }

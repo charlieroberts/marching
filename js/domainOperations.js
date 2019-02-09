@@ -29,6 +29,7 @@ const Elongation = function( primitive, distance ) {
   }) 
 
   repeat.sdf = primitive
+  repeat.params = [{ name:'distance' }]
 
   return repeat 
 }
@@ -90,6 +91,7 @@ const Repetition = function( primitive, distance ) {
   }) 
 
   repeat.sdf = primitive
+  repeat.params = [{ name:'distance' }]
 
   return repeat 
 }
@@ -155,6 +157,7 @@ const PolarRepetition = function( primitive, count, distance ) {
     }
   }) 
 
+  repeat.params = [{ name:'distance' }, { name:'count' }]
   return repeat 
 }
 
@@ -228,6 +231,7 @@ const Rotation = function( primitive, axis, angle=0 ) {
     }
   })
 
+  rotate.params = [{ name:'axis' }, { name:'angle' }]
   return rotate 
 }
 
@@ -329,6 +333,7 @@ const Translate = function( primitive, amount ) {
     }
   })
 
+  rotate.params = [{ name:'amount' }]
   return rotate 
 }
 Translate.prototype = SceneNode()
@@ -387,6 +392,7 @@ const Scale = function( primitive,amount ) {
     }
   })
 
+  scale.params = [{ name:'amount' }]
   return scale 
 }
 

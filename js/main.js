@@ -74,7 +74,7 @@ const SDF = {
 
     //this.canvas.width = window.innerWidth * size
     //this.canvas.height = window.innerHeight * size
-    this.gl = this.canvas.getContext( 'webgl2' )
+    this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:false })
 
     this.initBuffers()
   },

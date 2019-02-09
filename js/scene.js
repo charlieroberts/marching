@@ -56,7 +56,7 @@ const getScene = function( SDF ) {
     quality( quality=10 ) {
       this.threshold( .1 / (quality * quality * quality ) )
       this.steps( quality * 20 )
-      this.farPlane( quality * 20 )
+      this.farPlane( quality * 5 )
       this.resolution( .2 * quality )
 
       return this

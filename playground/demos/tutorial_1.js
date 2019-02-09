@@ -55,19 +55,19 @@ false is passed as the second
 argument, marching.js will create a
 static image at maximum quality.   
                                     
-we can also register a callback to 
-change properties over time. these  
-run once per video frame, and are  
+we can also register a onframe function 
+to change properties over time. this  
+runs once per video frame, and is  
 passed the current time. here we'll 
 use the time to change the sphere's
 position.                           
                                    
 ** __--__--__--__--__--__--__--__*/
 
-callbacks.push( time => {
+onframe = time => {
   sphere1.center.z = -10 + Math.sin( time ) * 10
   sphere1.center.x = Math.sin( time * 2.5 ) * 4
-})
+}
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -104,9 +104,8 @@ march(
 )
 .render( 2, true )
  
-callbacks.push( time => 
-  sphere1.radius = 1.25 + Math.sin( time ) * .1 
-)
+onframe = time => sphere1.radius = 1.25 + Math.sin( time ) * .1 
+
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -145,7 +144,7 @@ march(
 ) 
 .render( 3, true )
  
-callbacks.push( time => sphere1.radius = Math.sin( time ) * .75 )
+onframe = time => sphere1.radius = Math.sin( time ) * .75
 
 /* __--__--__--__--__--__--__--__--
                                     

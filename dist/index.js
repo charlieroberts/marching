@@ -949,10 +949,13 @@ Rotation.prototype.emit = function ( name='p' ) {
   const pId = this.matId
   const pName = 'q'+pId
 
-  let preface =
-`        mat4 m${pName} = rotationMatrix(${this.axis.emit()}, -${this.angle.emit()});
-        vec3 ${pName} = ( m${pName} * vec4(${name},1.) ).xyz;
-`
+  //const offset = this.primitive.center !== undefined ? this.primitive.center.emit() : '0.'
+  let preface =`        mat4 m${pName} = rotationMatrix(${this.axis.emit()}, -${this.angle.emit()});`
+
+  preface += this.primitive.center !== undefined
+    ? `vec3 ${pName} = ( m${pName} * vec4(${name} - ${this.primitive.center.emit()}, 1.) ).xyz + ${this.primitive.center.emit()};`
+    : `vec3 ${pName} = ( m${pName} * vec4(${name}, 1.) ).xyz;`
+
 
   const primitive = this.primitive.emit( pName )
   let out = primitive.out

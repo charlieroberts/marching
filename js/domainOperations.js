@@ -5,7 +5,7 @@ const { param_wrap, MaterialID } = require( './utils.js' )
 
 const getDomainOps = function( SDF ) {
   
-const Elongation = function( primitive, distance ) {
+const Elongation = function( sdf, distance ) {
   const repeat = Object.create( Elongation.prototype )
 
   // XXX make this DRY
@@ -28,7 +28,7 @@ const Elongation = function( primitive, distance ) {
     }
   }) 
 
-  repeat.sdf = primitive
+  repeat.sdf = sdf
   repeat.params = [{ name:'distance' }]
 
   return repeat 
@@ -45,11 +45,11 @@ Elongation.prototype.emit = function ( name='p' ) {
         vec3 ${pName} = ${pName}_xyzw.xyz;\n`
 
 
-  const primitive = this.sdf.emit( pName )
+  const sdf = this.sdf.emit( pName )
 
-  if( typeof primitive.preface === 'string' ) preface += primitive.preface 
+  if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 
-  return { out:`vec2(${pName}_xyzw.w + ${primitive.out}.x, ${primitive.out}.y)`, preface }
+  return { out:`vec2(${pName}_xyzw.w + ${sdf.out}.x, ${sdf.out}.y)`, preface }
 }
 
 Elongation.prototype.emit_decl = function () {
@@ -67,7 +67,7 @@ Elongation.prototype.upload_data = function( gl ) {
 }
 
 
-const Repetition = function( primitive, distance ) {
+const Repetition = function( sdf, distance ) {
   const repeat = Object.create( Repetition.prototype )
 
   // XXX make this DRY
@@ -90,7 +90,7 @@ const Repetition = function( primitive, distance ) {
     }
   }) 
 
-  repeat.sdf = primitive
+  repeat.sdf = sdf
   repeat.params = [{ name:'distance' }]
 
   return repeat 
@@ -106,11 +106,11 @@ Repetition.prototype.emit = function ( name='p' ) {
 `        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
 
 
-  const primitive = this.sdf.emit( pName )
+  const sdf = this.sdf.emit( pName )
 
-  if( typeof primitive.preface === 'string' ) preface += primitive.preface 
+  if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 
-  return { out:primitive.out, preface }
+  return { out:sdf.out, preface }
 }
 
 Repetition.prototype.emit_decl = function () {
@@ -127,11 +127,11 @@ Repetition.prototype.upload_data = function( gl ) {
   this.sdf.upload_data( gl )
 }
 
-const PolarRepetition = function( primitive, count, distance ) {
+const PolarRepetition = function( sdf, count, distance ) {
   const repeat = Object.create( PolarRepetition.prototype )
   //repeat.count = param_wrap( count, float_var_gen( 7 ) )
   repeat.distance = param_wrap( distance, float_var_gen( 1 ) )
-  repeat.sdf = primitive 
+  repeat.sdf = sdf 
 
   const __var =  param_wrap( 
     count, 
@@ -194,10 +194,10 @@ PolarRepetition.prototype.upload_data = function( gl ) {
   this.sdf.upload_data( gl )
   this.distance.upload_data( gl )
 }
-const Rotation = function( primitive, axis, angle=0 ) {
+const Rotation = function( sdf, axis, angle=0 ) {
   const rotate = Object.create( Rotation.prototype )
   
-  rotate.primitive = primitive
+  rotate.sdf = sdf
   rotate.matId = VarAlloc.alloc()
 
   let __var =  param_wrap( 
@@ -242,25 +242,25 @@ Rotation.prototype.emit = function ( name='p' ) {
   const pId = this.matId
   const pName = 'q'+pId
 
-  //const offset = this.primitive.center !== undefined ? this.primitive.center.emit() : '0.'
   let preface =`        mat4 m${pName} = rotationMatrix(${this.axis.emit()}, -${this.angle.emit()});`
+  const center = this.getCenter()
 
-  preface += this.primitive.center !== undefined
-    ? `vec3 ${pName} = ( m${pName} * vec4(${name} - ${this.primitive.center.emit()}, 1.) ).xyz + ${this.primitive.center.emit()};`
-    : `vec3 ${pName} = ( m${pName} * vec4(${name}, 1.) ).xyz;`
+  preface += center !== undefined
+    ? `        vec3 ${pName} = ( m${pName} * vec4(${name} - ${center.emit()}, 1.) ).xyz + ${center.emit()};`
+    : `        vec3 ${pName} = ( m${pName} * vec4(${name}, 1.) ).xyz;`
 
 
-  const primitive = this.primitive.emit( pName )
-  let out = primitive.out
+  const sdf = this.sdf.emit( pName )
+  let out = sdf.out
 
-  if( typeof primitive.preface === 'string' )
-    preface += primitive.preface
+  if( typeof sdf.preface === 'string' )
+    preface += sdf.preface
 
   return { out, preface }
 }
 
 Rotation.prototype.emit_decl = function () {
-  let str = this.axis.emit_decl() + this.angle.emit_decl() + this.primitive.emit_decl()
+  let str = this.axis.emit_decl() + this.angle.emit_decl() + this.sdf.emit_decl()
 
   if( SDF.memo.rotation === undefined ) {
     str += Rotation.prototype.glsl
@@ -273,13 +273,13 @@ Rotation.prototype.emit_decl = function () {
 Rotation.prototype.update_location = function( gl, program ) {
   this.axis.update_location( gl, program )
   this.angle.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.sdf.update_location( gl, program )
 }
 
 Rotation.prototype.upload_data = function( gl ) {
   this.axis.upload_data( gl )
   this.angle.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.sdf.upload_data( gl )
 }
 
 Rotation.prototype.glsl = `   mat4 rotationMatrix(vec3 axis, float angle) {
@@ -311,10 +311,10 @@ Rotation.prototype.glsl = `   mat4 rotationMatrix(vec3 axis, float angle) {
 `
 
 
-const Translate = function( primitive, amount ) {
+const Translate = function( sdf, amount ) {
   const rotate = Object.create( Translate.prototype )
   
-  rotate.primitive = primitive
+  rotate.sdf = sdf
   rotate.matId = MaterialID.alloc()
 
   let __var =  param_wrap( 
@@ -347,33 +347,33 @@ Translate.prototype.emit = function( name='p' ) {
 
   let preface = `vec3 ${pName} = ${name} - ${this.amount.emit()};\n`
 
-  const primitive = this.primitive.emit( pName )
-  let out = primitive.out
+  const sdf = this.sdf.emit( pName )
+  let out = sdf.out
 
-  if( typeof primitive.preface === 'string' )
-    preface += primitive.preface
+  if( typeof sdf.preface === 'string' )
+    preface += sdf.preface
 
   return { out, preface }
 }
 
 Translate.prototype.emit_decl = function () {
-	return this.amount.emit_decl() + this.primitive.emit_decl()
+	return this.amount.emit_decl() + this.sdf.emit_decl()
 };
 
 Translate.prototype.update_location = function( gl, program ) {
   this.amount.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.sdf.update_location( gl, program )
 }
 
 Translate.prototype.upload_data = function( gl ) {
   this.amount.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.sdf.upload_data( gl )
 }
 
-const Scale = function( primitive,amount ) {
+const Scale = function( sdf,amount ) {
   const scale = Object.create( Scale.prototype )
   
-  scale.primitive = primitive
+  scale.sdf = sdf
   scale.matId = MaterialID.alloc()
 
   let __var =  param_wrap( 
@@ -405,27 +405,27 @@ Scale.prototype.emit = function ( name='p' ) {
 
   let preface =`  vec3 ${pname} = ${name}/${this.amount.emit()};\n `
 
-  const primitive = this.primitive.emit( pname )
-  let out = primitive.out + ' * ' + this.amount.emit()
+  const sdf = this.sdf.emit( pname )
+  let out = sdf.out + ' * ' + this.amount.emit()
 
-  if( typeof primitive.preface === 'string' )
-    preface += primitive.preface
+  if( typeof sdf.preface === 'string' )
+    preface += sdf.preface
 
   return { out, preface }
 }
 
 Scale.prototype.emit_decl = function () {
-	return this.amount.emit_decl() + this.primitive.emit_decl()
+	return this.amount.emit_decl() + this.sdf.emit_decl()
 };
 
 Scale.prototype.update_location = function( gl, program ) {
   this.amount.update_location( gl, program )
-  this.primitive.update_location( gl, program )
+  this.sdf.update_location( gl, program )
 }
 
 Scale.prototype.upload_data = function( gl ) {
   this.amount.upload_data( gl )
-  this.primitive.upload_data( gl )
+  this.sdf.upload_data( gl )
 }
 
 return { Repeat:Repetition, Scale, Rotation, Translate, PolarRepeat:PolarRepetition, Elongation }

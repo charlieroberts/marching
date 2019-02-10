@@ -19,6 +19,16 @@ SceneNode.prototype = {
     }
 
     return id
+  },
+
+  getCenter() {
+    let center = this.center
+
+    if( center === undefined && this.sdf !== undefined ) {
+      center = this.sdf.getCenter()
+    }
+
+    return center
   }
 }
 

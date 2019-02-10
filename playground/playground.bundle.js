@@ -12654,6 +12654,7 @@ ctrl+. (period) to clear graphics.
 sphere1 = Sphere()
  
 march( sphere1 )
+  .farPlane(10)
   .render( 2, true )
 
 /* __--__--__--__--__--__--__--__--
@@ -12705,8 +12706,8 @@ position.
 ** __--__--__--__--__--__--__--__*/
 
 onframe = time => {
-  sphere1.center.z = -10 + Math.sin( time ) * 10
-  sphere1.center.x = Math.sin( time * 2.5 ) * 4
+  sphere1.center.z = -2 + Math.sin( time/2 ) * 2
+  sphere1.center.x = Math.sin( time ) * 4
 }
 
 /* __--__--__--__--__--__--__--__--
@@ -12736,15 +12737,15 @@ your computer can handle it.
                                    
 ** __--__--__--__--__--__--__--__*/
 
-sphere1 = Sphere( 1.35 )
+sphere2 = Sphere( 1.35 )
 box1 = Box()
  
 march(
-  Difference( box1, sphere1 )
+  Difference( box1, sphere2 )
 )
-.render( 2, true )
+.render( 3, true )
  
-onframe = time => sphere1.radius = 1.25 + Math.sin( time ) * .1 
+onframe = time => sphere2.radius = 1.25 + Math.sin( time ) * .1
 
 
 /* __--__--__--__--__--__--__--__--
@@ -12775,16 +12776,16 @@ do that we need to create a union.
                                    
 ** __--__--__--__--__--__--__--__*/
 
-sphere1 = Sphere( .35 )
-box1 = Box( Vec3( .35 ) ) 
-sphereBox = SmoothUnion( sphere1, box1, .9 )
+sphere3 = Sphere( .35 )
+box3 = Box( Vec3( .35 ) ) 
+sphereBox = SmoothUnion( sphere3, box3, .9 )
  
 march(  
   Repeat( sphereBox, Vec3( 2,2,2 ) )
 ) 
 .render( 3, true )
  
-onframe = time => sphere1.radius = Math.sin( time ) * .75
+onframe = time => sphere3.radius = Math.sin( time ) * .75
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -12815,8 +12816,8 @@ march(
 // ignore quality parameter in favor
 // of the other settings we've defined
 // and animate
-.render(null, true)
-`
+.render(null, true)`
+
 
 },{}],23:[function(require,module,exports){
 module.exports =`m = march(

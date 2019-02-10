@@ -8,12 +8,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
       in vec2 v_uv;
 
-      struct Fresnel {
-        float bias;
-        float scale;
-        float power;
-      };
-
       struct Light {
         vec3 position;
         vec3 color;
@@ -26,7 +20,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         vec3 diffuse;
         vec3 specular;
         float shininess;
-        Fresnel fresnel;
+        vec3 fresnel;
       };     
 
       uniform float time;

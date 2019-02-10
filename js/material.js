@@ -38,7 +38,7 @@ const __Materials = function( SDF ) {
       return mat
     },
 
-    material( mode='global', __ambient, __diffuse, __specular, __shininess, fresnel=Vec3(0,1,2) ){
+    material( mode='global', __ambient, __diffuse, __specular, __shininess, __fresnel ){
       let modeIdx = Materials.modeConstants.indexOf( mode )
       if( modeIdx === -1 ) {
         console.warn( `There is no material type named ${mode}. Using the default material, ${Materials.default}, instead.` )
@@ -50,6 +50,7 @@ const __Materials = function( SDF ) {
       const diffuse = param_wrap( __diffuse, vec3_var_gen(0,0,1) )
       const specular = param_wrap( __specular, vec3_var_gen(1,1,1) )
       const shininess = param_wrap( __shininess, float_var_gen(8) )
+      const fresnel   = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
 
       const mat = { mode, ambient, diffuse, specular, shininess, fresnel, id:MaterialID.alloc() }
       
@@ -74,7 +75,7 @@ const __Materials = function( SDF ) {
       for( let mat of this.materials ) {
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
-        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${fresnel} ),` 
+        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()} ),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma

@@ -9,7 +9,17 @@ SceneNode.prototype = {
 
 	update_location(gl, program) {},
 
-	upload_data(gl) {}
+  upload_data(gl) {},
+
+  getID() {
+    let id = this.id
+
+    if( id === undefined && this.sdf !== undefined ) {
+      id = this.sdf.getID()
+    }
+
+    return id
+  }
 }
 
 module.exports = SceneNode

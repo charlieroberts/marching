@@ -249,7 +249,8 @@ const Lights = function( SDF ) {
             // lights should have an attenuation factor
             float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); 
 
-            float fresnel = mat.fresnel.bias + mat.fresnel.scale * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.power ); 
+            // bias, scale, power
+            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); 
 
             ${__shadow}
 
@@ -310,7 +311,7 @@ const Lights = function( SDF ) {
             // lights should have an attenuation factor
             float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); 
 
-            float fresnel = mat.fresnel.bias + mat.fresnel.scale * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.power ); 
+            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); 
 
             ${__shadow}
 

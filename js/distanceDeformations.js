@@ -14,7 +14,7 @@ const ops = {
     displaceString += `sin( ${this.amount.emit()}.z * ${name}.z );\n`
 
     const output = {
-      out: `vec2(d1${this.id} + d2${this.id}, ${primitive.out}.y)`, 
+      out: `vec2((d1${this.id} + d2${this.id}*${this.scale.emit()})*.5, ${primitive.out}.y)`, 
       preface: primitive.preface + primitiveStr + displaceString 
     }
 
@@ -63,11 +63,12 @@ for( let name in ops ) {
   let __op = ops[ name ]
 
   // create constructor
-  DistanceOps[ name ] = function( a,b ) {
+  DistanceOps[ name ] = function( a,b,c ) {
     const op = Object.create( DistanceOps[ name ].prototype )
     op.primitive = a
     op.amount = b
     op.emit = __op
+    op.name = name
 
     const defaultValues = [.5,.5,.5]
 
@@ -96,6 +97,22 @@ for( let name in ops ) {
     })
 
     op.params = [{ name:'amount' }]
+
+    if( name === 'Displace' ) {
+      let __var2 =  param_wrap( 
+        c, 
+        float_var_gen( .03 ) 
+      )
+      Object.defineProperty( op, 'scale', {
+        get() { return __var2 },
+        set(v) {
+          __var2.set( v )
+          __var2.dirty = true
+        }
+      })
+
+      op.params.push({ name:'scale' })
+    }
     return op
   } 
 
@@ -119,6 +136,7 @@ for( let name in ops ) {
 
   DistanceOps[name].prototype.emit_decl = function () {
     let str =  this.primitive.emit_decl() + this.amount.emit_decl()
+    if( this.name === 'Displace' ) str += this.scale.emit_decl()  
 
     return str
   };
@@ -126,11 +144,13 @@ for( let name in ops ) {
   DistanceOps[name].prototype.update_location = function(gl, program) {
     this.primitive.update_location( gl, program )
     this.amount.update_location( gl, program )
+    if( this.name === 'Displace' ) this.scale.update_location( gl, program ) 
   }
 
   DistanceOps[name].prototype.upload_data = function(gl) {
     this.primitive.upload_data( gl )
     this.amount.upload_data( gl )
+    if( this.name === 'Displace' ) this.scale.upload_data( gl )
   }
 }
 

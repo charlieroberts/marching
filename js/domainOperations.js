@@ -37,7 +37,7 @@ const Elongation = function( primitive, distance ) {
 Elongation.prototype = SceneNode()
 
 Elongation.prototype.emit = function ( name='p' ) {
-  const pId = this.sdf.id
+  const pId = this.getID()
   const pName = 'p' + pId
 
   let preface =

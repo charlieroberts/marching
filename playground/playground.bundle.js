@@ -12877,6 +12877,11 @@ const tutorials = {
   ['live coding']: require( './demos/livecoding.js' )
 }
 
+Math.export = ()=> {
+  const arr = Object.getOwnPropertyNames(Math);
+  arr.forEach(el => window[el] = Math[el]);
+}
+
 window.onload = function() {
   const ta = document.querySelector( '#cm' )
 

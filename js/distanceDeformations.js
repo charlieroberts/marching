@@ -74,7 +74,12 @@ for( let name in ops ) {
 
     op.id = VarAlloc.alloc()
     const isArray = true 
-
+    
+    if( typeof b === 'number' ) {
+      b = [b,b,b]
+      b.type = 'vec3'
+    }
+    
     let __var =  param_wrap( 
       b, 
       vec3_var_gen( ...defaultValues ) 

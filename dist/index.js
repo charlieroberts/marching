@@ -422,7 +422,12 @@ for( let name in ops ) {
 
     op.id = VarAlloc.alloc()
     const isArray = true 
-
+    
+    if( typeof b === 'number' ) {
+      b = [b,b,b]
+      b.type = 'vec3'
+    }
+    
     let __var =  param_wrap( 
       b, 
       vec3_var_gen( ...defaultValues ) 
@@ -708,14 +713,176 @@ module.exports = DistanceOps
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
+const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 
+const descriptions = {
+  Elongation: {
+    distance: { type:'vec3', default:Vec3(0) },
+  },
+
+  Repetition: {
+    distance: { type:'vec3', default:Vec3(0) },
+    emit ( name='p' ) {
+      const pId = this.sdf.matId
+      const pName = 'p' + pId
+
+      let preface =
+        `        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
+
+
+      const sdf = this.sdf.emit( pName )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      console.log( sdf.out, preface )
+      return { out:sdf.out, preface }
+    }
+  },
+
+  PolarRepetition: {
+    distance: { type:'float', default:.25 },
+    count: { type:'float', default:5 }
+  }
+}
 
 const getDomainOps = function( SDF ) {
+  const ops = {}
+
+  for( let key in descriptions ) {
+    const opDesc = descriptions[ key ]
+    
+    ops[ key ] = function( sdf, ...args ) {
+      const op = Object.create( ops[ key ].prototype )
+      op.sdf = sdf
+      op.params = []
+
+      let count = 0
+      for( let propkey in opDesc ) {
+        if( propkey === 'emit' ) continue
+
+        const prop = opDesc[ propkey ]
+        op.params.push({ name:propkey })
+
+        let arg = args[ count ]
+        let __var
+        switch( prop.type ) {
+          case 'vec2':
+            if( typeof arg === 'number' ) arg = Vec2( arg )
+
+            __var = param_wrap( 
+              arg, 
+              param_wrap( arg, vec2_var_gen( prop.default ) )    
+            )
+
+            Object.defineProperty( op, propkey, {
+              get() { return __var },
+              set(v) {
+                if( typeof v === 'object' ) {
+                  __var.set( v )
+                }else{
+                  __var.value.x = v
+                  __var.value.y = v
+                  __var.dirty = true
+                }
+              }
+            })  
+
+            break;
+          case 'vec3':
+            if( typeof arg === 'number' ) arg = Vec3( arg )
+
+            __var = param_wrap( 
+              arg, 
+              param_wrap( arg, vec3_var_gen( prop.default ) )    
+            )
+
+            Object.defineProperty( op, propkey, {
+              get() { return __var },
+              set(v) {
+                if( typeof v === 'object' ) {
+                  __var.set( v )
+                }else{
+                  __var.value.x = v
+                  __var.value.y = v
+                  __var.value.z = v
+                  __var.dirty = true
+                }
+              }
+            })  
+
+            break;
+          case 'vec4':
+            if( typeof arg === 'number' ) arg = Vec4( arg )
+              __var = param_wrap( 
+              arg, 
+              param_wrap( arg, vec4_var_gen( prop.default ) )    
+            )
+
+            Object.defineProperty( op, propkey, {
+              get() { return __var },
+              set(v) {
+                if( typeof v === 'object' ) {
+                  __var.set( v )
+                }else{
+                  __var.value.x = v
+                  __var.value.y = v
+                  __var.value.z = v
+                  __var.value.w = v
+                  __var.dirty = true
+                }
+              }
+            })  
+
+            break;
+          default: // float
+            __var =  param_wrap( 
+              arg, 
+              param_wrap( arg, float_var_gen( prop.default ) )    
+            )
+
+            Object.defineProperty( op, propKey, {
+              get() { return __var },
+              set(v) {
+                __var.set( v ) 
+              }
+            })
+            break;
+        }
+
+        count++
+      }
+
+      return op
+    }
+
+    ops[ key ].prototype = SceneNode()
+    ops[ key ].prototype.emit = opDesc.emit
+    ops[ key ].prototype.emit_decl = function() {
+      let decl = ''
+      for( let param of this.params ) {
+        decl += this[ param.name ].emit_decl()
+      }
+      decl += this.sdf.emit_decl()
+
+      return decl
+    }
+    ops[ key ].prototype.update_location = function( gl, program ) {
+      for( let param of this.params ) this[ param.name ].update_location( gl, program)
+      this.sdf.update_location( gl, program )
+    }
+    ops[ key ].prototype.upload_data = function( gl ) {
+      for( let param of this.params ) this[ param.name ].upload_data( gl )
+      this.sdf.upload_data( gl )
+    }
+  }
   
-const Elongation = function( sdf, distance ) {
+  return ops
+/*const Elongation = function( sdf, distance ) {
   const repeat = Object.create( Elongation.prototype )
 
   // XXX make this DRY
+  if( typeof distance === 'number' ) distance = Vec3( distance ) 
+
   const __var =  param_wrap( 
     distance, 
     param_wrap( distance, vec3_var_gen( 1,1,5 ) )    
@@ -778,6 +945,8 @@ const Repetition = function( sdf, distance ) {
   const repeat = Object.create( Repetition.prototype )
 
   // XXX make this DRY
+
+  if( typeof distance === 'number' ) distance = vec3_var_gen( distance, distance, distance )
   const __var =  param_wrap( 
     distance, 
     param_wrap( distance, vec3_var_gen( 1,1,5 ) )    
@@ -842,7 +1011,7 @@ const PolarRepetition = function( sdf, count, distance ) {
 
   const __var =  param_wrap( 
     count, 
-    param_wrap( count, float_var_gen( 7 ) )    
+    param_wriap( count, float_var_gen( 7 ) )    
   )
 
   Object.defineProperty( repeat, 'count', {
@@ -907,6 +1076,7 @@ const Rotation = function( sdf, axis, angle=0 ) {
   rotate.sdf = sdf
   rotate.matId = VarAlloc.alloc()
 
+  if( typeof axis === 'number' ) axis = vec3_var_gen( axis, axis, axis ) 
   let __var =  param_wrap( 
     axis, 
     param_wrap( axis, vec3_var_gen( 0,0,0 ) )    
@@ -1024,6 +1194,7 @@ const Translate = function( sdf, amount ) {
   rotate.sdf = sdf
   rotate.matId = MaterialID.alloc()
 
+  if( typeof amount === 'number' ) amount = vec3_var_gen( amount,amount,amount ) 
   let __var =  param_wrap( 
     amount, 
     param_wrap( amount, vec3_var_gen( 0,0,0 ) )    
@@ -1083,6 +1254,7 @@ const Scale = function( sdf,amount ) {
   scale.sdf = sdf
   scale.matId = MaterialID.alloc()
 
+  if( typeof amount === 'number' ) amount = vec3_var_gen( amount,amount,amount ) 
   let __var =  param_wrap( 
     amount, 
     param_wrap( amount, vec3_var_gen( 1,1,1 ) )    
@@ -1136,12 +1308,13 @@ Scale.prototype.upload_data = function( gl ) {
 }
 
 return { Repeat:Repetition, Scale, Rotation, Translate, PolarRepeat:PolarRepetition, Elongation }
+*/
 
 }
 
 module.exports = getDomainOps
 
-},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24}],10:[function(require,module,exports){
+},{"./sceneNode.js":22,"./utils.js":23,"./var.js":24,"./vec.js":25}],10:[function(require,module,exports){
 const emit_float = function( a ) {
 	if (a % 1 === 0)
 		return a.toFixed( 1 )

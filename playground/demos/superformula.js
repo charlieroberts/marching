@@ -14,7 +14,8 @@ m = march(
       Vec3(0,.35,0),
       mat1
     ),
-    Vec3(0,.5,0)
+    Vec3(0,.5,0),
+    0
   ),
   Plane( Vec3(0,1,0), 1, Material('phong', Vec3(.15), Vec3(1) ) )
 )
@@ -27,14 +28,14 @@ m = march(
 .background( Vec3(1) )
 .render( 2, true )
 .camera( 0,0,4 )
- 
-callbacks.push( time => {
+
+onframe = time => {
   t = 12
   s.n1_1 = Math.PI + Math.sin( time )
   s.n1_2 = Math.PI + Math.cos( time )
   s.m_1 = Math.sin( time / 2 ) * t
   s.m_2 = Math.cos( time / 2 ) * t
   r.angle = time / 4
-})
+}
 
 // thanks to https://github.com/Softwave/glsl-superformula`

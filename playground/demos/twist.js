@@ -1,22 +1,29 @@
 module.exports =`m = march(
-  Repeat(
-    t = Twist(
-      Rotation(
-        PolarRepeat(
-          Cylinder( Vec2(.05,4.5), Vec3(0,2,0) ),
-          5,
-          .25
+  StairsUnion(
+    Repeat(
+      t = Twist(
+        Rotation(
+          PolarRepeat(
+            Cylinder( Vec2(.025,2.75) ),
+            10,
+            .25
+          ),
+          Vec3(1,0,0),
+          Math.PI / 2
         ),
-        Vec3(1,0,0),
-        Math.PI / 2
+        Vec3(0)
       ),
-      Vec3(0)
+      Vec3(2.5,0,0)
     ),
-    Vec3(2,0,0)
+    Plane(),
+    .35
   )
 )
+.light( Light( Vec3(.4), Vec3(.5) ) )
 .background( Vec3(.5,.6,.7) )
 .render(3, true )
-.camera( 0, 4.5, 3.5 )
+.camera( 2, 0, 6 )
  
-onframe = time => t.amount = time % 4`
+onframe = time => {
+  t.amount = Math.sin(time/4)*5
+}`

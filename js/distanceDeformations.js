@@ -26,9 +26,9 @@ const ops = {
     const sdf = this.sdf.emit( 'q'+this.id );
 
     let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
-        float s${this.id} = sin( ${this.amount.emit()}.y * ${name}.y );
+        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
-        vec3  q${this.id} = vec3( m${this.id} * ${name}.xy, ${name}.z );\n`
+        vec3  q${this.id} = vec3( m${this.id} * ${name}.xz, ${name}.y );\n`
 
     if( typeof sdf.preface === 'string' ) {
       preface += sdf.preface
@@ -42,7 +42,7 @@ const ops = {
     const sdf = this.sdf.emit( 'q'+this.id );
 
     let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
-        float s${this.id} = sin( ${this.amount.emit()}.y * ${name}.y );
+        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
         vec3  q${this.id} = vec3( m${this.id} * ${name}.xz, ${name}.y );\n`
 
@@ -122,22 +122,6 @@ for( let name in ops ) {
   } 
 
   DistanceOps[ name ].prototype = SceneNode()
-
-  //DistanceOps[ name ].prototype.emit = function ( __name ) {
-  //  let name = __name === undefined ? 'p' : __name
-  //  const sdf = this.sdf.emit( name );
-
-  //  const sdfStr = `float d1 = ${sdf.out}.x;\n`
-
-  //  const displaceString = `float d2 = sin( ${this.amount.emit()}.x * ${name}.x ) * sin( ${this.amount.emit()}.y * ${name}.y ) * sin( ${this.amount.emit()}.z * ${name}.z );\n`
-
-  //  const output = {
-  //    out: `vec2(d1 + d2, ${sdf.out}.y)`, 
-  //    preface: sdf.preface + sdfStr + displaceString 
-  //  }
-
-  //  return output
-  //}
 
   DistanceOps[name].prototype.emit_decl = function () {
     let str =  this.sdf.emit_decl() + this.amount.emit_decl()

@@ -15,7 +15,9 @@ march(
 /* __--__--__--__--__--__--__--____
                                    
 select code and hit ctrl+enter to  
-execute. ctrl+shift+h toggles hiding
+execute. alt+enter (option+enter on
+a mac) executes a block of code. 
+ctrl+shift+h toggles hiding
 the code/gui. try the other demos  
 using the menu in the upper left    
 corner. when you're ready to start 

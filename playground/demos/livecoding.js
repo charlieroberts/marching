@@ -18,7 +18,7 @@ __--__--__--__--__--__--__--____ */
 
 march(
   rpt = Repeat(
-    s = Sphere(.125),
+    Sphere(.125),
     Vec3(.5)
   )
 ).render( 3, true )
@@ -27,16 +27,22 @@ march(
 rpt.distance.x = 1
 
 /* __--__--__--__--__--__--__--____
-Easy enough. But there's an odd
-behavior when we do this. If you
-try changing the distance, and then
-re-execute the graph (without selecting
-the line that changes the distance)
-you'll notice that the value you set
-the distance to is preserved upon 
-re-execution.
+Easy enough. However, a problem occurs
+if you then re-execute your calls
+to march / render... the repeat distance
+is reset to the the value in its
+constructor. During live coding
+performances you often want to 
+maintain state (as much as possible)
+while making changes to the graph, so
+that abrupt changes don't occur.
 
-Whenever you create an object in
+If you run the line:
+
+Marching.useProxies = true
+
+...a new behavior is enabled. When
+you create an object in
 the global namespace, a 'proxy' is
 created. IF you reassign a new
 object to this proxy, the proxy
@@ -45,8 +51,27 @@ the previous object to the new one.
 This enables you to re-execute
 the graph while maintaining state,
 and makes it much easier to acheive
-continuity when live coding.
+continuity when live coding. Try running
+the code below:
 __--__--__--__--__--__--__--____ */
+
+
+Marching.useProxies = true
+march(
+  rpt2 = Repeat(
+    Sphere(.125),
+    Vec3(.5)
+  )
+).render( 3, true )
+
+rpt2.distance.x = 1
+
+// if you re-execute the graph
+// now, you'll notice the distance.x
+// value is maintained. This only
+// works because we enabled proxies
+// and assigned our Repeat object
+// to the same global variable.
 
 /* __--__--__--__--__--__--__--____
 Another useful technique, that relies

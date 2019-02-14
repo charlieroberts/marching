@@ -43,6 +43,7 @@ window.onload = function() {
 
   SDF.init( document.querySelector('canvas') )
   SDF.export( window )
+  SDF.useProxies = false
 
   let hidden = false
   let fontSize = .95
@@ -59,12 +60,16 @@ window.onload = function() {
 
         const func = new Function( code )
         
-        const preWindowMembers = Object.keys( window )
-        func()
-        const postWindowMembers = Object.keys( window )
+        if( SDF.useProxies === true ) {
+          const preWindowMembers = Object.keys( window )
+          func()
+          const postWindowMembers = Object.keys( window )
 
-        if( preWindowMembers.length !== postWindowMembers.length ) {
-          createProxies( preWindowMembers, postWindowMembers, window )
+          if( preWindowMembers.length !== postWindowMembers.length ) {
+            createProxies( preWindowMembers, postWindowMembers, window )
+          }
+        }else{
+          func()
         }
       } catch (e) {
         console.log( e )
@@ -80,12 +85,16 @@ window.onload = function() {
 
         var func = new Function( code )
 
-        const preWindowMembers = Object.keys( window )
-        func()
-        const postWindowMembers = Object.keys( window )
+        if( SDF.useProxies === true ) {
+          const preWindowMembers = Object.keys( window )
+          func()
+          const postWindowMembers = Object.keys( window )
 
-        if( preWindowMembers.length !== postWindowMembers.length ) {
-          createProxies( preWindowMembers, postWindowMembers, window )
+          if( preWindowMembers.length !== postWindowMembers.length ) {
+            createProxies( preWindowMembers, postWindowMembers, window )
+          }
+        }else{
+          func()
         }
       } catch (e) {
         console.log( e )

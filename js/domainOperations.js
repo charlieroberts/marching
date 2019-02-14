@@ -167,7 +167,7 @@ const getDomainOps = function( SDF ) {
 
             __var = param_wrap( 
               arg, 
-              param_wrap( arg, vec2_var_gen( prop.default ) )    
+              vec2_var_gen( prop.default )    
             )
 
             Object.defineProperty( op, propkey, {
@@ -189,7 +189,7 @@ const getDomainOps = function( SDF ) {
 
             __var = param_wrap( 
               arg, 
-              param_wrap( arg, vec3_var_gen( prop.default ) )    
+              vec3_var_gen( prop.default )
             )
 
             Object.defineProperty( op, propkey, {
@@ -211,7 +211,7 @@ const getDomainOps = function( SDF ) {
             if( typeof arg === 'number' ) arg = Vec4( arg )
               __var = param_wrap( 
               arg, 
-              param_wrap( arg, vec4_var_gen( prop.default ) )    
+              vec4_var_gen( prop.default )  
             )
 
             Object.defineProperty( op, propkey, {
@@ -233,7 +233,7 @@ const getDomainOps = function( SDF ) {
           default: // float
             __var =  param_wrap( 
               arg, 
-              param_wrap( arg, float_var_gen( prop.default ) )    
+              float_var_gen( prop.default )
             )
 
             Object.defineProperty( op, propkey, {

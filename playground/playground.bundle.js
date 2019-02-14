@@ -12444,8 +12444,10 @@ continuity when live coding. Try running
 the code below:
 __--__--__--__--__--__--__--____ */
 
-
+// run this line by itself before
+// executing other code
 Marching.useProxies = true
+
 march(
   rpt2 = Repeat(
     Sphere(.125),

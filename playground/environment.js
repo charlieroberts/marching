@@ -81,6 +81,8 @@ window.onload = function() {
       try {
         var selectedCode = getSelectionCodeColumn( cm, true )
 
+        flash( cm, selectedCode.selection )
+
         var code = selectedCode.code
 
         var func = new Function( code )

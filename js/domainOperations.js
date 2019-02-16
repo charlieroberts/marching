@@ -54,6 +54,21 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
+  SmoothRepetition: {
+    distance: { type:'vec3', default:Vec3(0) },
+    emit( name='p' ) {
+      const pId = this.sdf.matId
+      const pName = 'p' + pId
+
+      let preface =`        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
+
+      const sdf = this.sdf.emit( pName )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
   Rotation: {
     axis: { type:'vec3', default:Vec3(1) },
     angle: { type:'float', default:0 },

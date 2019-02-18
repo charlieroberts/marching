@@ -12175,6 +12175,24 @@ module.exports=`march(
 .camera( 0,0,2.25 )`
 
 },{}],17:[function(require,module,exports){
+module.exports =`// inspired by http://roy.red/folding-the-koch-snowflake-.html
+// this is still under development
+march(
+  r = Rotation(
+    // number of iterations, fold amount, radius, threshold, center, material
+    k = KIFS( 6,.25,.01,.01,null,Material.white ),
+    Vec3( 1 )
+  )
+)
+.render( 3,true )
+.camera( 0,0,3 )
+
+onframe = t=> {
+  k.fold  = -.1 + sin( t ) * .5
+  r.angle = t/4
+}`
+
+},{}],18:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -12388,7 +12406,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
 Live Coding
 
@@ -12535,7 +12553,7 @@ onframe, fade, the fft, and proxies, there's
 a number of tools to get started.
 __--__--__--__--__--__--__--____ */`
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5,0,0),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -12556,7 +12574,7 @@ march(
  
 onframe = t => m.a = 7 + Math.sin( t / 4 ) * 4`
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
@@ -12624,7 +12642,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
  
 m = march(
@@ -12667,7 +12685,7 @@ onframe = time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -12849,7 +12867,7 @@ march(
 .render(null, true)`
 
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports =`m = march(
   StairsUnion(
     Repeat(
@@ -12880,7 +12898,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12900,6 +12918,7 @@ const demos = {
   ['snare and sticks']: require( './demos/snare.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
+  ['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
   //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
@@ -12915,8 +12934,8 @@ const tutorials = {
 }
 
 Math.export = ()=> {
-  const arr = Object.getOwnPropertyNames(Math);
-  arr.forEach(el => window[el] = Math[el]);
+  const arr = Object.getOwnPropertyNames( Math )
+  arr.forEach( el => window[el] = Math[el] )
 }
 
 window.onload = function() {
@@ -12926,6 +12945,7 @@ window.onload = function() {
 
   SDF.init( document.querySelector('canvas') )
   SDF.export( window )
+  Math.export()
   SDF.useProxies = false
 
   let hidden = false
@@ -13019,11 +13039,11 @@ window.onload = function() {
   const toggleGUI = function() {
     if( hidden === false ) {
       cm.getWrapperElement().style.display = 'none'
+      toggleToolbar() 
     }else{
       cm.getWrapperElement().style.display = 'block'
     }
 
-    toggleToolbar() 
   }
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+h', toggleGUI )
@@ -13238,4 +13258,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/csg.js":13,"./demos/geometries.js":14,"./demos/intro.js":15,"./demos/julia.js":16,"./demos/lighting.js":17,"./demos/livecoding.js":18,"./demos/mandelbulb.js":19,"./demos/snare.js":20,"./demos/superformula.js":21,"./demos/tutorial_1.js":22,"./demos/twist.js":23,"codemirror":8}]},{},[24]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/csg.js":13,"./demos/geometries.js":14,"./demos/intro.js":15,"./demos/julia.js":16,"./demos/kifs.js":17,"./demos/lighting.js":18,"./demos/livecoding.js":19,"./demos/mandelbulb.js":20,"./demos/snare.js":21,"./demos/superformula.js":22,"./demos/tutorial_1.js":23,"./demos/twist.js":24,"codemirror":8}]},{},[25]);

@@ -1161,13 +1161,52 @@ const Lights = function( SDF ) {
       );
     `,
 
-    light( pos=Vec3(2,2,3), color=Vec3(0,0,1), attenuation=1, intensity=1 ) {
+    light( __pos=Vec3(2,2,3), __color=Vec3(0,0,1), attenuation=1 ) {
       const light = { 
-        pos: param_wrap( pos, vec3_var_gen(2,2,3) ), 
-        color: param_wrap( color, vec3_var_gen( 0,0,1 ) ),
         __attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
-        intensity 
       }
+
+      pos = typeof __pos === 'number' ? Vec3( __pos ) : __pos
+
+      const __varpos = param_wrap( 
+        pos, 
+        vec3_var_gen( [2,2,3] )
+      )
+
+      Object.defineProperty( light, 'pos', {
+        get() { return __varpos },
+        set(v) {
+          if( typeof v === 'object' ) {
+            __varpos.set( v )
+          }else{
+            __varpos.value.x = v
+            __varpos.value.y = v
+            __varpos.value.z = v
+            __varpos.dirty = true
+          }
+        }
+      })  
+
+      color = typeof __color === 'number' ? Vec3( __color ) : __color
+
+      const __varcol = param_wrap( 
+        color, 
+        vec3_var_gen( [0,0,1] )
+      )
+
+      Object.defineProperty( light, 'color', {
+        get() { return __varcol },
+        set(v) {
+          if( typeof v === 'object' ) {
+            __varcol.set( v )
+          }else{
+            __varcol.value.x = v
+            __varcol.value.y = v
+            __varcol.value.z = v
+            __varcol.dirty = true
+          }
+        }
+      })  
 
       Object.defineProperty( light, 'attenuation', {
         get() { return light.__attenuation.value },
@@ -1176,6 +1215,7 @@ const Lights = function( SDF ) {
           light.__attenuation.dirty = true
         }
       })
+
       return light
     },
 
@@ -1597,6 +1637,8 @@ const SDF = {
   clear() {
     this.callbacks.length = 0
     this.render.running = false
+    const gl = this.gl
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
 
   initWebGL( vs_source, fs_source, width, height,shouldAnimate=false ) {
@@ -1725,13 +1767,77 @@ const __Materials = function( SDF ) {
         modeIdx = Materials.modeConstants.indexOf( mode )
       }
 
+      if( typeof __ambient === 'number' ) __ambient = Vec3( __ambient )
       const ambient = param_wrap( __ambient, vec3_var_gen(.1,.1,.1) )
+      if( typeof __diffuse=== 'number' ) __diffuse= Vec3( __diffuse )
       const diffuse = param_wrap( __diffuse, vec3_var_gen(0,0,1) )
+      if( typeof __specular === 'number' ) __specular = Vec3( __specular )
       const specular = param_wrap( __specular, vec3_var_gen(1,1,1) )
       const shininess = param_wrap( __shininess, float_var_gen(8) )
-      const fresnel   = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
+      if( typeof __fresnel === 'number' ) __fresnel = Vec3( __fresnel )
+      const fresnel = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
 
-      const mat = { mode, ambient, diffuse, specular, shininess, fresnel, id:MaterialID.alloc() }
+      const mat = { shininess, mode }
+
+      Object.defineProperty( mat, 'ambient', {
+        get() { return ambient },
+        set(v) {
+          if( typeof v === 'object' ) {
+            ambient.set( v )
+          }else{
+            ambient.value.x = v
+            ambient.value.y = v
+            ambient.value.z = v
+            ambient.dirty = true
+          }
+        }
+      })  
+      Object.defineProperty( mat, 'diffuse', {
+        get() { return diffuse },
+        set(v) {
+          if( typeof v === 'object' ) {
+            diffuse.set( v )
+          }else{
+            diffuse.value.x = v
+            diffuse.value.y = v
+            diffuse.value.z = v
+            diffuse.dirty = true
+          }
+        }
+      })  
+      Object.defineProperty( mat, 'specular', {
+        get() { return specular },
+        set(v) {
+          if( typeof v === 'object' ) {
+            specular.set( v )
+          }else{
+            specular.value.x = v
+            specular.value.y = v
+            specular.value.z = v
+            specular.dirty = true
+          }
+        }
+      })  
+      Object.defineProperty( mat, 'fresnel', {
+        get() { return fresnel },
+        set(v) {
+          if( typeof v === 'object' ) {
+            fresnel.set( v )
+          }else{
+            fresnel.value.x = v
+            fresnel.value.y = v
+            fresnel.value.z = v
+            fresnel.dirty = true
+          }
+        }
+      })  
+      //Object.defineProperty( mat, 'shininess', {
+      //  get() { return mat.shininess.value },
+      //  set(v){
+      //    mat.shininess.value = v
+      //    mat.shininess.dirty = true
+      //  }
+      //})     //
       
       return mat 
     },
@@ -1817,6 +1923,7 @@ const __Materials = function( SDF ) {
     grey    : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
 
     'white glow' : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,200,5) ),
+    glue    : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
 
     normal  : Materials.material( 'normal' )
   })
@@ -2007,6 +2114,23 @@ module.exports = {
 
     // https://www.shadertoy.com/view/MsfGRr
     glslify:glsl(["#define GLSLIFY 1\n  vec4 qsqr( in vec4 a ) {\n    return vec4( a.x*a.x - a.y*a.y - a.z*a.z - a.w*a.w,\n                 2.0*a.x*a.y,\n                 2.0*a.x*a.z,\n                 2.0*a.x*a.w );\n  }\n\n  float julia( in vec3 p, float atime ){\n    vec4 c = 0.45*cos( vec4(0.5,3.9,1.4,1.1) + atime*vec4(1.2,1.7,1.3,2.5) ) - vec4(0.3,0.0,0.0,0.0);\n    vec4 z = vec4(p,0.);\n    float md2 = 1.0;\n    float mz2 = dot(z,z);\n\n    for( int i=0; i<11; i++ ){\n      md2 *= 4.0*mz2;   \n      // dz -> 2·z·dz, meaning |dz| -> 2·|z|·|dz| (can take the 4 out of the loop and do an exp2() afterwards)\n      z = qsqr(z) + c;  // z  -> z^2 + c\n\n      mz2 = dot(z,z);\n      if(mz2>4.0) break;\n    }\n    \n    return 0.25*sqrt(mz2/md2)*log(mz2);  // d = 0.5·|z|·log|z| / |dz|\n  }",""]),
+  },
+  KIFS: {
+    parameters:[
+      { name:'a', type:'float', default:8 },
+      { name:'fold', type:'float', default:0 },
+      { name:'radius', type:'float', default:.01 },
+      { name:'threshold', type:'float', default:.004 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
+
+    primitiveString( pName ) { 
+      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()} )`
+    },
+
+    // adapted from: https://www.shadertoy.com/view/ltfSWn
+    glslify:glsl(["#define GLSLIFY 1\n      float box( vec3 p, vec3 b ){\n  vec3 d = abs(p) - b;\n  return min(max(d.x,max(d.y,d.z)),0.0) +\n         length(max(d,0.0));\n}\n\nvec2 fold(vec2 p, float ang){    \n    vec2 n=vec2(cos(-ang),sin(-ang));\n    p-=2.*min(0.,dot(p,n))*n;\n    return p;\n}\n#define KPI 3.14159\n\nvec3 tri_fold(vec3 pt, float foldamt) {\n    pt.xy = fold(pt.xy,KPI/3. + foldamt );\n    pt.xy = fold(pt.xy,-KPI/3. + foldamt );\n    pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );\n    pt.yz = fold(pt.yz,-KPI/6. + foldamt );\n    return pt;\n}\nvec3 tri_curve(vec3 pt, float iter, float fold ) {\n    int count = int(iter);\n    for(int i=0;i<count;i++){\n        pt*=2.;\n        pt.x-=2.6;\n        pt=tri_fold(pt,fold);\n    }\n    return pt;\n}\nfloat kifs(in vec3 p, float a, float fold, float radius, float thresh ){\n    p.x+=1.5;\n    p=tri_curve(p,a,fold);\n    //return (length( p*thresh ) - radius );\n    return box( p*thresh, vec3(radius) );\n}    ",""]),
   },
 
   Mandelbulb: {

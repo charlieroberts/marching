@@ -17,6 +17,7 @@ const demos = {
   ['snare and sticks']: require( './demos/snare.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
+  ['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
   //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
@@ -32,8 +33,8 @@ const tutorials = {
 }
 
 Math.export = ()=> {
-  const arr = Object.getOwnPropertyNames(Math);
-  arr.forEach(el => window[el] = Math[el]);
+  const arr = Object.getOwnPropertyNames( Math )
+  arr.forEach( el => window[el] = Math[el] )
 }
 
 window.onload = function() {
@@ -43,6 +44,7 @@ window.onload = function() {
 
   SDF.init( document.querySelector('canvas') )
   SDF.export( window )
+  Math.export()
   SDF.useProxies = false
 
   let hidden = false
@@ -136,11 +138,11 @@ window.onload = function() {
   const toggleGUI = function() {
     if( hidden === false ) {
       cm.getWrapperElement().style.display = 'none'
+      toggleToolbar() 
     }else{
       cm.getWrapperElement().style.display = 'block'
     }
 
-    toggleToolbar() 
   }
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+h', toggleGUI )

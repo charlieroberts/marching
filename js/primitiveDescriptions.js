@@ -115,6 +115,57 @@ module.exports = {
     return 0.25*sqrt(mz2/md2)*log(mz2);  // d = 0.5·|z|·log|z| / |dz|
   }`,
   },
+  KIFS: {
+    parameters:[
+      { name:'a', type:'float', default:8 },
+      { name:'fold', type:'float', default:0 },
+      { name:'radius', type:'float', default:.01 },
+      { name:'threshold', type:'float', default:.004 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
+
+    primitiveString( pName ) { 
+      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()} )`
+    },
+
+    // adapted from http://roy.red/folding-the-koch-snowflake-.html
+    glslify:glsl`      float box( vec3 p, vec3 b ){
+      vec3 d = abs(p) - b;
+      return min(max(d.x,max(d.y,d.z)),0.0) +
+             length(max(d,0.0));
+    }
+    vec2 fold(vec2 p, float ang){    
+        vec2 n=vec2(cos(-ang),sin(-ang));
+        p-=2.*min(0.,dot(p,n))*n;
+        return p;
+    }
+    #define KPI 3.14159
+    vec3 tri_fold(vec3 pt, float foldamt) {
+        pt.xy = fold(pt.xy,KPI/3. + foldamt );
+        pt.xy = fold(pt.xy,-KPI/3. + foldamt );
+        pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );
+        pt.yz = fold(pt.yz,-KPI/6. + foldamt );
+        return pt;
+    }
+    vec3 tri_curve(vec3 pt, float iter, float fold ) {
+        int count = int(iter);
+        for(int i=0;i<count;i++){
+            pt*=2.;
+            pt.x-=2.6;
+            pt=tri_fold(pt,fold);
+        }
+        return pt;
+    }
+    float kifs(in vec3 p, float a, float fold, float radius, float thresh ){
+        p.x+=1.5;
+        p=tri_curve(p,a,fold);
+        // uncomment below line to use spheres instead of boxes
+        //return (length( p*thresh ) - radius );
+        return box( p*thresh, vec3(radius) );
+    }
+`,
+  },
 
   Mandelbulb: {
     parameters:[

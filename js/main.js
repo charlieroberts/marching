@@ -235,6 +235,8 @@ const SDF = {
   clear() {
     this.callbacks.length = 0
     this.render.running = false
+    const gl = this.gl
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
 
   initWebGL( vs_source, fs_source, width, height,shouldAnimate=false ) {

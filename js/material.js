@@ -46,13 +46,77 @@ const __Materials = function( SDF ) {
         modeIdx = Materials.modeConstants.indexOf( mode )
       }
 
+      if( typeof __ambient === 'number' ) __ambient = Vec3( __ambient )
       const ambient = param_wrap( __ambient, vec3_var_gen(.1,.1,.1) )
+      if( typeof __diffuse=== 'number' ) __diffuse= Vec3( __diffuse )
       const diffuse = param_wrap( __diffuse, vec3_var_gen(0,0,1) )
+      if( typeof __specular === 'number' ) __specular = Vec3( __specular )
       const specular = param_wrap( __specular, vec3_var_gen(1,1,1) )
       const shininess = param_wrap( __shininess, float_var_gen(8) )
-      const fresnel   = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
+      if( typeof __fresnel === 'number' ) __fresnel = Vec3( __fresnel )
+      const fresnel = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
 
-      const mat = { mode, ambient, diffuse, specular, shininess, fresnel, id:MaterialID.alloc() }
+      const mat = { shininess, mode }
+
+      Object.defineProperty( mat, 'ambient', {
+        get() { return ambient },
+        set(v) {
+          if( typeof v === 'object' ) {
+            ambient.set( v )
+          }else{
+            ambient.value.x = v
+            ambient.value.y = v
+            ambient.value.z = v
+            ambient.dirty = true
+          }
+        }
+      })  
+      Object.defineProperty( mat, 'diffuse', {
+        get() { return diffuse },
+        set(v) {
+          if( typeof v === 'object' ) {
+            diffuse.set( v )
+          }else{
+            diffuse.value.x = v
+            diffuse.value.y = v
+            diffuse.value.z = v
+            diffuse.dirty = true
+          }
+        }
+      })  
+      Object.defineProperty( mat, 'specular', {
+        get() { return specular },
+        set(v) {
+          if( typeof v === 'object' ) {
+            specular.set( v )
+          }else{
+            specular.value.x = v
+            specular.value.y = v
+            specular.value.z = v
+            specular.dirty = true
+          }
+        }
+      })  
+      Object.defineProperty( mat, 'fresnel', {
+        get() { return fresnel },
+        set(v) {
+          if( typeof v === 'object' ) {
+            fresnel.set( v )
+          }else{
+            fresnel.value.x = v
+            fresnel.value.y = v
+            fresnel.value.z = v
+            fresnel.dirty = true
+          }
+        }
+      })  
+      //Object.defineProperty( mat, 'shininess', {
+      //  get() { return mat.shininess.value },
+      //  set(v){
+      //    mat.shininess.value = v
+      //    mat.shininess.dirty = true
+      //  }
+      //})     //
       
       return mat 
     },
@@ -138,6 +202,7 @@ const __Materials = function( SDF ) {
     grey    : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
 
     'white glow' : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,200,5) ),
+    glue    : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
 
     normal  : Materials.material( 'normal' )
   })

@@ -25,13 +25,52 @@ const Lights = function( SDF ) {
       );
     `,
 
-    light( pos=Vec3(2,2,3), color=Vec3(0,0,1), attenuation=1, intensity=1 ) {
+    light( __pos=Vec3(2,2,3), __color=Vec3(0,0,1), attenuation=1 ) {
       const light = { 
-        pos: param_wrap( pos, vec3_var_gen(2,2,3) ), 
-        color: param_wrap( color, vec3_var_gen( 0,0,1 ) ),
         __attenuation: param_wrap( attenuation, float_var_gen( 1 ) ),
-        intensity 
       }
+
+      pos = typeof __pos === 'number' ? Vec3( __pos ) : __pos
+
+      const __varpos = param_wrap( 
+        pos, 
+        vec3_var_gen( [2,2,3] )
+      )
+
+      Object.defineProperty( light, 'pos', {
+        get() { return __varpos },
+        set(v) {
+          if( typeof v === 'object' ) {
+            __varpos.set( v )
+          }else{
+            __varpos.value.x = v
+            __varpos.value.y = v
+            __varpos.value.z = v
+            __varpos.dirty = true
+          }
+        }
+      })  
+
+      color = typeof __color === 'number' ? Vec3( __color ) : __color
+
+      const __varcol = param_wrap( 
+        color, 
+        vec3_var_gen( [0,0,1] )
+      )
+
+      Object.defineProperty( light, 'color', {
+        get() { return __varcol },
+        set(v) {
+          if( typeof v === 'object' ) {
+            __varcol.set( v )
+          }else{
+            __varcol.value.x = v
+            __varcol.value.y = v
+            __varcol.value.z = v
+            __varcol.dirty = true
+          }
+        }
+      })  
 
       Object.defineProperty( light, 'attenuation', {
         get() { return light.__attenuation.value },
@@ -40,6 +79,7 @@ const Lights = function( SDF ) {
           light.__attenuation.dirty = true
         }
       })
+
       return light
     },
 

@@ -21,10 +21,9 @@ const createPrimitives = function( SDF ) {
     descriptions
   }
 
-  for( let name in descriptions ) {
-    const desc = descriptions[ name ]
-    const params = desc.parameters
+  const createPrimitive = function( name, desc ) {
 
+    const params = desc.parameters
     // create constructor
     Primitives[ name ] = function( ...args ) {
       const p = Object.create( Primitives[ name ].prototype )
@@ -145,7 +144,6 @@ const createPrimitives = function( SDF ) {
         if( param.name !== 'material' )
           decl += this[ param.name ].emit_decl()
       }
-      //decl += this.color.emit_decl()
 
       return decl
     }
@@ -157,8 +155,6 @@ const createPrimitives = function( SDF ) {
             this[ param.name ].update_location( gl,program )
         }
       }
-
-      //this.color.update_location( gl, program )
     }
 
     Primitives[ name ].prototype.upload_data = function( gl ) {
@@ -166,14 +162,19 @@ const createPrimitives = function( SDF ) {
         if( param.type !== 'obj' && param.name !== 'material' )
           this[ param.name ].upload_data( gl )
       }
-
-      //this.color.upload_data( gl )
     }
-
+    
+    return Primitives[ name ]
+  }
+  
+  for( let name in descriptions ) {
+    const desc = descriptions[ name ]
+    createPrimitive( name, desc )
   }
 
+  Primitives.create = createPrimitive
+
   return Primitives
-   
 }
 
 module.exports = createPrimitives

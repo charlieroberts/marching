@@ -121,12 +121,13 @@ module.exports = {
       { name:'fold', type:'float', default:0 },
       { name:'radius', type:'float', default:.01 },
       { name:'threshold', type:'float', default:.004 },
+      { name:'scale', type:'float', default:2 },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()} )`
+      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()}, ${this.scale.emit()} )`
     },
 
     // adapted from http://roy.red/folding-the-koch-snowflake-.html
@@ -148,21 +149,21 @@ module.exports = {
         pt.yz = fold(pt.yz,-KPI/6. + foldamt );
         return pt;
     }
-    vec3 tri_curve(vec3 pt, float iter, float fold ) {
+    vec3 tri_curve(vec3 pt, float iter, float fold, float scale ) {
         int count = int(iter);
         for(int i=0;i<count;i++){
-            pt*=2.;
+            pt*=scale;
             pt.x-=2.6;
             pt=tri_fold(pt,fold);
         }
         return pt;
     }
-    float kifs(in vec3 p, float a, float fold, float radius, float thresh ){
+    float kifs(in vec3 p, float a, float fold, float radius, float thresh, float scale ){
         p.x+=1.5;
-        p=tri_curve(p,a,fold);
+        p=tri_curve(p,a,fold,scale);
         // uncomment below line to use spheres instead of boxes
-        //return (length( p*thresh ) - radius );
-        return box( p*thresh, vec3(radius) );
+        return (length( p*thresh ) - radius );
+        //return box( p*thresh, vec3(radius) );
     }
 `,
   },

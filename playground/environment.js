@@ -29,7 +29,8 @@ const tutorials = {
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
-  ['live coding']: require( './demos/livecoding.js' )
+  ['live coding']: require( './demos/livecoding.js' ),
+  ['defining your own GLSL shapes']: require( './demos/constructors.js' )
 }
 
 Math.export = ()=> {

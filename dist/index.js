@@ -2121,16 +2121,17 @@ module.exports = {
       { name:'fold', type:'float', default:0 },
       { name:'radius', type:'float', default:.01 },
       { name:'threshold', type:'float', default:.004 },
+      { name:'scale', type:'float', default:2 },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()} )`
+      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()}, ${this.scale.emit()} )`
     },
 
-    // adapted from: https://www.shadertoy.com/view/ltfSWn
-    glslify:glsl(["#define GLSLIFY 1\n      float box( vec3 p, vec3 b ){\n  vec3 d = abs(p) - b;\n  return min(max(d.x,max(d.y,d.z)),0.0) +\n         length(max(d,0.0));\n}\n\nvec2 fold(vec2 p, float ang){    \n    vec2 n=vec2(cos(-ang),sin(-ang));\n    p-=2.*min(0.,dot(p,n))*n;\n    return p;\n}\n#define KPI 3.14159\n\nvec3 tri_fold(vec3 pt, float foldamt) {\n    pt.xy = fold(pt.xy,KPI/3. + foldamt );\n    pt.xy = fold(pt.xy,-KPI/3. + foldamt );\n    pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );\n    pt.yz = fold(pt.yz,-KPI/6. + foldamt );\n    return pt;\n}\nvec3 tri_curve(vec3 pt, float iter, float fold ) {\n    int count = int(iter);\n    for(int i=0;i<count;i++){\n        pt*=2.;\n        pt.x-=2.6;\n        pt=tri_fold(pt,fold);\n    }\n    return pt;\n}\nfloat kifs(in vec3 p, float a, float fold, float radius, float thresh ){\n    p.x+=1.5;\n    p=tri_curve(p,a,fold);\n    //return (length( p*thresh ) - radius );\n    return box( p*thresh, vec3(radius) );\n}    ",""]),
+    // adapted from http://roy.red/folding-the-koch-snowflake-.html
+    glslify:glsl(["#define GLSLIFY 1\n      float box( vec3 p, vec3 b ){\n      vec3 d = abs(p) - b;\n      return min(max(d.x,max(d.y,d.z)),0.0) +\n             length(max(d,0.0));\n    }\n    vec2 fold(vec2 p, float ang){    \n        vec2 n=vec2(cos(-ang),sin(-ang));\n        p-=2.*min(0.,dot(p,n))*n;\n        return p;\n    }\n    #define KPI 3.14159\n    vec3 tri_fold(vec3 pt, float foldamt) {\n        pt.xy = fold(pt.xy,KPI/3. + foldamt );\n        pt.xy = fold(pt.xy,-KPI/3. + foldamt );\n        pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );\n        pt.yz = fold(pt.yz,-KPI/6. + foldamt );\n        return pt;\n    }\n    vec3 tri_curve(vec3 pt, float iter, float fold, float scale ) {\n        int count = int(iter);\n        for(int i=0;i<count;i++){\n            pt*=scale;\n            pt.x-=2.6;\n            pt=tri_fold(pt,fold);\n        }\n        return pt;\n    }\n    float kifs(in vec3 p, float a, float fold, float radius, float thresh, float scale ){\n        p.x+=1.5;\n        p=tri_curve(p,a,fold,scale);\n        // uncomment below line to use spheres instead of boxes\n        return (length( p*thresh ) - radius );\n        //return box( p*thresh, vec3(radius) );\n    }\n",""]),
   },
 
   Mandelbulb: {
@@ -2355,10 +2356,9 @@ const createPrimitives = function( SDF ) {
     descriptions
   }
 
-  for( let name in descriptions ) {
-    const desc = descriptions[ name ]
-    const params = desc.parameters
+  const createPrimitive = function( name, desc ) {
 
+    const params = desc.parameters
     // create constructor
     Primitives[ name ] = function( ...args ) {
       const p = Object.create( Primitives[ name ].prototype )
@@ -2479,7 +2479,6 @@ const createPrimitives = function( SDF ) {
         if( param.name !== 'material' )
           decl += this[ param.name ].emit_decl()
       }
-      //decl += this.color.emit_decl()
 
       return decl
     }
@@ -2491,8 +2490,6 @@ const createPrimitives = function( SDF ) {
             this[ param.name ].update_location( gl,program )
         }
       }
-
-      //this.color.update_location( gl, program )
     }
 
     Primitives[ name ].prototype.upload_data = function( gl ) {
@@ -2500,14 +2497,19 @@ const createPrimitives = function( SDF ) {
         if( param.type !== 'obj' && param.name !== 'material' )
           this[ param.name ].upload_data( gl )
       }
-
-      //this.color.upload_data( gl )
     }
-
+    
+    return Primitives[ name ]
+  }
+  
+  for( let name in descriptions ) {
+    const desc = descriptions[ name ]
+    createPrimitive( name, desc )
   }
 
+  Primitives.create = createPrimitive
+
   return Primitives
-   
 }
 
 module.exports = createPrimitives

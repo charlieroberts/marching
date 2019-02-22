@@ -11937,6 +11937,140 @@ onframe = t => {
 }`
 
 },{}],13:[function(require,module,exports){
+module.exports=`/* __--__--__--__--__--__--__--____
+
+Note: this tutorial is only for people
+who know GLSL and want to incorporate
+their own shader code into marching.js
+
+If you know some GLSL, it's not too
+hard to add your own forms to
+marching.js. The process consists of:
+
+1. Defining all the interactive
+properties of your form.
+
+2. Defining a shader function that
+will create your form when the proper
+arguments are passed. This function
+will only be added to the shader once.
+
+3. Defining a call to your shader
+function that passes the correct
+arguments; this function call will
+be inserted into the shader wherever
+an instance of your form is placed
+in the scene graph.
+
+** __--__--__--__--__--__--__--__*/
+
+mySphereDesc = {
+  // define our points of interaction. the 
+  // material properties should always be the
+  // the final property in the list; the correct
+  // lighting will be applied automatically by
+  // marching.js. By convention, the center 
+  // property (the location of the object) is
+  // always the second to last argument.
+  
+  // types are float, int, vec2, vec3, and vec4
+  parameters:[
+    { name:'radius', type:'float', default:1 },
+    { name:'center', type:'vec3', default:[0,0,0] },
+    { name:'material', type:'mat', default:null }
+  ],
+ 
+  // this is the primary signed distance function
+  // used by your form.
+  glslify:
+    \`float mySphere( vec3 p, float r ) {
+      return length(p) - r;
+    }\`,
+  
+  // this is a function that will insert a call
+  // to distance function whenever your form is
+  // placed in a graph. It is passed the name of
+  // the point (of type vec3) that is being sampled
+  // by the ray marcher. You will usually want to 
+  // subtract your center position from this point to
+  // create the appropritate offset.
+  primitiveString( pName ) { 
+    return \`mySphere( \${pName} - \${this.center.emit()}, \${this.radius.emit()} )\`
+  }  
+}
+ 
+// create and store resulting constructor in a global variable
+MySphere = Marching.primitives.create( 'MySphere', mySphereDesc )
+ 
+march( MySphere( .5, null, Material.glue ) ).render()
+
+
+/* __--__--__--__--__--__--__--____
+                                   
+OK, let's do something a bit more complex
+
+** __--__--__--__--__--__--__--__*/
+
+kifs2 = {
+  parameters:[
+    { name:'count', type:'float', default:8 },
+    { name:'fold', type:'float', default:0 },
+    { name:'radius', type:'float', default:.01 },
+    { name:'threshold', type:'float', default:.004 },
+    { name:'scale', type:'float', default:2 },
+    { name:'center', type:'vec3', default:[0,0,0] },
+    { name:'material', type:'mat', default:null }
+  ],
+ 
+  primitiveString( pName ) { 
+    return \`kifs( \${pName} - \${this.center.emit()}, \${this.count.emit()}, \${this.fold.emit()}, \${this.radius.emit()}, \${this.threshold.emit()}, \${this.scale.emit()} )\`
+  },
+ 
+  // adapted from http://roy.red/folding-the-koch-snowflake-.html
+  // try adding more folds. or whatever.
+  glslify:\`               
+  vec2 fold(vec2 p, float ang){    
+      vec2 n=vec2(cos(-ang),sin(-ang));
+      p-=2.*min(0.,dot(p,n))*n;
+      return p;
+  }
+  #define KPI 3.14159
+  vec3 tri_fold(vec3 pt, float foldamt) {
+      pt.xy = fold(pt.xy,KPI/3. + foldamt );
+      pt.xy = fold(pt.xy,-KPI/3. + foldamt );
+      pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );
+      pt.yz = fold(pt.yz,-KPI/6. + foldamt );
+      return pt;
+  }
+  vec3 tri_curve(vec3 pt, float iter, float fold, float scale ) {
+      int count = int(iter);
+      for(int i=0;i<count;i++){
+          pt*=scale;
+          pt.x-=4.6;
+          pt=tri_fold(pt,fold);
+      }
+      return pt;
+  }
+  float kifs(in vec3 p, float a, float fold, float radius, float thresh, float scale ){
+      p.x+=1.5;
+      p=tri_curve(p,a,fold,scale);
+      return (length( p*thresh ) - radius );
+  }
+\`
+}
+ 
+KIFS2 = Marching.primitives.create( 'KIFS2', kifs2 )
+ 
+march( 
+  k = KIFS2( 4, 0, .0125, .01, 2, Vec3(-1.15,0,0),  Material.glue ) 
+).render( 3, true )
+ 
+onframe = t => {
+  k.fold = -.15 + sin(t/2) * .5 
+}`
+
+
+},{}],14:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 "constructive solid geometry (CSG)"
@@ -12064,7 +12198,7 @@ march(
  
 callbacks.push( t => r.angle = t )`
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
 
 mat1 = Material( 'phong', v3(.05),v3(1),v3(.5))
@@ -12126,7 +12260,7 @@ march(
 .render()
 .camera( 0,0, 6 )`
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = `repeatedSpheres = Repeat( 
   Sphere( .14 ), 
   Vec3( .25 ) 
@@ -12163,7 +12297,7 @@ https://bit.ly/2qRMrpe
                                    
 ** __--__--__--__--__--__--__--__*/`
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports=`march(
   Julia( 1.5, null, Material.grey ),
   Plane( Vec3(0,1,0), .75, Material.grey )
@@ -12174,7 +12308,7 @@ module.exports=`march(
 .render()
 .camera( 0,0,2.25 )`
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports =`// inspired by http://roy.red/folding-the-koch-snowflake-.html
 // this is still under development
 march(
@@ -12192,7 +12326,7 @@ onframe = t=> {
   r.angle = t/4
 }`
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -12406,7 +12540,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
 Live Coding
 
@@ -12553,7 +12687,7 @@ onframe, fade, the fft, and proxies, there's
 a number of tools to get started.
 __--__--__--__--__--__--__--____ */`
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5,0,0),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -12574,7 +12708,7 @@ march(
  
 onframe = t => m.a = 7 + Math.sin( t / 4 ) * 4`
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
@@ -12642,7 +12776,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
  
 m = march(
@@ -12685,7 +12819,7 @@ onframe = time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -12867,7 +13001,7 @@ march(
 .render(null, true)`
 
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports =`m = march(
   StairsUnion(
     Repeat(
@@ -12898,7 +13032,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -12930,7 +13064,8 @@ const tutorials = {
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
-  ['live coding']: require( './demos/livecoding.js' )
+  ['live coding']: require( './demos/livecoding.js' ),
+  ['defining your own GLSL shapes']: require( './demos/constructors.js' )
 }
 
 Math.export = ()=> {
@@ -13258,4 +13393,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/csg.js":13,"./demos/geometries.js":14,"./demos/intro.js":15,"./demos/julia.js":16,"./demos/kifs.js":17,"./demos/lighting.js":18,"./demos/livecoding.js":19,"./demos/mandelbulb.js":20,"./demos/snare.js":21,"./demos/superformula.js":22,"./demos/tutorial_1.js":23,"./demos/twist.js":24,"codemirror":8}]},{},[25]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/constructors.js":13,"./demos/csg.js":14,"./demos/geometries.js":15,"./demos/intro.js":16,"./demos/julia.js":17,"./demos/kifs.js":18,"./demos/lighting.js":19,"./demos/livecoding.js":20,"./demos/mandelbulb.js":21,"./demos/snare.js":22,"./demos/superformula.js":23,"./demos/tutorial_1.js":24,"./demos/twist.js":25,"codemirror":8}]},{},[26]);

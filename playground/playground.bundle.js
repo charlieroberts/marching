@@ -12313,8 +12313,8 @@ module.exports =`// inspired by http://roy.red/folding-the-koch-snowflake-.html
 // this is still under development
 march(
   r = Rotation(
-    // number of iterations, fold amount, radius, threshold, center, material
-    k = KIFS( 6,.25,.01,.01,null,Material.white ),
+    // number of iterations, fold amount, radius, threshold, scale, center, material
+    k = KIFS( 6,.25,.01,.01, 2, null, Material.white ),
     Vec3( 1 )
   )
 )

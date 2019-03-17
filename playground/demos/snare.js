@@ -51,7 +51,7 @@ drum = RoundUnion(
 )
  
 march(
-  r = Rotation(
+  Rotation(
     drum,   
     Vec3(1,1,0),
     -1

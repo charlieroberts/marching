@@ -4,6 +4,7 @@
   "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
   "main": "dist/index.js",
   "dependencies": {
+    "baboon-image": "^2.1.0",
     "browserify": "^14.4.0",
     "codemirror": "^5.34.0",
     "glsl-camera-ray": "^1.0.0",
@@ -19,6 +20,8 @@
   },
   "devDependencies": {
     "browserify": "^14.5.0",
+    "get-pixels": "^3.3.2",
+    "gl-texture2d": "^2.1.0",
     "glsl-diffuse-oren-nayar": "^1.0.2",
     "glsl-inverse": "^1.0.0",
     "glsl-specular-gaussian": "^1.0.0",

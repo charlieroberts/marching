@@ -194,6 +194,13 @@ const Lights = function( SDF ) {
       ${materials}
       Material mat = materials[ int(materialID) ];
 
+      vec4 textureColor;
+      if( mat.textureID > -1 ) {
+        textureColor = texture( textures[ mat.textureID ], surfacePosition.xy ); 
+      }else{
+        textureColor = vec4(1.);
+      }
+
       int MAX_LIGHTS = ${numlights};     
 
       ${lights}
@@ -207,7 +214,7 @@ const Lights = function( SDF ) {
           clr = normal;
       }
 
-      return clr;
+      return clr * textureColor.rgb;
     }
 `
 

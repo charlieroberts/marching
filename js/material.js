@@ -38,7 +38,7 @@ const __Materials = function( SDF ) {
       return mat
     },
 
-    material( mode='global', __ambient, __diffuse, __specular, __shininess, __fresnel ){
+    material( mode='global', __ambient, __diffuse, __specular, __shininess, __fresnel, __texture=null ){
       let modeIdx = Materials.modeConstants.indexOf( mode )
       if( modeIdx === -1 ) {
         console.warn( `There is no material type named ${mode}. Using the default material, ${Materials.default}, instead.` )
@@ -56,7 +56,7 @@ const __Materials = function( SDF ) {
       if( typeof __fresnel === 'number' ) __fresnel = Vec3( __fresnel )
       const fresnel = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
 
-      const mat = { shininess, mode }
+      const mat = { shininess, mode, texture:__texture }
 
       Object.defineProperty( mat, 'ambient', {
         get() { return ambient },
@@ -127,6 +127,7 @@ const __Materials = function( SDF ) {
       mat.specular.dirty = true
       mat.shininess.dirty = true
       mat.fresnel.dirty = true
+      if( mat.texture !== null ) mat.texture.dirty = true
     },
    
     emit_materials() {
@@ -139,7 +140,10 @@ const __Materials = function( SDF ) {
       for( let mat of this.materials ) {
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
-        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()} ),` 
+        const texid = SDF.textures.textures.indexOf( mat.texture )
+        str += mat.texture === null 
+          ? `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, -1 ),` 
+          : `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, ${ texid } ),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma

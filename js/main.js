@@ -10,6 +10,7 @@ const SDF = {
   __scene:          require( './scene.js' ),
   __lighting:       require( './lighting.js' ),
   __materials:      require( './material.js' ),
+  __textures:       require( './texture.js' ),
   Var:              require( './var.js' ).Var,
   Color:            require( './color.js' ),
   FFT:              require( './audio.js' ),
@@ -53,6 +54,7 @@ const SDF = {
 
     obj.Light = this.Light
     obj.Material = this.Material
+    obj.Texture  = this.Texture
     obj.Color = this.Color
     obj.camera = this.camera
     obj.callbacks = this.callbacks // XXX remove once API stops using callbacks
@@ -71,6 +73,8 @@ const SDF = {
     this.Light = this.lighting.light
     this.materials  = this.__materials( this )
     this.Material = this.materials.material
+    this.textures = this.__textures( this )
+    this.Texture = this.textures.texture
 
     //this.canvas.width = window.innerWidth * size
     //this.canvas.height = window.innerHeight * size
@@ -111,7 +115,6 @@ const SDF = {
     this.requiredGeometries = []
     this.requiredOps = []
     this.memo = {}
-    //this.materials.__materials = this.materials.__materials.slice(0,2)
 
     return scene
   },
@@ -180,6 +183,7 @@ const SDF = {
     }
 
     variablesDeclaration += this.materials.emit_decl() 
+    variablesDeclaration += this.textures.emit_decl() 
     variablesDeclaration += this.lighting.emit_decl() 
 
     this.postprocessing = __scene.postprocessing
@@ -255,6 +259,7 @@ const SDF = {
       pp.update_location( gl, program ) 
     })
     this.scene.update_location( gl, program )
+    this.textures.update_location( gl, program )
     this.materials.update_location( gl, program )
     this.lighting.update_location( gl, program )
 
@@ -300,6 +305,7 @@ const SDF = {
       }
 
       this.materials.upload_data( gl )
+      this.textures.upload_data( gl )
       this.scene.upload_data( gl )
       this.lighting.upload_data( gl )
       this.postprocessing.forEach( pp => pp.upload_data( gl ) )

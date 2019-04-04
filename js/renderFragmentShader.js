@@ -21,6 +21,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         vec3 specular;
         float shininess;
         vec3 fresnel;
+        int textureID;
       };     
 
       uniform float time;

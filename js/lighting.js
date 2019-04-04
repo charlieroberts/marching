@@ -194,12 +194,6 @@ const Lights = function( SDF ) {
       ${materials}
       Material mat = materials[ int(materialID) ];
 
-      vec4 textureColor;
-      if( mat.textureID > -1 ) {
-        textureColor = texture( textures[ mat.textureID ], surfacePosition.xy ); 
-      }else{
-        textureColor = vec4(1.);
-      }
 
       int MAX_LIGHTS = ${numlights};     
 
@@ -214,7 +208,7 @@ const Lights = function( SDF ) {
           clr = normal;
       }
 
-      return clr * textureColor.rgb;
+      return clr; //* textureColor.rgb;
     }
 `
 
@@ -235,6 +229,14 @@ const Lights = function( SDF ) {
           float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );
           float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
 
+          vec4 textureColor;
+          if( mat.textureID > -1 ) {
+            textureColor = texture( textures[ mat.textureID ], surfacePosition.xy ); 
+          }else{
+            textureColor = vec4(1.);
+          }
+
+
           // simulated backlight
           float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );
 
@@ -254,7 +256,7 @@ const Lights = function( SDF ) {
           brdf += 0.70 * bac * vec3( 0.25 );
           brdf += 0.40 * (fre * light.color);
 
-          return brdf;
+          return brdf * textureColor.xyz;
         }
         `
 

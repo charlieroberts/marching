@@ -311,8 +311,10 @@ const Lights = function( SDF ) {
             vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);
             textureColor = texture( textures[ mat.textureID ], uv );
           }else{
-            textureColor = vec4(1.);
+            textureColor = vec4(0.);
           }
+
+          outputColor = textureColor.xyz;
 
           for( int i = 0; i < 20000; i++ ) {
             if( i >= MAX_LIGHTS ) break;
@@ -346,7 +348,7 @@ const Lights = function( SDF ) {
             color += (fresnel * light.color);
 
             // texture
-            color *= textureColor.xyz;
+            //color *= textureColor.xyz;
 
             // gamma correction must occur before light attenuation
             // which means it must be applied on a per-light basis unfortunately

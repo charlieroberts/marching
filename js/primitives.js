@@ -1,7 +1,6 @@
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
-const Color = require( './color.js' )
 
 const createPrimitives = function( SDF ) {
 
@@ -11,7 +10,6 @@ const createPrimitives = function( SDF ) {
     vec2: vec2_var_gen,
     vec3: vec3_var_gen,
     vec4: vec4_var_gen,
-    color: Color 
   }
 
   // load descriptions of all primtives

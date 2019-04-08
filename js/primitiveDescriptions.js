@@ -1,6 +1,4 @@
-
 const glsl = require( 'glslify' )
-const Color = require( './Color' )
 
 module.exports = {
   Box: {

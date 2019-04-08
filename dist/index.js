@@ -1,35 +1,6 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
-const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
-
-const Color = function( __r=0, __g=0, __b=0 ) {
-  let __value = (__r << 16) + (__g << 8) + __b 
-  const name = 'color' + VarAlloc.alloc()
-
-  let __var  = float_var_gen( __value, name )()
-
-  Object.defineProperty( __var, 'r', {
-    get()  { return __r },
-    set(v) { __r = v; __var.set(  __r * 255 * 255 + __g * 255 + __b ) }
-  }) 
-  Object.defineProperty( __var, 'g', {
-    get()  { return __g },
-    set(v) { __g = v; __var.set(  __r * 255 * 255 + __g * 255 + __b ) }
-  }) 
-  Object.defineProperty( __var, 'b', {
-    get()  { return __b },
-    set(v) { __b = v; __var.set(  __r * 255 * 255 + __g * 255 + __b ) }
-  })
-
-  return __var
-}
-
-module.exports = Color
-
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],2:[function(require,module,exports){
-const SceneNode = require( './sceneNode.js' )
-const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen } = require( './var.js' )
 
 const ops = { 
@@ -133,7 +104,7 @@ Alterations.Halve.RIGHT = 2
 
 module.exports = Alterations
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],3:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],2:[function(require,module,exports){
 const Audio = {
   __hasInput: false,
   ctx: null,
@@ -223,7 +194,7 @@ const Audio = {
 
 module.exports = Audio
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' )
@@ -279,7 +250,7 @@ const BG = function( Scene, SDF ) {
 
 module.exports = BG 
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],5:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],4:[function(require,module,exports){
 const Camera = {
   init( gl, program, handler ) {
     const camera_pos = gl.getUniformLocation( program, 'camera_pos' )
@@ -343,9 +314,7 @@ const Camera = {
 
 module.exports = Camera
 
-},{}],6:[function(require,module,exports){
-arguments[4][1][0].apply(exports,arguments)
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25,"dup":1}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
@@ -494,7 +463,7 @@ for( let name in ops ) {
 module.exports = DistanceOps
 
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],8:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],6:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' )
@@ -693,7 +662,7 @@ ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
 module.exports = DistanceOps
 
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],9:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],7:[function(require,module,exports){
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
@@ -998,7 +967,7 @@ const getDomainOps = function( SDF ) {
 
 module.exports = getDomainOps
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25,"./vec.js":26}],10:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23,"./vec.js":24}],8:[function(require,module,exports){
 const emit_float = function( a ) {
 	if (a % 1 === 0)
 		return a.toFixed( 1 )
@@ -1021,7 +990,7 @@ const Float = function( x=0 ) {
 
 module.exports = Float
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
@@ -1095,7 +1064,7 @@ const Fogger = function( Scene, SDF ) {
 
 module.exports = Fogger
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],12:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],10:[function(require,module,exports){
 'use strict'
 
 const Marching = require( './main.js' )
@@ -1110,7 +1079,7 @@ window.Marching = Marching
 
 module.exports = Marching
 
-},{"./main.js":15}],13:[function(require,module,exports){
+},{"./main.js":13}],11:[function(require,module,exports){
 const emit_int = function( a ) {
 	if( a % 1 !== 0 )
 		return Math.round( a )
@@ -1133,7 +1102,7 @@ const Int = function( x=0 ) {
 
 module.exports = Int
 
-},{}],14:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' ),
@@ -1363,7 +1332,7 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        const str = glsl(["#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(1.);\n          }\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ",""],__shadow)
+        const str = glsl(["#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(0.);\n          }\n\n          outputColor = textureColor.xyz;\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            //color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ",""],__shadow)
 
         return str
       }, 
@@ -1400,7 +1369,7 @@ module.exports = Lights
 /*
 */
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25,"./vec.js":26,"glslify":40}],15:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23,"./vec.js":24,"glslify":38}],13:[function(require,module,exports){
 const SDF = {
   camera:           require( './camera.js' ),
   __primitives:     require( './primitives.js' ),
@@ -1724,7 +1693,7 @@ const SDF = {
 
 module.exports = SDF
 
-},{"./alterations.js":2,"./audio.js":3,"./camera.js":5,"./distanceDeformations.js":7,"./distanceOperations.js":8,"./domainOperations.js":9,"./lighting.js":14,"./material.js":16,"./noise.js":17,"./primitives.js":19,"./renderFragmentShader.js":20,"./scene.js":21,"./texture.js":23,"./var.js":25,"./vec.js":26}],16:[function(require,module,exports){
+},{"./alterations.js":1,"./audio.js":2,"./camera.js":4,"./distanceDeformations.js":5,"./distanceOperations.js":6,"./domainOperations.js":7,"./lighting.js":12,"./material.js":14,"./noise.js":15,"./primitives.js":17,"./renderFragmentShader.js":18,"./scene.js":19,"./texture.js":21,"./var.js":23,"./vec.js":24}],14:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' ),
@@ -1943,7 +1912,7 @@ const __Materials = function( SDF ) {
 
 module.exports = __Materials
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25,"./vec.js":26,"glslify":40}],17:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23,"./vec.js":24,"glslify":38}],15:[function(require,module,exports){
 const glsl = require( 'glslify' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
@@ -2030,10 +1999,8 @@ return Noise
 
 module.exports = getNoise 
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25,"glslify":40}],18:[function(require,module,exports){
-
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23,"glslify":38}],16:[function(require,module,exports){
 const glsl = require( 'glslify' )
-const Color = require( './Color' )
 
 module.exports = {
   Box: {
@@ -2342,11 +2309,10 @@ module.exports = {
 
 }
 
-},{"./Color":1,"glslify":40}],19:[function(require,module,exports){
+},{"glslify":38}],17:[function(require,module,exports){
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
-const Color = require( './color.js' )
 
 const createPrimitives = function( SDF ) {
 
@@ -2356,7 +2322,6 @@ const createPrimitives = function( SDF ) {
     vec2: vec2_var_gen,
     vec3: vec3_var_gen,
     vec4: vec4_var_gen,
-    color: Color 
   }
 
   // load descriptions of all primtives
@@ -2524,7 +2489,7 @@ const createPrimitives = function( SDF ) {
 
 module.exports = createPrimitives
 
-},{"./color.js":6,"./primitiveDescriptions.js":18,"./sceneNode.js":22,"./utils.js":24,"./var.js":25}],20:[function(require,module,exports){
+},{"./primitiveDescriptions.js":16,"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],18:[function(require,module,exports){
 const glsl = require( 'glslify' )
 
 module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20 ) {
@@ -2533,7 +2498,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
     return fs_source
   }
 
-},{"glslify":40}],21:[function(require,module,exports){
+},{"glslify":38}],19:[function(require,module,exports){
 const getFog = require( './fog.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const __lighting = require( './lighting.js' )
@@ -2642,7 +2607,7 @@ const getScene = function( SDF ) {
 
 module.exports = getScene 
 
-},{"./background.js":4,"./fog.js":11,"./lighting.js":14,"./utils.js":24,"./var.js":25}],22:[function(require,module,exports){
+},{"./background.js":3,"./fog.js":9,"./lighting.js":12,"./utils.js":22,"./var.js":23}],20:[function(require,module,exports){
 // SceneNode
 
 let SceneNode = ()=> Object.create( SceneNode.prototype )
@@ -2679,7 +2644,7 @@ SceneNode.prototype = {
 
 module.exports = SceneNode
 
-},{}],23:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       getPixels = require( 'get-pixels' ),
       createTexture = require( 'gl-texture2d' ),
@@ -2772,7 +2737,7 @@ const __Textures = function( SDF ) {
 
 module.exports = __Textures
 
-},{"./sceneNode.js":22,"./utils.js":24,"./var.js":25,"./vec.js":26,"get-pixels":38,"gl-texture2d":39,"glslify":40}],24:[function(require,module,exports){
+},{"./sceneNode.js":20,"./utils.js":22,"./var.js":23,"./vec.js":24,"get-pixels":36,"gl-texture2d":37,"glslify":38}],22:[function(require,module,exports){
 const Var = require('./var.js').Var
 
 // Wrapper
@@ -2795,7 +2760,7 @@ const MaterialID = {
 
 module.exports = { param_wrap, MaterialID }
 
-},{"./var.js":25}],25:[function(require,module,exports){
+},{"./var.js":23}],23:[function(require,module,exports){
 const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 const float = require( './float.js' )
 const int   = require( './int.js' )
@@ -2961,7 +2926,7 @@ function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ),
 
 module.exports = { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }
 
-},{"./float.js":10,"./int.js":13,"./vec.js":26}],26:[function(require,module,exports){
+},{"./float.js":8,"./int.js":11,"./vec.js":24}],24:[function(require,module,exports){
 const float = require( './float.js' )
 
 const Vec2 = function (x=0, y=0) {
@@ -3206,7 +3171,7 @@ Vec4.prototype = {
 
 module.exports = { Vec2, Vec3, Vec4 } 
 
-},{"./float.js":10}],27:[function(require,module,exports){
+},{"./float.js":8}],25:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -3359,7 +3324,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],28:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /**
  * Bit twiddling hacks for JavaScript.
  *
@@ -3565,9 +3530,9 @@ exports.nextCombination = function(v) {
 }
 
 
-},{}],29:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 
-},{}],30:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -5346,7 +5311,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":27,"ieee754":41}],31:[function(require,module,exports){
+},{"base64-js":25,"ieee754":39}],29:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5457,7 +5422,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":44}],32:[function(require,module,exports){
+},{"../../is-buffer/index.js":42}],30:[function(require,module,exports){
 "use strict"
 
 var createThunk = require("./lib/thunk.js")
@@ -5568,7 +5533,7 @@ function compileCwise(user_args) {
 
 module.exports = compileCwise
 
-},{"./lib/thunk.js":34}],33:[function(require,module,exports){
+},{"./lib/thunk.js":32}],31:[function(require,module,exports){
 "use strict"
 
 var uniq = require("uniq")
@@ -5928,7 +5893,7 @@ function generateCWiseOp(proc, typesig) {
 }
 module.exports = generateCWiseOp
 
-},{"uniq":73}],34:[function(require,module,exports){
+},{"uniq":71}],32:[function(require,module,exports){
 "use strict"
 
 // The function below is called when constructing a cwise function object, and does the following:
@@ -6016,7 +5981,7 @@ function createThunk(proc) {
 
 module.exports = createThunk
 
-},{"./compile.js":33}],35:[function(require,module,exports){
+},{"./compile.js":31}],33:[function(require,module,exports){
 (function (Buffer){
 
 /**
@@ -6074,7 +6039,7 @@ function dataUriToBuffer (uri) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":30}],36:[function(require,module,exports){
+},{"buffer":28}],34:[function(require,module,exports){
 "use strict"
 
 function dupe_array(count, value, i) {
@@ -6124,7 +6089,7 @@ function dupe(count, value) {
 }
 
 module.exports = dupe
-},{}],37:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6428,7 +6393,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],38:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function (Buffer,process){
 'use strict'
 
@@ -6566,7 +6531,7 @@ module.exports = function getPixels(url, type, cb) {
   }
 }
 }).call(this,{"isBuffer":require("../is-buffer/index.js")},require('_process'))
-},{"../is-buffer/index.js":44,"_process":53,"data-uri-to-buffer":35,"ndarray":49,"ndarray-pack":47,"omggif":50,"path":51,"through":70}],39:[function(require,module,exports){
+},{"../is-buffer/index.js":42,"_process":51,"data-uri-to-buffer":33,"ndarray":47,"ndarray-pack":45,"omggif":48,"path":49,"through":68}],37:[function(require,module,exports){
 'use strict'
 
 var ndarray = require('ndarray')
@@ -7129,7 +7094,7 @@ function createTexture2D(gl) {
   throw new Error('gl-texture2d: Invalid arguments for texture2d constructor')
 }
 
-},{"ndarray":49,"ndarray-ops":46,"typedarray-pool":72}],40:[function(require,module,exports){
+},{"ndarray":47,"ndarray-ops":44,"typedarray-pool":70}],38:[function(require,module,exports){
 module.exports = function(strings) {
   if (typeof strings === 'string') strings = [strings]
   var exprs = [].slice.call(arguments,1)
@@ -7141,7 +7106,7 @@ module.exports = function(strings) {
   return parts.join('')
 }
 
-},{}],41:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -7227,7 +7192,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],42:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7252,7 +7217,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],43:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 "use strict"
 
 function iota(n) {
@@ -7264,7 +7229,7 @@ function iota(n) {
 }
 
 module.exports = iota
-},{}],44:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -7287,14 +7252,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],45:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],46:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 "use strict"
 
 var compile = require("cwise-compiler")
@@ -7757,7 +7722,7 @@ exports.equals = compile({
 
 
 
-},{"cwise-compiler":32}],47:[function(require,module,exports){
+},{"cwise-compiler":30}],45:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -7780,10 +7745,10 @@ module.exports = function convert(arr, result) {
   return result
 }
 
-},{"./doConvert.js":48,"ndarray":49}],48:[function(require,module,exports){
+},{"./doConvert.js":46,"ndarray":47}],46:[function(require,module,exports){
 module.exports=require('cwise-compiler')({"args":["array","scalar","index"],"pre":{"body":"{}","args":[],"thisVars":[],"localVars":[]},"body":{"body":"{\nvar _inline_1_v=_inline_1_arg1_,_inline_1_i\nfor(_inline_1_i=0;_inline_1_i<_inline_1_arg2_.length-1;++_inline_1_i) {\n_inline_1_v=_inline_1_v[_inline_1_arg2_[_inline_1_i]]\n}\n_inline_1_arg0_=_inline_1_v[_inline_1_arg2_[_inline_1_arg2_.length-1]]\n}","args":[{"name":"_inline_1_arg0_","lvalue":true,"rvalue":false,"count":1},{"name":"_inline_1_arg1_","lvalue":false,"rvalue":true,"count":1},{"name":"_inline_1_arg2_","lvalue":false,"rvalue":true,"count":4}],"thisVars":[],"localVars":["_inline_1_i","_inline_1_v"]},"post":{"body":"{}","args":[],"thisVars":[],"localVars":[]},"funcName":"convert","blockSize":64})
 
-},{"cwise-compiler":32}],49:[function(require,module,exports){
+},{"cwise-compiler":30}],47:[function(require,module,exports){
 var iota = require("iota-array")
 var isBuffer = require("is-buffer")
 
@@ -8128,7 +8093,7 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 
-},{"iota-array":43,"is-buffer":44}],50:[function(require,module,exports){
+},{"iota-array":41,"is-buffer":42}],48:[function(require,module,exports){
 // (c) Dean McNamee <dean@gmail.com>, 2013.
 //
 // https://github.com/deanm/omggif
@@ -8937,7 +8902,7 @@ function GifReaderLZWOutputIndexStream(code_stream, p, output, output_length) {
 // CommonJS.
 try { exports.GifWriter = GifWriter; exports.GifReader = GifReader } catch(e) {}
 
-},{}],51:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function (process){
 // .dirname, .basename, and .extname methods are extracted from Node.js v8.11.1,
 // backported and transplited with Babel, with backwards-compat fixes
@@ -9243,7 +9208,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":53}],52:[function(require,module,exports){
+},{"_process":51}],50:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -9291,7 +9256,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 
 
 }).call(this,require('_process'))
-},{"_process":53}],53:[function(require,module,exports){
+},{"_process":51}],51:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -9477,10 +9442,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],54:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":55}],55:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":53}],53:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -9612,7 +9577,7 @@ Duplex.prototype._destroy = function (err, cb) {
 
   pna.nextTick(cb, err);
 };
-},{"./_stream_readable":57,"./_stream_writable":59,"core-util-is":31,"inherits":42,"process-nextick-args":52}],56:[function(require,module,exports){
+},{"./_stream_readable":55,"./_stream_writable":57,"core-util-is":29,"inherits":40,"process-nextick-args":50}],54:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -9660,7 +9625,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":58,"core-util-is":31,"inherits":42}],57:[function(require,module,exports){
+},{"./_stream_transform":56,"core-util-is":29,"inherits":40}],55:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -10682,7 +10647,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":55,"./internal/streams/BufferList":60,"./internal/streams/destroy":61,"./internal/streams/stream":62,"_process":53,"core-util-is":31,"events":37,"inherits":42,"isarray":45,"process-nextick-args":52,"safe-buffer":68,"string_decoder/":63,"util":29}],58:[function(require,module,exports){
+},{"./_stream_duplex":53,"./internal/streams/BufferList":58,"./internal/streams/destroy":59,"./internal/streams/stream":60,"_process":51,"core-util-is":29,"events":35,"inherits":40,"isarray":43,"process-nextick-args":50,"safe-buffer":66,"string_decoder/":61,"util":27}],56:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -10897,7 +10862,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":55,"core-util-is":31,"inherits":42}],59:[function(require,module,exports){
+},{"./_stream_duplex":53,"core-util-is":29,"inherits":40}],57:[function(require,module,exports){
 (function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -11587,7 +11552,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
-},{"./_stream_duplex":55,"./internal/streams/destroy":61,"./internal/streams/stream":62,"_process":53,"core-util-is":31,"inherits":42,"process-nextick-args":52,"safe-buffer":68,"timers":71,"util-deprecate":74}],60:[function(require,module,exports){
+},{"./_stream_duplex":53,"./internal/streams/destroy":59,"./internal/streams/stream":60,"_process":51,"core-util-is":29,"inherits":40,"process-nextick-args":50,"safe-buffer":66,"timers":69,"util-deprecate":72}],58:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -11667,7 +11632,7 @@ if (util && util.inspect && util.inspect.custom) {
     return this.constructor.name + ' ' + obj;
   };
 }
-},{"safe-buffer":68,"util":29}],61:[function(require,module,exports){
+},{"safe-buffer":66,"util":27}],59:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -11742,10 +11707,10 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":52}],62:[function(require,module,exports){
+},{"process-nextick-args":50}],60:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":37}],63:[function(require,module,exports){
+},{"events":35}],61:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -12042,10 +12007,10 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":68}],64:[function(require,module,exports){
+},{"safe-buffer":66}],62:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":65}],65:[function(require,module,exports){
+},{"./readable":63}],63:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -12054,13 +12019,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":55,"./lib/_stream_passthrough.js":56,"./lib/_stream_readable.js":57,"./lib/_stream_transform.js":58,"./lib/_stream_writable.js":59}],66:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":53,"./lib/_stream_passthrough.js":54,"./lib/_stream_readable.js":55,"./lib/_stream_transform.js":56,"./lib/_stream_writable.js":57}],64:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":65}],67:[function(require,module,exports){
+},{"./readable":63}],65:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":59}],68:[function(require,module,exports){
+},{"./lib/_stream_writable.js":57}],66:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -12124,7 +12089,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":30}],69:[function(require,module,exports){
+},{"buffer":28}],67:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -12253,7 +12218,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":37,"inherits":42,"readable-stream/duplex.js":54,"readable-stream/passthrough.js":64,"readable-stream/readable.js":65,"readable-stream/transform.js":66,"readable-stream/writable.js":67}],70:[function(require,module,exports){
+},{"events":35,"inherits":40,"readable-stream/duplex.js":52,"readable-stream/passthrough.js":62,"readable-stream/readable.js":63,"readable-stream/transform.js":64,"readable-stream/writable.js":65}],68:[function(require,module,exports){
 (function (process){
 var Stream = require('stream')
 
@@ -12365,7 +12330,7 @@ function through (write, end, opts) {
 
 
 }).call(this,require('_process'))
-},{"_process":53,"stream":69}],71:[function(require,module,exports){
+},{"_process":51,"stream":67}],69:[function(require,module,exports){
 (function (setImmediate,clearImmediate){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -12444,7 +12409,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":53,"timers":71}],72:[function(require,module,exports){
+},{"process/browser.js":51,"timers":69}],70:[function(require,module,exports){
 (function (global,Buffer){
 'use strict'
 
@@ -12661,7 +12626,7 @@ exports.clearCache = function clearCache() {
   }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"bit-twiddle":28,"buffer":30,"dup":36}],73:[function(require,module,exports){
+},{"bit-twiddle":26,"buffer":28,"dup":34}],71:[function(require,module,exports){
 "use strict"
 
 function unique_pred(list, compare) {
@@ -12720,7 +12685,7 @@ function unique(list, compare, sorted) {
 
 module.exports = unique
 
-},{}],74:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function (global){
 
 /**
@@ -12791,4 +12756,4 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[12]);
+},{}]},{},[10]);

@@ -1326,12 +1326,6 @@ const Lights = function( SDF ) {
       ${materials}
       Material mat = materials[ int(materialID) ];
 
-      vec4 textureColor;
-      if( mat.textureID > -1 ) {
-        textureColor = texture( textures[ mat.textureID ], surfacePosition.xy ); 
-      }else{
-        textureColor = vec4(1.);
-      }
 
       int MAX_LIGHTS = ${numlights};     
 
@@ -1346,7 +1340,7 @@ const Lights = function( SDF ) {
           clr = normal;
       }
 
-      return clr * textureColor.rgb;
+      return clr; //* textureColor.rgb;
     }
 `
 
@@ -1357,7 +1351,7 @@ const Lights = function( SDF ) {
       global() {
         const shadow = SDF.__scene.__shadow
 
-        const str = glsl(["#define GLSLIFY 1\n\n\n        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS] ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 3.0);\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, "," );\n          dom *= softshadow( pos, ref, 0.02, 2.5, "," );\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 );\n          brdf += 0.70 * bac * vec3( 0.25 );\n          brdf += 0.40 * (fre * light.color);\n\n          return brdf;\n        }\n        ",""],shadow.toFixed(1),shadow.toFixed(1))
+        const str = glsl(["#define GLSLIFY 1\n\n\n        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS] ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            textureColor = texture( textures[ mat.textureID ], pos.xy ); \n          }else{\n            textureColor = vec4(1.);\n          }\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 3.0);\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, "," );\n          dom *= softshadow( pos, ref, 0.02, 2.5, "," );\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 );\n          brdf += 0.70 * bac * vec3( 0.25 );\n          brdf += 0.40 * (fre * light.color);\n\n          return brdf * textureColor.xyz;\n        }\n        ",""],shadow.toFixed(1),shadow.toFixed(1))
 
         return str
       },
@@ -1369,7 +1363,7 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        const str = glsl(["#define GLSLIFY 1\n  \n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ",""],__shadow)
+        const str = glsl(["#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(1.);\n          }\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ",""],__shadow)
 
         return str
       }, 
@@ -1421,7 +1415,7 @@ const SDF = {
   __materials:      require( './material.js' ),
   __textures:       require( './texture.js' ),
   Var:              require( './var.js' ).Var,
-  Color:            require( './color.js' ),
+  //Color:            require( './color.js' ),
   FFT:              require( './audio.js' ),
 
   // a function that generates the fragment shader
@@ -1464,7 +1458,6 @@ const SDF = {
     obj.Light = this.Light
     obj.Material = this.Material
     obj.Texture  = this.Texture
-    obj.Color = this.Color
     obj.camera = this.camera
     obj.callbacks = this.callbacks // XXX remove once API stops using callbacks
     obj.FFT = this.FFT
@@ -1731,7 +1724,7 @@ const SDF = {
 
 module.exports = SDF
 
-},{"./alterations.js":2,"./audio.js":3,"./camera.js":5,"./color.js":6,"./distanceDeformations.js":7,"./distanceOperations.js":8,"./domainOperations.js":9,"./lighting.js":14,"./material.js":16,"./noise.js":17,"./primitives.js":19,"./renderFragmentShader.js":20,"./scene.js":21,"./texture.js":23,"./var.js":25,"./vec.js":26}],16:[function(require,module,exports){
+},{"./alterations.js":2,"./audio.js":3,"./camera.js":5,"./distanceDeformations.js":7,"./distanceOperations.js":8,"./domainOperations.js":9,"./lighting.js":14,"./material.js":16,"./noise.js":17,"./primitives.js":19,"./renderFragmentShader.js":20,"./scene.js":21,"./texture.js":23,"./var.js":25,"./vec.js":26}],16:[function(require,module,exports){
 const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' ),
@@ -2720,9 +2713,12 @@ const __Textures = function( SDF ) {
       return tex
     },
 
-    texture( filenameOrPreset ){
+    texture( filenameOrPreset, props ){
       const isPreset = filenameOrPreset.indexOf( '.' ) === -1
+      const defaults = { wrap:SDF.gl.MIRRORED_REPEAT }
       const tex = { isPreset, name:filenameOrPreset }
+
+      Object.assign( tex, defaults, props )
 
       tex.image = getPixels( filenameOrPreset, (err,pixels) => {
         if( err !== null ) {
@@ -2731,6 +2727,7 @@ const __Textures = function( SDF ) {
         }
         tex.pixels = pixels
         tex.gltexture = createTexture( SDF.gl, pixels )
+        tex.gltexture.wrap = tex.wrap
       })
 
       Textures.addTexture( tex )
@@ -2753,7 +2750,6 @@ const __Textures = function( SDF ) {
 
       for( let tex of this.textures ) {
         tex.loc = gl.getUniformLocation( program, `textures[${tex.id}]` )
-        console.log( 'tex:', tex )
         tex.gltexture.bind( tex.id )
       }
 

@@ -31,9 +31,12 @@ const __Textures = function( SDF ) {
       return tex
     },
 
-    texture( filenameOrPreset ){
+    texture( filenameOrPreset, props ){
       const isPreset = filenameOrPreset.indexOf( '.' ) === -1
+      const defaults = { wrap:SDF.gl.MIRRORED_REPEAT }
       const tex = { isPreset, name:filenameOrPreset }
+
+      Object.assign( tex, defaults, props )
 
       tex.image = getPixels( filenameOrPreset, (err,pixels) => {
         if( err !== null ) {
@@ -42,6 +45,7 @@ const __Textures = function( SDF ) {
         }
         tex.pixels = pixels
         tex.gltexture = createTexture( SDF.gl, pixels )
+        tex.gltexture.wrap = tex.wrap
       })
 
       Textures.addTexture( tex )

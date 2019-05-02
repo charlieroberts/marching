@@ -364,6 +364,108 @@ const Lights = function( SDF ) {
 
         return str
       }, 
+      phongT( numlights, lights, materials ) {
+        const shadow = SDF.__scene.__shadow
+
+        const __shadow = shadow > 0
+          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+          : ''
+
+        const str = glsl`  
+        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {
+            vec3 m = pow( abs( n ), vec3(scale) );
+            vec4 x = texture( sam, p.yz );
+            vec4 y = texture( sam, p.zx );
+            vec4 z = texture( sam, p.xy );
+            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);
+        }
+        // p = point on surface, p0 = object center
+        vec2 getUVCubic(vec3 p, vec3 p0){
+            
+          // Center the surface position about the zero point.
+          p -= p0;
+            
+          vec3 absp = abs(p);
+            
+          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).
+          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and
+          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).
+          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);
+            
+          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some 
+          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)
+          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;
+                 
+          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].
+          return (uv+0.5);
+        }
+
+        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {
+          vec3  outputColor   = vec3( 0. );
+   
+          // applies to all lights
+          float occlusion = ao( surfacePosition, normal );
+
+          vec4 textureColor;
+          if( mat.textureID > -1 ) {
+            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); 
+            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);
+            textureColor = texture( textures[ mat.textureID ], uv );
+          }else{
+            textureColor = vec4(0.);
+          }
+
+          outputColor = 0;//textureColor.xyz;
+
+          for( int i = 0; i < 20000; i++ ) {
+            if( i >= MAX_LIGHTS ) break;
+
+            Light light = lights[ i ];
+
+            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );
+            
+            // get similarity between normal and direction to light
+            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); 
+
+            // get reflection angle for light striking surface
+            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );
+
+            // see if reflected light travels to camera and generate coefficient accordingly
+            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );
+            float specularCoefficient = pow( specularAngle, mat.shininess );
+
+            // lights should have an attenuation factor
+            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); 
+
+            // bias, scale, power
+            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); 
+
+            ${__shadow}
+
+            vec3 color = vec3( 0. );
+            color += 1.2 * diffuseCoefficient * textureColor.xyz * light.color;
+            color += 2.2 * specularCoefficient * textureColor.xyz * light.color;
+            color += 0.3 * (mat.ambient * light.color) * occlusion;
+            color += (fresnel * light.color);
+
+            // texture
+            //color *= textureColor.xyz;
+
+            // gamma correction must occur before light attenuation
+            // which means it must be applied on a per-light basis unfortunately
+            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );
+            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; 
+
+            outputColor += attenuatedColor;
+          }
+
+          return outputColor;
+        }
+        `
+
+        return str
+      }, 
+
 
       orenn( numlights, lights, materials ) {
         const shadow = SDF.__scene.__shadow

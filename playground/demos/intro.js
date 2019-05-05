@@ -17,8 +17,8 @@ march(
 select code and hit ctrl+enter to  
 execute. alt+enter (option+enter on
 a mac) executes a block of code. 
-ctrl+shift+h toggles hiding
-the code/gui. try the other demos  
+ctrl+shift+g toggles hiding
+the gui/code. try the other demos  
 using the menu in the upper left    
 corner. when you're ready to start 
 coding go through the tutorials     
@@ -31,5 +31,11 @@ the techniques used by marching.js,
 see:                                
                                    
 https://bit.ly/2qRMrpe              
+
+Finally, if you'd prefer to work
+outside of the browser, try the
+Atom plugin for marching.js:
+
+https://atom.io/packages/atom-marching
                                    
 ** __--__--__--__--__--__--__--__*/`

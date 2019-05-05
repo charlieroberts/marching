@@ -44,7 +44,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       #pragma glslify: raytrace = require( 'glsl-raytrace', map = scene, steps = ${steps} )
       #pragma glslify: getNormal = require( 'glsl-sdf-normal', map = scene )
       #pragma glslify: camera = require( 'glsl-camera-ray' )
-      //#pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
       // OPS
       #pragma glslify: opUnion = require( 'glsl-sdf-ops/union' )

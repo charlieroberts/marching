@@ -14,11 +14,11 @@ const demos = {
   introduction: require( './demos/intro.js' ),
   //['tutorial #1']: require( './demos/tutorial_1.js' ),
   ['the superformula']: require('./demos/superformula.js' ),
-  ['snare and sticks']: require( './demos/snare.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
-  ['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
+  ['snare and sticks']: require( './demos/snare.js' ),
+  //['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
@@ -78,8 +78,12 @@ window.onload = function() {
         console.log( e )
       }
     },
-    'Shift-Ctrl-H'() { toggleGUI() },
-    'Shift-Ctrl-G'() { toggleToolbar() },
+    'Shift-Ctrl-H'() { 
+      toggleGUI() 
+    },
+    'Shift-Ctrl-G'() { 
+      toggleGUI() 
+    },
     'Alt-Enter'( cm ) {
       try {
         var selectedCode = getSelectionCodeColumn( cm, true )
@@ -133,7 +137,6 @@ window.onload = function() {
       document.querySelector('button').style.display = 'block'
       document.querySelector('img').style.display = 'block'
     }
-    hidden = !hidden
   }
 
   const toggleGUI = function() {
@@ -142,11 +145,13 @@ window.onload = function() {
       toggleToolbar() 
     }else{
       cm.getWrapperElement().style.display = 'block'
+      toggleToolbar()
     }
 
+    hidden = !hidden
   }
   // have to bind to window for when editor is hidden
-  Mousetrap.bind('ctrl+shift+h', toggleGUI )
+  Mousetrap.bind('ctrl+shift+g', toggleGUI )
 
   delete CodeMirror.keyMap.default[ 'Ctrl-H' ]
 

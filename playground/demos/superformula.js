@@ -1,4 +1,4 @@
-module.exports = `mat1 = Material( 'phong', Vec3(.05),Vec3(1),Vec3(2), 16, Vec3(0,2,.125) )
+module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(0),Vec3(1), 16, Vec3(0,.25,4) )
  
 m = march(
   r = Rotation(
@@ -20,12 +20,11 @@ m = march(
   Plane( Vec3(0,1,0), 1, Material('phong', Vec3(.15), Vec3(1) ) )
 )
 .light( 
-  Light( Vec3(0,5,0), Vec3(1,1,2), .25 ),
-  Light( Vec3(3,3,0), Vec3(0,0,1), .5 )
+  Light( Vec3(0,5,0), Vec3(.25,.25,.5), .5 ),
+  Light( Vec3(3,3,0), Vec3(.5), .5 )
 )
-.fog( .25, Vec3(1) )
-.shadow(8)
-.background( Vec3(1) )
+.fog( .1, Vec3(0) )
+.shadow(16)
 .render( 2, true )
 .camera( 0,0,4 )
 

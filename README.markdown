@@ -1,6 +1,7 @@
 # marching.js
 
-[Playground (Chrome/Firefox)](https://charlieroberts.github.io/marching/playground/)
+[Online Playground (Chrome/Firefox)](https://charlieroberts.github.io/marching/playground/)
+[Atom plugin](https://atom.io/packages/atom-marching)
 [Reference](https://charlieroberts.github.io/marching/docs/index.html)
 
 ![Screenshot](https://raw.github.com/charlieroberts/marching/screenshots/crazyball.png) 

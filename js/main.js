@@ -64,7 +64,7 @@ const SDF = {
     this.primitives = this.__primitives( this )
     this.Scene      = this.__scene( this )
     this.domainOps  = this.__domainOps( this )
-    this.noisee     = this.__noise( this )
+    this.noise     = this.__noise( this )
     this.export( this )
     this.canvas = canvas 
 
@@ -236,8 +236,9 @@ const SDF = {
   },
 
   clear() {
-    this.callbacks.length = 0
-    this.render.running = false
+    if( this.callbacks !== undefined ) this.callbacks.length = 0
+    if( this.render !== null ) this.render.running = false
+
     const gl = this.gl
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
@@ -254,9 +255,8 @@ const SDF = {
     const loc_u_time = gl.getUniformLocation(program, "time");
     const loc_u_resolution = gl.getUniformLocation(program, "resolution" )
 
-    this.postprocessing.forEach( pp => { 
-      pp.update_location( gl, program ) 
-    })
+    this.postprocessing.forEach( pp => pp.update_location( gl, program ) )
+
     this.scene.update_location( gl, program )
     this.textures.update_location( gl, program )
     this.materials.update_location( gl, program )
@@ -277,9 +277,9 @@ const SDF = {
       return Math.min( Math.max( 0, v * 255 ), 255 )
     }
 
-
     let frameCount = 0
     const render = function( timestamp ){
+      this.currentTime = timestamp
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
       }else if( render.running === false ) {
@@ -297,7 +297,7 @@ const SDF = {
       total_time = timestamp / 1000.0
       gl.uniform1f( loc_u_time, total_time )
 
-      this.callbacks.forEach( cb => cb( total_time ) )
+      this.callbacks.forEach( cb => cb( total_time, this.currentTime ) )
 
       if( typeof window.onframe === 'function' ) {
         window.onframe( total_time )

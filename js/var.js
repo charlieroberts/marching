@@ -152,13 +152,52 @@ function int_var_gen(x,name=null) {
 
   return output
 }
-
 function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
 
-function vec2_var_gen(x, y,name=null) { return ()=> Var( Vec2(x, y), name  ) }
+function vec2_var_gen(x, y,name=null) { 
+  if( y === undefined ) y = x
+  return ()=> Var( Vec2(x, y), name  ) 
+}
 
-function vec3_var_gen(x, y, z,name=null) { return ()=> Var( Vec3(x, y, z), name ) }
+function vec3_var_gen(x, y, z,name=null) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  return ()=> Var( Vec3(x, y, z), name ) 
+}
 
-function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ), name ) }
+function vec4_var_gen( x, y, z, w, name=null ) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  if( w === undefined ) w = x
+  return Var( Vec4( x, y, z, w ), name ) 
+}
+//function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
+
+//function vec2_var_gen(x, y,name=null) { return ()=> Var( Vec2(x, y), name  ) }
+
+//function vec3_var_gen(x, y, z,name=null) { return ()=> Var( Vec3(x, y, z), name ) }
+
+//function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ), name ) }
 
 module.exports = { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }
+
+/*function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
+
+function vec2_var_gen(x, y,name=null) { 
+  if( y === undefined ) y = x
+  return ()=> Var( Vec2(x, y), name  ) 
+}
+
+function vec3_var_gen(x, y, z,name=null) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  return ()=> Var( Vec3(x, y, z), name ) 
+}
+
+function vec4_var_gen( x, y, z, w, name=null ) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  if( w === undefined ) w = x
+  return Var( Vec4( x, y, z, w ), name ) 
+}
+*/

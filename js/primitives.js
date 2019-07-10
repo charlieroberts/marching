@@ -1,6 +1,7 @@
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
+const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 
 const createPrimitives = function( SDF ) {
 
@@ -10,6 +11,13 @@ const createPrimitives = function( SDF ) {
     vec2: vec2_var_gen,
     vec3: vec3_var_gen,
     vec4: vec4_var_gen,
+  }
+
+
+  const vars = { 
+    vec2: Vec2,
+    vec3: Vec3,
+    vec4: Vec4
   }
 
   // load descriptions of all primtives
@@ -63,13 +71,20 @@ const createPrimitives = function( SDF ) {
         const isArray = Array.isArray( defaultValues )
 
         if( isArray ) {
-          let __var =  param_wrap( 
-            args[ count++ ], 
-            gens[ param.type ]( ...defaultValues ) 
-          )
+          let val = args[ count++ ], __var
+
+          if( typeof val === 'number' ) {
+            __var = Var( vars[ param.type ]( val ), null, 'vec3' )
+          }else{
+            __var =  param_wrap(
+              val,
+              gens[ param.type ]( ...defaultValues ) 
+            )
+          }
 
           // for assigning entire new vectors to property
           Object.defineProperty( p, param.name, {
+            configurable:true,
             get() { return __var },
             set(v) {
               if( typeof v === 'object' ) {
@@ -92,6 +107,7 @@ const createPrimitives = function( SDF ) {
 
           //__var.set( defaultValues )
           Object.defineProperty( p, param.name, {
+            configurable:true,
             get() { return __var },
             set(v) {
               __var.set( v )
@@ -100,12 +116,18 @@ const createPrimitives = function( SDF ) {
         }
       }
 
+      let mat = p.material
+      Object.defineProperty( p, 'material', {
+        configurable:true,
+        get() { return mat },
+        set(v) {
+          mat = SDF.materials.addMaterial( v )
+        }
+      })
       // id used for sdf code
       p.id = VarAlloc.alloc()
-      //p.color = Color( 255,0,255 )
 
-      // holds operations like scale, rotate, repeat etc.
-      p.domainOperations = []
+      p.__desc = desc
 
       return p
     }

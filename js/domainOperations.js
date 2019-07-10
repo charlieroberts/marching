@@ -5,7 +5,7 @@ const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 
 const descriptions = {
   Elongation: {
-    distance: { type:'vec3', default:Vec3(0) },
+    parameters:[ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = this.getID()
       const pName = 'p' + pId
@@ -23,8 +23,10 @@ const descriptions = {
     }
   },
   PolarRepetition: {
-    count: { type:'float', default:5 },
-    distance: { type:'float', default:.25 },
+    parameters:[ 
+      { name:'count', type:'float', default:5 },
+      { name:'distance', type:'float', default:.25 },
+    ],
     emit( name='p' ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
@@ -40,7 +42,7 @@ const descriptions = {
     }
   },
   Repetition: {
-    distance: { type:'vec3', default:Vec3(0) },
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = this.sdf.matId
       const pName = 'p' + pId
@@ -55,7 +57,7 @@ const descriptions = {
     }
   },
   SmoothRepetition: {
-    distance: { type:'vec3', default:Vec3(0) },
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = this.sdf.matId
       const pName = 'p' + pId
@@ -70,8 +72,10 @@ const descriptions = {
     }
   },
   Rotation: {
-    axis: { type:'vec3', default:Vec3(1) },
-    angle: { type:'float', default:0 },
+    parameters: [
+      { name:'axis', type:'vec3', default:Vec3(1) },
+      { name:'angle', type:'float', default:0 },
+    ],
     emit( name='p' ) {
       const pId = MaterialID.alloc()//this.matId
       const pName = 'q'+pId
@@ -121,7 +125,7 @@ const descriptions = {
     `
   },
   Translate:{
-    amount: { type:'vec3', default:Vec3(0) },
+    parameters: [ { name:'amount', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = MaterialID.alloc()//this.matId
       const pName = name+pId
@@ -137,7 +141,7 @@ const descriptions = {
     }
   },
   Scale:{
-    amount: { type:'float', default:1 },
+    parameters: [{ name:'amount', type:'float', default:1 } ],
     emit( name='p' ) {
       const pId = MaterialID.alloc()//this.matId
       const pName = name+pId
@@ -165,27 +169,28 @@ const getDomainOps = function( SDF ) {
     ops[ key ] = function( sdf, ...args ) {
       const op = Object.create( ops[ key ].prototype )
       op.sdf = sdf
-      op.params = []
+      op.parameters = []
 
       let count = 0
-      for( let propkey in opDesc ) {
-        if( propkey === 'emit' || propkey ==='glsl' ) continue
-
-        const prop = opDesc[ propkey ]
-        op.params.push({ name:propkey })
+      for( let prop of opDesc.parameters ) {
+        op.parameters.push({ name:prop.name})
 
         let arg = args[ count ]
         let __var
+
+        console.log( prop.name, arg )
+
         switch( prop.type ) {
           case 'vec2':
             if( typeof arg === 'number' ) arg = Vec2( arg )
+            if( arg === undefined ) arg = prop.default.copy()
 
             __var = param_wrap( 
               arg, 
               vec2_var_gen( prop.default )    
             )
 
-            Object.defineProperty( op, propkey, {
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -201,13 +206,14 @@ const getDomainOps = function( SDF ) {
             break;
           case 'vec3':
             if( typeof arg === 'number' ) arg = Vec3( arg )
+            if( arg === undefined ) arg = prop.default.copy()
 
             __var = param_wrap( 
               arg, 
               vec3_var_gen( prop.default )
             )
 
-            Object.defineProperty( op, propkey, {
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -229,7 +235,9 @@ const getDomainOps = function( SDF ) {
               vec4_var_gen( prop.default )  
             )
 
-            Object.defineProperty( op, propkey, {
+            if( arg === undefined ) arg = prop.default.copy()
+
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -251,7 +259,7 @@ const getDomainOps = function( SDF ) {
               float_var_gen( prop.default )
             )
 
-            Object.defineProperty( op, propkey, {
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 __var.set( v ) 
@@ -263,6 +271,8 @@ const getDomainOps = function( SDF ) {
         count++
       }
 
+      op.__desc = opDesc
+
       return op
     }
 
@@ -270,8 +280,8 @@ const getDomainOps = function( SDF ) {
     ops[ key ].prototype.emit = opDesc.emit
     ops[ key ].prototype.emit_decl = function() {
       let decl = ''
-      for( let param of this.params ) {
-        decl += this[ param.name ].emit_decl()
+      for( let param of this.parameters ) {
+        decl += this[ param.name ].emit_decl() 
       }
       decl += this.sdf.emit_decl()
       
@@ -285,11 +295,11 @@ const getDomainOps = function( SDF ) {
       return decl
     }
     ops[ key ].prototype.update_location = function( gl, program ) {
-      for( let param of this.params ) this[ param.name ].update_location( gl, program)
+      for( let param of this.parameters ) this[ param.name ].update_location( gl, program)
       this.sdf.update_location( gl, program )
     }
     ops[ key ].prototype.upload_data = function( gl ) {
-      for( let param of this.params ) this[ param.name ].upload_data( gl )
+      for( let param of this.parameters ) this[ param.name ].upload_data( gl )
       this.sdf.upload_data( gl )
     }
   }

@@ -42,7 +42,7 @@ const Camera = {
     })
 
     let init = false
-    gl.uniform3f( camera_pos, this.pos.x, this.pos.y, this.pos.z )
+    gl.uniform3f( camera_pos,    this.pos.x, this.pos.y, this.pos.z )
     gl.uniform3f( camera_normal, this.dir.x, this.dir.y, this.dir.z )
 
     handler( ()=> {

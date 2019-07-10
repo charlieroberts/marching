@@ -43,7 +43,8 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
       #pragma glslify: raytrace = require( 'glsl-raytrace', map = scene, steps = ${steps} )
       #pragma glslify: getNormal = require( 'glsl-sdf-normal', map = scene )
-      #pragma glslify: camera = require( 'glsl-camera-ray' )
+      #pragma glslify: camera    = require( 'glsl-camera-ray' )
+      #pragma glslify: camera2    = require( 'glsl-turntable-camera' )
 
       // OPS
       #pragma glslify: opUnion = require( 'glsl-sdf-ops/union' )
@@ -237,11 +238,13 @@ ${preface}
         pos.x *= ( resolution.x / resolution.y );
         vec3 color = bg; 
         vec3 ro = camera_pos;
+        vec3 rd = camera_normal;
 
-        //float cameraAngle  = 0.8 * time;
-        //vec3  rayOrigin    = vec3(3.5 * sin(cameraAngle), 3.0, 3.5 * cos(cameraAngle));
 
-        vec3 rd = camera( ro, camera_normal, pos, 2.0 );
+        //vec3 rd = camera( ro, camera_normal, pos, 2.0 );
+        camera2( time * 0.8, ro.y, ro.z, resolution, ro, rd );
+        
+        //camera( ro, camera_normal, pos, 2.0 );
 
         vec2 t = raytrace( ro, rd, ${maxDistance}, ${minDistance} );
         if( t.x > -0.5 ) {

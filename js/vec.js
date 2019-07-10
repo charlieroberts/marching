@@ -10,7 +10,10 @@ const Vec2 = function (x=0, y=0) {
 Vec2.prototype = {
   type: 'vec2',
 	emit() { return "vec2(" + this.x + "," + this.y + ")" },
-	emit_decl() { return ""; }
+  emit_decl() { return ""; },
+  copy() {
+    return Vec2( this.x, this.y )
+  }
 }
 
 const Vec3 = function (x=0, y, z) {
@@ -113,6 +116,10 @@ Vec3.prototype = {
         this.z.upload_data(gl)
       }      
     }
+  },
+
+  copy() {
+    return Vec3( this.x, this.y, this.z )
   }
 
 }
@@ -218,8 +225,11 @@ Vec4.prototype = {
         this.w.upload_data(gl)
       }      
     }
-  }
+  },
 
+  copy() {
+    return Vec4( this.x, this.y, this.z, this.w )
+  }
 }
 // Vec4
 

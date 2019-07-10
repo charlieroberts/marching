@@ -25,7 +25,11 @@ SceneNode.prototype = {
     let center = this.center
 
     if( center === undefined && this.sdf !== undefined ) {
-      center = this.sdf.getCenter()
+      if( this.sdf.getCenter === undefined ) {
+        center = this.sdf.__wrapped.getCenter()
+      }else{
+        center = this.sdf.getCenter()
+      }
     }
 
     return center

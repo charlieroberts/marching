@@ -526,6 +526,7 @@ for( let name in ops ) {
     op.matId = MaterialID.alloc()
 
     op.params = [{name:'c'},{ name:'d'}]
+    op.__desc = { parameters: op.params }
 
     return op
   } 
@@ -670,7 +671,7 @@ const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 
 const descriptions = {
   Elongation: {
-    distance: { type:'vec3', default:Vec3(0) },
+    parameters:[ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = this.getID()
       const pName = 'p' + pId
@@ -688,8 +689,10 @@ const descriptions = {
     }
   },
   PolarRepetition: {
-    count: { type:'float', default:5 },
-    distance: { type:'float', default:.25 },
+    parameters:[ 
+      { name:'count', type:'float', default:5 },
+      { name:'distance', type:'float', default:.25 },
+    ],
     emit( name='p' ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
@@ -705,7 +708,7 @@ const descriptions = {
     }
   },
   Repetition: {
-    distance: { type:'vec3', default:Vec3(0) },
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = this.sdf.matId
       const pName = 'p' + pId
@@ -720,7 +723,7 @@ const descriptions = {
     }
   },
   SmoothRepetition: {
-    distance: { type:'vec3', default:Vec3(0) },
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = this.sdf.matId
       const pName = 'p' + pId
@@ -735,8 +738,10 @@ const descriptions = {
     }
   },
   Rotation: {
-    axis: { type:'vec3', default:Vec3(1) },
-    angle: { type:'float', default:0 },
+    parameters: [
+      { name:'axis', type:'vec3', default:Vec3(1) },
+      { name:'angle', type:'float', default:0 },
+    ],
     emit( name='p' ) {
       const pId = MaterialID.alloc()//this.matId
       const pName = 'q'+pId
@@ -786,7 +791,7 @@ const descriptions = {
     `
   },
   Translate:{
-    amount: { type:'vec3', default:Vec3(0) },
+    parameters: [ { name:'amount', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
       const pId = MaterialID.alloc()//this.matId
       const pName = name+pId
@@ -802,7 +807,7 @@ const descriptions = {
     }
   },
   Scale:{
-    amount: { type:'float', default:1 },
+    parameters: [{ name:'amount', type:'float', default:1 } ],
     emit( name='p' ) {
       const pId = MaterialID.alloc()//this.matId
       const pName = name+pId
@@ -830,27 +835,28 @@ const getDomainOps = function( SDF ) {
     ops[ key ] = function( sdf, ...args ) {
       const op = Object.create( ops[ key ].prototype )
       op.sdf = sdf
-      op.params = []
+      op.parameters = []
 
       let count = 0
-      for( let propkey in opDesc ) {
-        if( propkey === 'emit' || propkey ==='glsl' ) continue
-
-        const prop = opDesc[ propkey ]
-        op.params.push({ name:propkey })
+      for( let prop of opDesc.parameters ) {
+        op.parameters.push({ name:prop.name})
 
         let arg = args[ count ]
         let __var
+
+        console.log( prop.name, arg )
+
         switch( prop.type ) {
           case 'vec2':
             if( typeof arg === 'number' ) arg = Vec2( arg )
+            if( arg === undefined ) arg = prop.default.copy()
 
             __var = param_wrap( 
               arg, 
               vec2_var_gen( prop.default )    
             )
 
-            Object.defineProperty( op, propkey, {
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -866,13 +872,14 @@ const getDomainOps = function( SDF ) {
             break;
           case 'vec3':
             if( typeof arg === 'number' ) arg = Vec3( arg )
+            if( arg === undefined ) arg = prop.default.copy()
 
             __var = param_wrap( 
               arg, 
               vec3_var_gen( prop.default )
             )
 
-            Object.defineProperty( op, propkey, {
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -894,7 +901,9 @@ const getDomainOps = function( SDF ) {
               vec4_var_gen( prop.default )  
             )
 
-            Object.defineProperty( op, propkey, {
+            if( arg === undefined ) arg = prop.default.copy()
+
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -916,7 +925,7 @@ const getDomainOps = function( SDF ) {
               float_var_gen( prop.default )
             )
 
-            Object.defineProperty( op, propkey, {
+            Object.defineProperty( op, prop.name, {
               get() { return __var },
               set(v) {
                 __var.set( v ) 
@@ -928,6 +937,8 @@ const getDomainOps = function( SDF ) {
         count++
       }
 
+      op.__desc = opDesc
+
       return op
     }
 
@@ -935,8 +946,8 @@ const getDomainOps = function( SDF ) {
     ops[ key ].prototype.emit = opDesc.emit
     ops[ key ].prototype.emit_decl = function() {
       let decl = ''
-      for( let param of this.params ) {
-        decl += this[ param.name ].emit_decl()
+      for( let param of this.parameters ) {
+        decl += this[ param.name ].emit_decl() 
       }
       decl += this.sdf.emit_decl()
       
@@ -950,11 +961,11 @@ const getDomainOps = function( SDF ) {
       return decl
     }
     ops[ key ].prototype.update_location = function( gl, program ) {
-      for( let param of this.params ) this[ param.name ].update_location( gl, program)
+      for( let param of this.parameters ) this[ param.name ].update_location( gl, program)
       this.sdf.update_location( gl, program )
     }
     ops[ key ].prototype.upload_data = function( gl ) {
-      for( let param of this.params ) this[ param.name ].upload_data( gl )
+      for( let param of this.parameters ) this[ param.name ].upload_data( gl )
       this.sdf.upload_data( gl )
     }
   }
@@ -1285,7 +1296,7 @@ const Lights = function( SDF ) {
         : ''
 
 
-      let preface = glsl(["#define GLSLIFY 1\n  int MAX_LIGHTS = ",";\n    float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n    ",""],numlights)
+      let preface = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n  int MAX_LIGHTS = ,;\n    float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n    ,"])
 
       let func = `
     vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
@@ -1320,7 +1331,7 @@ const Lights = function( SDF ) {
       global() {
         const shadow = SDF.__scene.__shadow
 
-        const str = glsl(["#define GLSLIFY 1\n\n\n        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS] ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            textureColor = texture( textures[ mat.textureID ], pos.xy ); \n          }else{\n            textureColor = vec4(1.);\n          }\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 3.0);\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, "," );\n          dom *= softshadow( pos, ref, 0.02, 2.5, "," );\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 );\n          brdf += 0.70 * bac * vec3( 0.25 );\n          brdf += 0.40 * (fre * light.color);\n\n          return brdf * textureColor.xyz;\n        }\n        ",""],shadow.toFixed(1),shadow.toFixed(1))
+        const str = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n\n        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS] ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            textureColor = texture( textures[ mat.textureID ], pos.xy ); \n          }else{\n            textureColor = vec4(1.);\n          }\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 3.0);\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, , );\n          dom *= softshadow( pos, ref, 0.02, 2.5, , );\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 );\n          brdf += 0.70 * bac * vec3( 0.25 );\n          brdf += 0.40 * (fre * light.color);\n\n          return brdf * textureColor.xyz;\n        }\n        ,"])
 
         return str
       },
@@ -1332,7 +1343,7 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        const str = glsl(["#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(0.);\n          }\n\n          outputColor = textureColor.xyz;\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            //color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ",""],__shadow)
+        const str = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(0.);\n          }\n\n          outputColor = textureColor.xyz;\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ,\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            //color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ,"])
 
         return str
       }, 
@@ -1343,7 +1354,7 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        const str = glsl(["#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(0.);\n          }\n\n          outputColor = 0;//textureColor.xyz;\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * textureColor.xyz * light.color;\n            color += 2.2 * specularCoefficient * textureColor.xyz * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            //color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ",""],__shadow)
+        const str = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n  \n        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {\n            vec3 m = pow( abs( n ), vec3(scale) );\n            vec4 x = texture( sam, p.yz );\n            vec4 y = texture( sam, p.zx );\n            vec4 z = texture( sam, p.xy );\n            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);\n        }\n        // p = point on surface, p0 = object center\n        vec2 getUVCubic(vec3 p, vec3 p0){\n            \n          // Center the surface position about the zero point.\n          p -= p0;\n            \n          vec3 absp = abs(p);\n            \n          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).\n          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and\n          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).\n          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);\n            \n          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some \n          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)\n          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;\n                 \n          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].\n          return (uv+0.5);\n        }\n\n        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          vec4 textureColor;\n          if( mat.textureID > -1 ) {\n            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); \n            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);\n            textureColor = texture( textures[ mat.textureID ], uv );\n          }else{\n            textureColor = vec4(0.);\n          }\n\n          outputColor = 0;//textureColor.xyz;\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); \n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = pow( specularAngle, mat.shininess );\n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            // bias, scale, power\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ,\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * textureColor.xyz * light.color;\n            color += 2.2 * specularCoefficient * textureColor.xyz * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // texture\n            //color *= textureColor.xyz;\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }\n        ,"])
 
         return str
       }, 
@@ -1355,14 +1366,14 @@ const Lights = function( SDF ) {
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
           : ''
 
-        const str = glsl(["#define GLSLIFY 1\n  \n        float orenNayarDiffuse(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float roughness,\n  float albedo) {\n  \n  float LdotV = dot(lightDirection, viewDirection);\n  float NdotL = dot(lightDirection, surfaceNormal);\n  float NdotV = dot(surfaceNormal, viewDirection);\n\n  float s = LdotV - NdotL * NdotV;\n  float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));\n\n  float sigma2 = roughness * roughness;\n  float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));\n  float B = 0.45 * sigma2 / (sigma2 + 0.09);\n\n  return albedo * max(0.0, NdotL) * (A + B * s / t) / 3.14159265;\n}\n\n        float gaussianSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float shininess) {\n  vec3 H = normalize(lightDirection + viewDirection);\n  float theta = acos(dot(H, surfaceNormal));\n  float w = theta / shininess;\n  return exp(-w*w);\n}\n\n        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = orenNayarDiffuse( surfaceToLightDirection, -rayDirection, normal, 0.15, 4.0);\n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = gaussianSpecular( surfaceToLightDirection, -rayDirection, normal, .5 ); \n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ","\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        }",""],__shadow)
+        const str = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n  \n        float orenNayarDiffuse(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float roughness,\n  float albedo) {\n  \n  float LdotV = dot(lightDirection, viewDirection);\n  float NdotL = dot(lightDirection, surfaceNormal);\n  float NdotV = dot(surfaceNormal, viewDirection);\n\n  float s = LdotV - NdotL * NdotV;\n  float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));\n\n  float sigma2 = roughness * roughness;\n  float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));\n  float B = 0.45 * sigma2 / (sigma2 + 0.09);\n\n  return albedo * max(0.0, NdotL) * (A + B * s / t) / 3.14159265;\n}\n\n        float gaussianSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float shininess) {\n  vec3 H = normalize(lightDirection + viewDirection);\n  float theta = acos(dot(H, surfaceNormal));\n  float w = theta / shininess;\n  return exp(-w*w);\n}\n\n        vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {\n          vec3  outputColor   = vec3( 0. );\n   \n          // applies to all lights\n          float occlusion = ao( surfacePosition, normal );\n\n          for( int i = 0; i < 20000; i++ ) {\n            if( i >= MAX_LIGHTS ) break;\n\n            Light light = lights[ i ];\n\n            vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );\n            \n            // get similarity between normal and direction to light\n            float diffuseCoefficient = orenNayarDiffuse( surfaceToLightDirection, -rayDirection, normal, 0.15, 4.0);\n\n            // get reflection angle for light striking surface\n            vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );\n\n            // see if reflected light travels to camera and generate coefficient accordingly\n            float specularAngle = clamp( dot( angleOfReflection, -rayDirection ), 0., 1. );\n            float specularCoefficient = gaussianSpecular( surfaceToLightDirection, -rayDirection, normal, .5 ); \n\n            // lights should have an attenuation factor\n            float attenuation = 1. / ( light.attenuation * pow( length( light.position - surfacePosition ), 2. ) ); \n\n            float fresnel = mat.fresnel.x + mat.fresnel.y * pow( 1.0 + dot( rayDirection, normal ), mat.fresnel.z ); \n\n            ,\n\n            vec3 color = vec3( 0. );\n            color += 1.2 * diffuseCoefficient * mat.diffuse * light.color;\n            color += 2.2 * specularCoefficient * mat.specular * light.color;\n            color += 0.3 * (mat.ambient * light.color) * occlusion;\n            color += (fresnel * light.color);\n\n            // gamma correction must occur before light attenuation\n            // which means it must be applied on a per-light basis unfortunately\n            vec3 gammaCorrectedColor = pow( color, vec3( 1./2.2 ) );\n            vec3 attenuatedColor = 2. * gammaCorrectedColor * attenuation; \n\n            outputColor += attenuatedColor;\n          }\n\n          return outputColor;\n        },"])
 
         return str
       }, 
 
 
       global_save( numlights, lights, materials, shadow='' ) {
-        const str = glsl(["#define GLSLIFY 1\n\n        float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n        ","\n\n        ","\n\n        vec3 lighting( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 2.0 );\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, 8. );\n          dom *= softshadow( pos, ref, 0.02, 2.5, 8. );\n\n          Material mat = materials[ int(materialID) ];\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 ) * occ;\n          brdf += 0.70 * bac * vec3( 0.25 ) * occ;\n          brdf += 0.40 * (fre * light.color) * occ;\n\n          return brdf;\n        }",""],materials,lights)
+        const str = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n\n        float ao( in vec3 pos, in vec3 nor )\n{\n\tfloat occ = 0.0;\n    float sca = 1.0;\n    for( int i=0; i<5; i++ )\n    {\n        float hr = 0.01 + 0.12 * float( i ) / 4.0;\n        vec3 aopos =  nor * hr + pos;\n        float dd = scene ( aopos ).x;\n        occ += -(dd-hr)*sca;\n        sca *= 0.95;\n    }\n    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    \n}\n\n        ,\n\n        ,\n\n        vec3 lighting( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {\n          Light light = lights[ 0 ];\n          vec3  ref = reflect( rd, nor ); // reflection angle\n          float occ = ao( pos, nor );\n          vec3  lig = normalize( light.position ); // light position\n          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );\n          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );\n\n          // simulated backlight\n          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );\n\n          // simulated skydome light\n          float dom = smoothstep( -0.1, 0.1, ref.y );\n          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 2.0 );\n          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );\n\n          dif *= softshadow( pos, lig, 0.02, 2.5, 8. );\n          dom *= softshadow( pos, ref, 0.02, 2.5, 8. );\n\n          Material mat = materials[ int(materialID) ];\n\n          vec3 brdf = vec3( 0.0 );\n          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;\n          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;\n          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;\n          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 ) * occ;\n          brdf += 0.70 * bac * vec3( 0.25 ) * occ;\n          brdf += 0.40 * (fre * light.color) * occ;\n\n          return brdf;\n        },"])
 
         return str
 
@@ -1448,7 +1459,7 @@ const SDF = {
     this.primitives = this.__primitives( this )
     this.Scene      = this.__scene( this )
     this.domainOps  = this.__domainOps( this )
-    this.noisee     = this.__noise( this )
+    this.noise     = this.__noise( this )
     this.export( this )
     this.canvas = canvas 
 
@@ -1620,8 +1631,9 @@ const SDF = {
   },
 
   clear() {
-    this.callbacks.length = 0
-    this.render.running = false
+    if( this.callbacks !== undefined ) this.callbacks.length = 0
+    if( this.render !== null ) this.render.running = false
+
     const gl = this.gl
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
@@ -1638,9 +1650,8 @@ const SDF = {
     const loc_u_time = gl.getUniformLocation(program, "time");
     const loc_u_resolution = gl.getUniformLocation(program, "resolution" )
 
-    this.postprocessing.forEach( pp => { 
-      pp.update_location( gl, program ) 
-    })
+    this.postprocessing.forEach( pp => pp.update_location( gl, program ) )
+
     this.scene.update_location( gl, program )
     this.textures.update_location( gl, program )
     this.materials.update_location( gl, program )
@@ -1661,9 +1672,9 @@ const SDF = {
       return Math.min( Math.max( 0, v * 255 ), 255 )
     }
 
-
     let frameCount = 0
     const render = function( timestamp ){
+      this.currentTime = timestamp
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
       }else if( render.running === false ) {
@@ -1681,7 +1692,7 @@ const SDF = {
       total_time = timestamp / 1000.0
       gl.uniform1f( loc_u_time, total_time )
 
-      this.callbacks.forEach( cb => cb( total_time ) )
+      this.callbacks.forEach( cb => cb( total_time, this.currentTime ) )
 
       if( typeof window.onframe === 'function' ) {
         window.onframe( total_time )
@@ -1980,7 +1991,7 @@ Noise.prototype.emit = function ( __name ) {
 
   return output
 }
-Noise.prototype.glsl = glsl(["#define GLSLIFY 1\n    //\n// Description : Array and textureless GLSL 2D/3D/4D simplex\n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0; }\n\nfloat mod289(float x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0; }\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nfloat permute(float x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat taylorInvSqrt(float r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nvec4 grad4(float j, vec4 ip)\n  {\n  const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);\n  vec4 p,s;\n\n  p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;\n  p.w = 1.5 - dot(abs(p.xyz), ones.xyz);\n  s = vec4(lessThan(p, vec4(0.0)));\n  p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www;\n\n  return p;\n  }\n\n// (sqrt(5) - 1)/4 = F4, used once below\n#define F4 0.309016994374947451\n\nfloat snoise(vec4 v)\n  {\n  const vec4  C = vec4( 0.138196601125011,  // (5 - sqrt(5))/20  G4\n                        0.276393202250021,  // 2 * G4\n                        0.414589803375032,  // 3 * G4\n                       -0.447213595499958); // -1 + 4 * G4\n\n// First corner\n  vec4 i  = floor(v + dot(v, vec4(F4)) );\n  vec4 x0 = v -   i + dot(i, C.xxxx);\n\n// Other corners\n\n// Rank sorting originally contributed by Bill Licea-Kane, AMD (formerly ATI)\n  vec4 i0;\n  vec3 isX = step( x0.yzw, x0.xxx );\n  vec3 isYZ = step( x0.zww, x0.yyz );\n//  i0.x = dot( isX, vec3( 1.0 ) );\n  i0.x = isX.x + isX.y + isX.z;\n  i0.yzw = 1.0 - isX;\n//  i0.y += dot( isYZ.xy, vec2( 1.0 ) );\n  i0.y += isYZ.x + isYZ.y;\n  i0.zw += 1.0 - isYZ.xy;\n  i0.z += isYZ.z;\n  i0.w += 1.0 - isYZ.z;\n\n  // i0 now contains the unique values 0,1,2,3 in each channel\n  vec4 i3 = clamp( i0, 0.0, 1.0 );\n  vec4 i2 = clamp( i0-1.0, 0.0, 1.0 );\n  vec4 i1 = clamp( i0-2.0, 0.0, 1.0 );\n\n  //  x0 = x0 - 0.0 + 0.0 * C.xxxx\n  //  x1 = x0 - i1  + 1.0 * C.xxxx\n  //  x2 = x0 - i2  + 2.0 * C.xxxx\n  //  x3 = x0 - i3  + 3.0 * C.xxxx\n  //  x4 = x0 - 1.0 + 4.0 * C.xxxx\n  vec4 x1 = x0 - i1 + C.xxxx;\n  vec4 x2 = x0 - i2 + C.yyyy;\n  vec4 x3 = x0 - i3 + C.zzzz;\n  vec4 x4 = x0 + C.wwww;\n\n// Permutations\n  i = mod289(i);\n  float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);\n  vec4 j1 = permute( permute( permute( permute (\n             i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))\n           + i.z + vec4(i1.z, i2.z, i3.z, 1.0 ))\n           + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))\n           + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));\n\n// Gradients: 7x7x6 points over a cube, mapped onto a 4-cross polytope\n// 7*7*6 = 294, which is close to the ring size 17*17 = 289.\n  vec4 ip = vec4(1.0/294.0, 1.0/49.0, 1.0/7.0, 0.0) ;\n\n  vec4 p0 = grad4(j0,   ip);\n  vec4 p1 = grad4(j1.x, ip);\n  vec4 p2 = grad4(j1.y, ip);\n  vec4 p3 = grad4(j1.z, ip);\n  vec4 p4 = grad4(j1.w, ip);\n\n// Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n  p4 *= taylorInvSqrt(dot(p4,p4));\n\n// Mix contributions from the five corners\n  vec3 m0 = max(0.6 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0);\n  vec2 m1 = max(0.6 - vec2(dot(x3,x3), dot(x4,x4)            ), 0.0);\n  m0 = m0 * m0;\n  m1 = m1 * m1;\n  return 49.0 * ( dot(m0*m0, vec3( dot( p0, x0 ), dot( p1, x1 ), dot( p2, x2 )))\n               + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;\n\n  }\n\n"])
+Noise.prototype.glsl = glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    //\n// Description : Array and textureless GLSL 2D/3D/4D simplex\n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0; }\n\nfloat mod289(float x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0; }\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nfloat permute(float x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat taylorInvSqrt(float r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nvec4 grad4(float j, vec4 ip)\n  {\n  const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);\n  vec4 p,s;\n\n  p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;\n  p.w = 1.5 - dot(abs(p.xyz), ones.xyz);\n  s = vec4(lessThan(p, vec4(0.0)));\n  p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www;\n\n  return p;\n  }\n\n// (sqrt(5) - 1)/4 = F4, used once below\n#define F4 0.309016994374947451\n\nfloat snoise(vec4 v)\n  {\n  const vec4  C = vec4( 0.138196601125011,  // (5 - sqrt(5))/20  G4\n                        0.276393202250021,  // 2 * G4\n                        0.414589803375032,  // 3 * G4\n                       -0.447213595499958); // -1 + 4 * G4\n\n// First corner\n  vec4 i  = floor(v + dot(v, vec4(F4)) );\n  vec4 x0 = v -   i + dot(i, C.xxxx);\n\n// Other corners\n\n// Rank sorting originally contributed by Bill Licea-Kane, AMD (formerly ATI)\n  vec4 i0;\n  vec3 isX = step( x0.yzw, x0.xxx );\n  vec3 isYZ = step( x0.zww, x0.yyz );\n//  i0.x = dot( isX, vec3( 1.0 ) );\n  i0.x = isX.x + isX.y + isX.z;\n  i0.yzw = 1.0 - isX;\n//  i0.y += dot( isYZ.xy, vec2( 1.0 ) );\n  i0.y += isYZ.x + isYZ.y;\n  i0.zw += 1.0 - isYZ.xy;\n  i0.z += isYZ.z;\n  i0.w += 1.0 - isYZ.z;\n\n  // i0 now contains the unique values 0,1,2,3 in each channel\n  vec4 i3 = clamp( i0, 0.0, 1.0 );\n  vec4 i2 = clamp( i0-1.0, 0.0, 1.0 );\n  vec4 i1 = clamp( i0-2.0, 0.0, 1.0 );\n\n  //  x0 = x0 - 0.0 + 0.0 * C.xxxx\n  //  x1 = x0 - i1  + 1.0 * C.xxxx\n  //  x2 = x0 - i2  + 2.0 * C.xxxx\n  //  x3 = x0 - i3  + 3.0 * C.xxxx\n  //  x4 = x0 - 1.0 + 4.0 * C.xxxx\n  vec4 x1 = x0 - i1 + C.xxxx;\n  vec4 x2 = x0 - i2 + C.yyyy;\n  vec4 x3 = x0 - i3 + C.zzzz;\n  vec4 x4 = x0 + C.wwww;\n\n// Permutations\n  i = mod289(i);\n  float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);\n  vec4 j1 = permute( permute( permute( permute (\n             i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))\n           + i.z + vec4(i1.z, i2.z, i3.z, 1.0 ))\n           + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))\n           + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));\n\n// Gradients: 7x7x6 points over a cube, mapped onto a 4-cross polytope\n// 7*7*6 = 294, which is close to the ring size 17*17 = 289.\n  vec4 ip = vec4(1.0/294.0, 1.0/49.0, 1.0/7.0, 0.0) ;\n\n  vec4 p0 = grad4(j0,   ip);\n  vec4 p1 = grad4(j1.x, ip);\n  vec4 p2 = grad4(j1.y, ip);\n  vec4 p3 = grad4(j1.z, ip);\n  vec4 p4 = grad4(j1.w, ip);\n\n// Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n  p4 *= taylorInvSqrt(dot(p4,p4));\n\n// Mix contributions from the five corners\n  vec3 m0 = max(0.6 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0);\n  vec2 m1 = max(0.6 - vec2(dot(x3,x3), dot(x4,x4)            ), 0.0);\n  m0 = m0 * m0;\n  m1 = m1 * m1;\n  return 49.0 * ( dot(m0*m0, vec3( dot( p0, x0 ), dot( p1, x1 ), dot( p2, x2 )))\n               + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;\n\n  }\n\n"])
 
 Noise.prototype.emit_decl = function () {
   let str = this.strength.emit_decl() + this.timeMod.emit_decl() + this.bias.emit_decl()
@@ -2026,7 +2037,7 @@ module.exports = {
 	    return `sdBox( ${pName} - ${this.center.emit()}, ${this.size.emit()} )`;
     },
 
-    glslify:glsl(["#define GLSLIFY 1\n    float sdBox( vec3 p, vec3 b )\n{\n  vec3 d = abs(p) - b;\n  return min(max(d.x,max(d.y,d.z)),0.0) +\n         length(max(d,0.0));\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float sdBox( vec3 p, vec3 b )\n{\n  vec3 d = abs(p) - b;\n  return min(max(d.x,max(d.y,d.z)),0.0) +\n         length(max(d,0.0));\n}\n\n"])
   }, 
 
   // XXX we should normalize dimensions in the shader... 
@@ -2040,7 +2051,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `sdCone( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n    float sdCone( in vec3 p, in vec3 c )\n{\n    vec2 q = vec2( length(p.xz), p.y );\n    float d1 = -p.y-c.z;\n    float d2 = max( dot(q,c.xy), p.y);\n    return length(max(vec2(d1,d2),0.0)) + min(max(d1,d2), 0.);\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float sdCone( in vec3 p, in vec3 c )\n{\n    vec2 q = vec2( length(p.xz), p.y );\n    float d1 = -p.y-c.z;\n    float d2 = max( dot(q,c.xy), p.y);\n    return length(max(vec2(d1,d2),0.0)) + min(max(d1,d2), 0.);\n}\n\n"])
   }, 
 
 	Cylinder: {
@@ -2071,7 +2082,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `sdCapsule( ${pName},  ${this.start.emit()}, ${this.end.emit()}, ${this.radius.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n      float sdCapsule( vec3 p, vec3 a, vec3 b, float r )\n{\n    vec3 pa = p - a, ba = b - a;\n    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );\n    return length( pa - ba*h ) - r;\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n      float sdCapsule( vec3 p, vec3 a, vec3 b, float r )\n{\n    vec3 pa = p - a, ba = b - a;\n    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );\n    return length( pa - ba*h ) - r;\n}\n\n"])
 
   },
 
@@ -2087,7 +2098,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n      float sdHexPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max((q.x*0.866025+q.y*0.5),q.y)-h.x);\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n      float sdHexPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max((q.x*0.866025+q.y*0.5),q.y)-h.x);\n}\n\n"])
   },
 
   Julia: {
@@ -2102,7 +2113,7 @@ module.exports = {
     },
 
     // https://www.shadertoy.com/view/MsfGRr
-    glslify:glsl(["#define GLSLIFY 1\n  vec4 qsqr( in vec4 a ) {\n    return vec4( a.x*a.x - a.y*a.y - a.z*a.z - a.w*a.w,\n                 2.0*a.x*a.y,\n                 2.0*a.x*a.z,\n                 2.0*a.x*a.w );\n  }\n\n  float julia( in vec3 p, float atime ){\n    vec4 c = 0.45*cos( vec4(0.5,3.9,1.4,1.1) + atime*vec4(1.2,1.7,1.3,2.5) ) - vec4(0.3,0.0,0.0,0.0);\n    vec4 z = vec4(p,0.);\n    float md2 = 1.0;\n    float mz2 = dot(z,z);\n\n    for( int i=0; i<11; i++ ){\n      md2 *= 4.0*mz2;   \n      // dz -> 2·z·dz, meaning |dz| -> 2·|z|·|dz| (can take the 4 out of the loop and do an exp2() afterwards)\n      z = qsqr(z) + c;  // z  -> z^2 + c\n\n      mz2 = dot(z,z);\n      if(mz2>4.0) break;\n    }\n    \n    return 0.25*sqrt(mz2/md2)*log(mz2);  // d = 0.5·|z|·log|z| / |dz|\n  }",""]),
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n  vec4 qsqr( in vec4 a ) {\n    return vec4( a.x*a.x - a.y*a.y - a.z*a.z - a.w*a.w,\n                 2.0*a.x*a.y,\n                 2.0*a.x*a.z,\n                 2.0*a.x*a.w );\n  }\n\n  float julia( in vec3 p, float atime ){\n    vec4 c = 0.45*cos( vec4(0.5,3.9,1.4,1.1) + atime*vec4(1.2,1.7,1.3,2.5) ) - vec4(0.3,0.0,0.0,0.0);\n    vec4 z = vec4(p,0.);\n    float md2 = 1.0;\n    float mz2 = dot(z,z);\n\n    for( int i=0; i<11; i++ ){\n      md2 *= 4.0*mz2;   \n      // dz -> 2·z·dz, meaning |dz| -> 2·|z|·|dz| (can take the 4 out of the loop and do an exp2() afterwards)\n      z = qsqr(z) + c;  // z  -> z^2 + c\n\n      mz2 = dot(z,z);\n      if(mz2>4.0) break;\n    }\n    \n    return 0.25*sqrt(mz2/md2)*log(mz2);  // d = 0.5·|z|·log|z| / |dz|\n  },"]),
   },
   KIFS: {
     parameters:[
@@ -2120,7 +2131,7 @@ module.exports = {
     },
 
     // adapted from http://roy.red/folding-the-koch-snowflake-.html
-    glslify:glsl(["#define GLSLIFY 1\n      float box( vec3 p, vec3 b ){\n      vec3 d = abs(p) - b;\n      return min(max(d.x,max(d.y,d.z)),0.0) +\n             length(max(d,0.0));\n    }\n    vec2 fold(vec2 p, float ang){    \n        vec2 n=vec2(cos(-ang),sin(-ang));\n        p-=2.*min(0.,dot(p,n))*n;\n        return p;\n    }\n    #define KPI 3.14159\n    vec3 tri_fold(vec3 pt, float foldamt) {\n        pt.xy = fold(pt.xy,KPI/3. + foldamt );\n        pt.xy = fold(pt.xy,-KPI/3. + foldamt );\n        pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );\n        pt.yz = fold(pt.yz,-KPI/6. + foldamt );\n        return pt;\n    }\n    vec3 tri_curve(vec3 pt, float iter, float fold, float scale ) {\n        int count = int(iter);\n        for(int i=0;i<count;i++){\n            pt*=scale;\n            pt.x-=2.6;\n            pt=tri_fold(pt,fold);\n        }\n        return pt;\n    }\n    float kifs(in vec3 p, float a, float fold, float radius, float thresh, float scale ){\n        p.x+=1.5;\n        p=tri_curve(p,a,fold,scale);\n        // uncomment below line to use spheres instead of boxes\n        return (length( p*thresh ) - radius );\n        //return box( p*thresh, vec3(radius) );\n    }\n",""]),
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n      float box( vec3 p, vec3 b ){\n      vec3 d = abs(p) - b;\n      return min(max(d.x,max(d.y,d.z)),0.0) +\n             length(max(d,0.0));\n    }\n    vec2 fold(vec2 p, float ang){    \n        vec2 n=vec2(cos(-ang),sin(-ang));\n        p-=2.*min(0.,dot(p,n))*n;\n        return p;\n    }\n    #define KPI 3.14159\n    vec3 tri_fold(vec3 pt, float foldamt) {\n        pt.xy = fold(pt.xy,KPI/3. + foldamt );\n        pt.xy = fold(pt.xy,-KPI/3. + foldamt );\n        pt.yz = fold(pt.yz,KPI/6.+.7 + foldamt );\n        pt.yz = fold(pt.yz,-KPI/6. + foldamt );\n        return pt;\n    }\n    vec3 tri_curve(vec3 pt, float iter, float fold, float scale ) {\n        int count = int(iter);\n        for(int i=0;i<count;i++){\n            pt*=scale;\n            pt.x-=2.6;\n            pt=tri_fold(pt,fold);\n        }\n        return pt;\n    }\n    float kifs(in vec3 p, float a, float fold, float radius, float thresh, float scale ){\n        p.x+=1.5;\n        p=tri_curve(p,a,fold,scale);\n        // uncomment below line to use spheres instead of boxes\n        return (length( p*thresh ) - radius );\n        //return box( p*thresh, vec3(radius) );\n    }\n,"]),
   },
 
   Mandelbulb: {
@@ -2135,7 +2146,7 @@ module.exports = {
     },
 
     // adapted from: https://www.shadertoy.com/view/ltfSWn
-    glslify:glsl(["#define GLSLIFY 1\n      float mandelbulb( in vec3 p, in float aa ){\n        vec3 w = p;\n        float m = dot(w,w);\n\n        vec4 trap = vec4(abs(w),m);\n        float dz = 1.0;\n                \n        for( int i=0; i<4; i++ ) {\n          dz = aa*pow(sqrt(m),aa - 1.)*dz + 1.0;\n\n          float r = length(w);\n          float b = aa*acos( w.y /r);\n          float a = aa*atan( w.x, w.z );\n          w = p + pow(r,aa) * vec3( sin(b)*sin(a), cos(b), sin(b)*cos(a) );\n\n          trap = min( trap, vec4(abs(w),m) );\n\n          m = dot(w,w);\n          if( m > 256.0 ) {\n            break;\n          }\n        }\n\n        return 0.25*log(m)*sqrt(m)/dz;\n      }\n    ",""]),
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n      float mandelbulb( in vec3 p, in float aa ){\n        vec3 w = p;\n        float m = dot(w,w);\n\n        vec4 trap = vec4(abs(w),m);\n        float dz = 1.0;\n                \n        for( int i=0; i<4; i++ ) {\n          dz = aa*pow(sqrt(m),aa - 1.)*dz + 1.0;\n\n          float r = length(w);\n          float b = aa*acos( w.y /r);\n          float a = aa*atan( w.x, w.z );\n          w = p + pow(r,aa) * vec3( sin(b)*sin(a), cos(b), sin(b)*cos(a) );\n\n          trap = min( trap, vec4(abs(w),m) );\n\n          m = dot(w,w);\n          if( m > 256.0 ) {\n            break;\n          }\n        }\n\n        return 0.25*log(m)*sqrt(m)/dz;\n      }\n    ,"]),
   },
 
 	Octahedron: {
@@ -2166,7 +2177,7 @@ module.exports = {
       return `sdPlane( ${pName}, vec4( ${this.normal.emit()}, ${this.distance.emit()} ))`
     },
     
-    glslify:glsl(["#define GLSLIFY 1\nfloat sdPlane( vec3 p, vec4 n )\n{\n  // n must be normalized\n  return dot(p,n.xyz) + n.w;\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\nfloat sdPlane( vec3 p, vec4 n )\n{\n  // n must be normalized\n  return dot(p,n.xyz) + n.w;\n}\n\n"])
     
   },  
  	Quad: {
@@ -2182,7 +2193,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `udQuad( ${pName} - ${this.center.emit()}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()}, ${this.v4.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n    float dot2( in vec3 v ) { return dot(v,v); }\nfloat udQuad( vec3 p, vec3 a, vec3 b, vec3 c, vec3 d )\n{\n    vec3 ba = b - a; vec3 pa = p - a;\n    vec3 cb = c - b; vec3 pb = p - b;\n    vec3 dc = d - c; vec3 pc = p - c;\n    vec3 ad = a - d; vec3 pd = p - d;\n    vec3 nor = cross( ba, ad );\n\n    return sqrt(\n    (sign(dot(cross(ba,nor),pa)) +\n     sign(dot(cross(cb,nor),pb)) +\n     sign(dot(cross(dc,nor),pc)) +\n     sign(dot(cross(ad,nor),pd))<3.0)\n     ?\n     min( min( min(\n     dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa),\n     dot2(cb*clamp(dot(cb,pb)/dot2(cb),0.0,1.0)-pb) ),\n     dot2(dc*clamp(dot(dc,pc)/dot2(dc),0.0,1.0)-pc) ),\n     dot2(ad*clamp(dot(ad,pd)/dot2(ad),0.0,1.0)-pd) )\n     :\n     dot(nor,pa)*dot(nor,pa)/dot2(nor) );\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float dot2( in vec3 v ) { return dot(v,v); }\nfloat udQuad( vec3 p, vec3 a, vec3 b, vec3 c, vec3 d )\n{\n    vec3 ba = b - a; vec3 pa = p - a;\n    vec3 cb = c - b; vec3 pb = p - b;\n    vec3 dc = d - c; vec3 pc = p - c;\n    vec3 ad = a - d; vec3 pd = p - d;\n    vec3 nor = cross( ba, ad );\n\n    return sqrt(\n    (sign(dot(cross(ba,nor),pa)) +\n     sign(dot(cross(cb,nor),pb)) +\n     sign(dot(cross(dc,nor),pc)) +\n     sign(dot(cross(ad,nor),pd))<3.0)\n     ?\n     min( min( min(\n     dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa),\n     dot2(cb*clamp(dot(cb,pb)/dot2(cb),0.0,1.0)-pb) ),\n     dot2(dc*clamp(dot(dc,pc)/dot2(dc),0.0,1.0)-pc) ),\n     dot2(ad*clamp(dot(ad,pd)/dot2(ad),0.0,1.0)-pd) )\n     :\n     dot(nor,pa)*dot(nor,pa)/dot2(nor) );\n}\n\n"])
   }, 
   RoundBox: {
     parameters:[
@@ -2195,7 +2206,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `udRoundBox( ${pName} -${this.center.emit()}, ${this.size.emit()},  ${this.radius.emit()} )`
     }, 
-    glslify:glsl(["#define GLSLIFY 1\n    float udRoundBox( vec3 p, vec3 b, float r )\n{\n  return length(max(abs(p)-b,0.0))-r;\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float udRoundBox( vec3 p, vec3 b, float r )\n{\n  return length(max(abs(p)-b,0.0))-r;\n}\n\n"])
   }, 
   Sphere:{
     parameters:[
@@ -2208,7 +2219,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `sdSphere( ${pName} - ${this.center.emit()}, ${this.radius.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n    float sdSphere( vec3 p, float s )\n{\n  return length( p ) - s;\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float sdSphere( vec3 p, float s )\n{\n  return length( p ) - s;\n}\n\n"])
   },
   // phi, m, n1, n2, n3, a, b
   SuperFormula:{
@@ -2232,7 +2243,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `superformula( ${pName} - ${this.center.emit()}, ${this.m_1.emit()}, ${this.n1_1.emit()},${this.n2_1.emit()},${this.n3_1.emit()},${this.a_1.emit()},${this.b_1.emit()}, ${this.m_2.emit()}, ${this.n1_2.emit()},${this.n2_2.emit()},${this.n3_2.emit()},${this.a_2.emit()},${this.b_2.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n    float SuperFormula( float phi, float m, float n1, float n2, float n3, float a, float b ){\n\t\n\tfloat t1 = abs((1.0 / a) * cos(m * phi / 4.0));\n\tt1 = pow(t1, n2);\n\n\tfloat t2 = abs((a / b) * sin(m * phi / 4.0));\n\tt2 = pow(t2, n3);\n\n\tfloat t3 = t1 + t2;\n\n\tfloat r = pow(t3, -1.0 / n1);\n\n\treturn r;\n}\n\n float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {\n    float d = length( p );\n    float theta = atan(p.y / p.x);\n    float phi = asin(p.z / d);\n    float r1 = SuperFormula( theta, m_1, n1_1, n2_1, n3_1, a_1, b_1 );\n    float r2 = SuperFormula( phi, m_2, n1_2, n2_2, n3_2, a_2, b_2 );\n    vec3 q = r2 * vec3(r1 * cos(theta) * cos(phi), r1 * sin(theta) * cos(phi), sin(phi));\n    d = d - length(q);\n\n    return d;\n  }    \n",""]) },
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float SuperFormula( float phi, float m, float n1, float n2, float n3, float a, float b ){\n\t\n\tfloat t1 = abs((1.0 / a) * cos(m * phi / 4.0));\n\tt1 = pow(t1, n2);\n\n\tfloat t2 = abs((a / b) * sin(m * phi / 4.0));\n\tt2 = pow(t2, n3);\n\n\tfloat t3 = t1 + t2;\n\n\tfloat r = pow(t3, -1.0 / n1);\n\n\treturn r;\n}\n\n float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {\n    float d = length( p );\n    float theta = atan(p.y / p.x);\n    float phi = asin(p.z / d);\n    float r1 = SuperFormula( theta, m_1, n1_1, n2_1, n3_1, a_1, b_1 );\n    float r2 = SuperFormula( phi, m_2, n1_2, n2_2, n3_2, a_2, b_2 );\n    vec3 q = r2 * vec3(r1 * cos(theta) * cos(phi), r1 * sin(theta) * cos(phi), sin(phi));\n    d = d - length(q);\n\n    return d;\n  }    \n,"]) },
 
   Torus:{
     parameters:[
@@ -2244,7 +2255,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `sdTorus( ${pName} - ${this.center.emit()}, ${this.radii.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n    float sdTorus( vec3 p, vec2 t )\n{\n  vec2 q = vec2(length(p.xz)-t.x,p.y);\n  return length(q)-t.y;\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float sdTorus( vec3 p, vec2 t )\n{\n  vec2 q = vec2(length(p.xz)-t.x,p.y);\n  return length(q)-t.y;\n}\n\n"])
 
   },  
   Torus88:{
@@ -2289,7 +2300,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `udTriangle( ${pName} - ${this.center.emit()}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\n    float dot2( in vec3 v ) { return dot(v,v); }\nfloat udTriangle( vec3 p, vec3 a, vec3 b, vec3 c )\n{\n    vec3 ba = b - a; vec3 pa = p - a;\n    vec3 cb = c - b; vec3 pb = p - b;\n    vec3 ac = a - c; vec3 pc = p - c;\n    vec3 nor = cross( ba, ac );\n\n    return sqrt(\n    (sign(dot(cross(ba,nor),pa)) +\n     sign(dot(cross(cb,nor),pb)) +\n     sign(dot(cross(ac,nor),pc))<2.0)\n     ?\n     min( min(\n     dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa),\n     dot2(cb*clamp(dot(cb,pb)/dot2(cb),0.0,1.0)-pb) ),\n     dot2(ac*clamp(dot(ac,pc)/dot2(ac),0.0,1.0)-pc) )\n     :\n     dot(nor,pa)*dot(nor,pa)/dot2(nor) );\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n    float dot2( in vec3 v ) { return dot(v,v); }\nfloat udTriangle( vec3 p, vec3 a, vec3 b, vec3 c )\n{\n    vec3 ba = b - a; vec3 pa = p - a;\n    vec3 cb = c - b; vec3 pb = p - b;\n    vec3 ac = a - c; vec3 pc = p - c;\n    vec3 nor = cross( ba, ac );\n\n    return sqrt(\n    (sign(dot(cross(ba,nor),pa)) +\n     sign(dot(cross(cb,nor),pb)) +\n     sign(dot(cross(ac,nor),pc))<2.0)\n     ?\n     min( min(\n     dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa),\n     dot2(cb*clamp(dot(cb,pb)/dot2(cb),0.0,1.0)-pb) ),\n     dot2(ac*clamp(dot(ac,pc)/dot2(ac),0.0,1.0)-pc) )\n     :\n     dot(nor,pa)*dot(nor,pa)/dot2(nor) );\n}\n\n"])
   }, 
 
   TriPrism: {
@@ -2302,7 +2313,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `sdTriPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()})`
     },
-    glslify:glsl(["#define GLSLIFY 1\n      float sdTriPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max(q.x*0.866025+p.y*0.5,-p.y)-h.x*0.5);\n}\n\n"])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\n      float sdTriPrism( vec3 p, vec2 h )\n{\n    vec3 q = abs(p);\n    return max(q.z-h.y,max(q.x*0.866025+p.y*0.5,-p.y)-h.x*0.5);\n}\n\n"])
 
   }, 
   VoxelSphere:{
@@ -2316,7 +2327,7 @@ module.exports = {
     primitiveString( pName ) { 
       return `VoxelSphere( ${pName} - ${this.center.emit()}, ${this.radius.emit()}, ${this.resolution.emit()} )`
     },
-    glslify:glsl(["#define GLSLIFY 1\nfloat sdBox( vec3 p, vec3 b ){\n        vec3 d = abs(p) - b;\n        return min(max(d.x,max(d.y,d.z)),0.0) +\n               length(max(d,0.0));\n      }\n      float VoxelSphere( vec3 p, float radius, float resolution ) {\n        //vec3 ref = p * resolution;\n        //ref = round( ref );\n        //return ( length( ref ) - resolution * radius ) / resolution;\n\n        float dist = round( length( p ) - radius * resolution) / resolution;\n        //if( dist < resolution ) {\n        //  dist = sdBox( vec3(0.), vec3(resolution) );\n        //}\n\n        return dist; \n    }",""])
+    glslify:glsl(["#define GLSLIFY 1\n#define GLSLIFY 1\nfloat sdBox( vec3 p, vec3 b ){\n        vec3 d = abs(p) - b;\n        return min(max(d.x,max(d.y,d.z)),0.0) +\n               length(max(d,0.0));\n      }\n      float VoxelSphere( vec3 p, float radius, float resolution ) {\n        //vec3 ref = p * resolution;\n        //ref = round( ref );\n        //return ( length( ref ) - resolution * radius ) / resolution;\n\n        float dist = round( length( p ) - radius * resolution) / resolution;\n        //if( dist < resolution ) {\n        //  dist = sdBox( vec3(0.), vec3(resolution) );\n        //}\n\n        return dist; \n    },"])
   },
 
 }
@@ -2325,6 +2336,7 @@ module.exports = {
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
+const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 
 const createPrimitives = function( SDF ) {
 
@@ -2334,6 +2346,13 @@ const createPrimitives = function( SDF ) {
     vec2: vec2_var_gen,
     vec3: vec3_var_gen,
     vec4: vec4_var_gen,
+  }
+
+
+  const vars = { 
+    vec2: Vec2,
+    vec3: Vec3,
+    vec4: Vec4
   }
 
   // load descriptions of all primtives
@@ -2387,13 +2406,20 @@ const createPrimitives = function( SDF ) {
         const isArray = Array.isArray( defaultValues )
 
         if( isArray ) {
-          let __var =  param_wrap( 
-            args[ count++ ], 
-            gens[ param.type ]( ...defaultValues ) 
-          )
+          let val = args[ count++ ], __var
+
+          if( typeof val === 'number' ) {
+            __var = Var( vars[ param.type ]( val ), null, 'vec3' )
+          }else{
+            __var =  param_wrap(
+              val,
+              gens[ param.type ]( ...defaultValues ) 
+            )
+          }
 
           // for assigning entire new vectors to property
           Object.defineProperty( p, param.name, {
+            configurable:true,
             get() { return __var },
             set(v) {
               if( typeof v === 'object' ) {
@@ -2416,6 +2442,7 @@ const createPrimitives = function( SDF ) {
 
           //__var.set( defaultValues )
           Object.defineProperty( p, param.name, {
+            configurable:true,
             get() { return __var },
             set(v) {
               __var.set( v )
@@ -2424,12 +2451,18 @@ const createPrimitives = function( SDF ) {
         }
       }
 
+      let mat = p.material
+      Object.defineProperty( p, 'material', {
+        configurable:true,
+        get() { return mat },
+        set(v) {
+          mat = SDF.materials.addMaterial( v )
+        }
+      })
       // id used for sdf code
       p.id = VarAlloc.alloc()
-      //p.color = Color( 255,0,255 )
 
-      // holds operations like scale, rotate, repeat etc.
-      p.domainOperations = []
+      p.__desc = desc
 
       return p
     }
@@ -2501,11 +2534,11 @@ const createPrimitives = function( SDF ) {
 
 module.exports = createPrimitives
 
-},{"./primitiveDescriptions.js":16,"./sceneNode.js":20,"./utils.js":22,"./var.js":23}],18:[function(require,module,exports){
+},{"./primitiveDescriptions.js":16,"./sceneNode.js":20,"./utils.js":22,"./var.js":23,"./vec.js":24}],18:[function(require,module,exports){
 const glsl = require( 'glslify' )
 
 module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20 ) {
-    const fs_source = glsl(["     #version 300 es\n      precision highp float;\n#define GLSLIFY 1\n\n\n      float PI = 3.141592653589793;\n\n      in vec2 v_uv;\n\n      struct Light {\n        vec3 position;\n        vec3 color;\n        float attenuation;\n      };\n\n      struct Material {\n        int  mode;\n        vec3 ambient;\n        vec3 diffuse;\n        vec3 specular;\n        float shininess;\n        vec3 fresnel;\n        int textureID;\n      };     \n\n      uniform float time;\n      uniform vec2 resolution;\n      uniform vec3 camera_pos;\n      uniform vec3 camera_normal;\n\n      ","\n\n      // must be before geometries!\n      float length8( vec2 p ) { \n        return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); \n      }\n\n      /* GEOMETRIES */\n      ","\n\n      vec2 scene(vec3 p);\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir, float maxd, float precis) {\n  float latest = precis * 2.0;\n  float dist   = +0.0;\n  float type   = -1.0;\n  vec2  res    = vec2(-1.0, -1.0);\n\n  for (int i = 0; i < "," ; i++) {\n    if (latest < precis || dist > maxd) break;\n\n    vec2 result = scene(rayOrigin + rayDir * dist);\n\n    latest = result.x;\n    type   = result.y;\n    dist  += latest;\n  }\n\n  if (dist < maxd) {\n    res = vec2(dist, type);\n  }\n\n  return res;\n}\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {\n  return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);\n}\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec3 calcNormal(vec3 pos, float eps) {\n  const vec3 v1 = vec3( 1.0,-1.0,-1.0);\n  const vec3 v2 = vec3(-1.0,-1.0, 1.0);\n  const vec3 v3 = vec3(-1.0, 1.0,-1.0);\n  const vec3 v4 = vec3( 1.0, 1.0, 1.0);\n\n  return normalize( v1 * scene ( pos + v1*eps ).x +\n                    v2 * scene ( pos + v2*eps ).x +\n                    v3 * scene ( pos + v3*eps ).x +\n                    v4 * scene ( pos + v4*eps ).x );\n}\n\nvec3 calcNormal(vec3 pos) {\n  return calcNormal(pos, 0.002);\n}\n\n      mat3 calcLookAtMatrix(vec3 origin, vec3 target, float roll) {\n  vec3 rr = vec3(sin(roll), cos(roll), 0.0);\n  vec3 ww = normalize(target - origin);\n  vec3 uu = normalize(cross(ww, rr));\n  vec3 vv = normalize(cross(uu, ww));\n\n  return mat3(uu, vv, ww);\n}\n\nvec3 getRay(mat3 camMat, vec2 screenPos, float lensLength) {\n  return normalize(camMat * vec3(screenPos, lensLength));\n}\n\nvec3 getRay(vec3 origin, vec3 target, vec2 screenPos, float lensLength) {\n  mat3 camMat = calcLookAtMatrix(origin, target, 0.0);\n  return getRay(camMat, screenPos, lensLength);\n}\n\n      vec2 squareFrame(vec2 screenSize) {\n  vec2 position = 2.0 * (gl_FragCoord.xy / screenSize.xy) - 1.0;\n  position.x *= screenSize.x / screenSize.y;\n  return position;\n}\n\nvec2 squareFrame(vec2 screenSize, vec2 coord) {\n  vec2 position = 2.0 * (coord.xy / screenSize.xy) - 1.0;\n  position.x *= screenSize.x / screenSize.y;\n  return position;\n}\n\nvoid orbitCamera(\n  in float camAngle,\n  in float camHeight,\n  in float camDistance,\n  in vec2 screenResolution,\n  out vec3 rayOrigin,\n  out vec3 rayDirection\n) {\n  vec2 screenPos = squareFrame(screenResolution);\n  vec3 rayTarget = vec3(0.0);\n\n  rayOrigin = vec3(\n    camDistance * sin(camAngle),\n    camHeight,\n    camDistance * cos(camAngle)\n  );\n\n  rayDirection = getRay(rayOrigin, rayTarget, screenPos, 2.0);\n}\n\n      // OPS\n      float opU( float d1, float d2 )\n{\n    return min(d1,d2);\n}\n\nvec2 opU( vec2 d1, vec2 d2 ){\n\treturn ( d1.x < d2.x ) ? d1 : d2;\n}\n\n      float opI( float d1, float d2 ) {\n        return max(d1,d2);\n      }\n\n      vec2 opI( vec2 d1, vec2 d2 ) {\n        return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);\n      }\n\n      float opS( float d1, float d2 ) { return max(d1,-d2); }\n      vec2  opS( vec2 d1, vec2 d2 ) {\n        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);\n      }\n\n      /* ******** from http://mercury.sexy/hg_sdf/ ********* */\n\n      float fOpUnionStairs(float a, float b, float r, float n) {\n        float s = r/n;\n        float u = b-r;\n        return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));\n      }\n      vec2 fOpUnionStairs(vec2 a, vec2 b, float r, float n) {\n        float s = r/n;\n        float u = b.x-r;\n        return vec2( min(min(a.x,b.x), 0.5 * (u + a.x + abs ((mod (u - a.x + s, 2. * s)) - s))), a.y );\n      }\n\n      // We can just call Union since stairs are symmetric.\n      float fOpIntersectionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, -b, r, n);\n      }\n\n      float fOpSubstractionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, b, r, n);\n      }\n\n      vec2 fOpIntersectionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, -b.x, r, n), a.y );\n      }\n\n      vec2 fOpSubstractionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, b.x, r, n), a.y );\n      }\n\n      float fOpUnionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r - a,r - b), vec2(0));\n        return max(r, min (a, b)) - length(u);\n      }\n\n      float fOpIntersectionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r + a,r + b), vec2(0));\n        return min(-r, max (a, b)) + length(u);\n      }\n\n      float fOpDifferenceRound (float a, float b, float r) {\n        return fOpIntersectionRound(a, -b, r);\n      }\n\n      vec2 fOpUnionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceRound( a.x, b.x, r ), a.y );\n      }\n\n      float fOpUnionChamfer(float a, float b, float r) {\n        return min(min(a, b), (a - r + b)*sqrt(0.5));\n      }\n\n      float fOpIntersectionChamfer(float a, float b, float r) {\n        return max(max(a, b), (a + r + b)*sqrt(0.5));\n      }\n\n      float fOpDifferenceChamfer (float a, float b, float r) {\n        return fOpIntersectionChamfer(a, -b, r);\n      }\n      vec2 fOpUnionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceChamfer( a.x, b.x, r ), a.y );\n      }\n\n      float fOpPipe(float a, float b, float r) {\n        return length(vec2(a, b)) - r;\n      }\n      float fOpEngrave(float a, float b, float r) {\n        return max(a, (a + r - abs(b))*sqrt(0.5));\n      }\n\n      float fOpGroove(float a, float b, float ra, float rb) {\n        return max(a, min(a + ra, rb - abs(b)));\n      }\n      float fOpTongue(float a, float b, float ra, float rb) {\n        return min(a, max(a - ra, abs(b) - rb));\n      }\n\n      vec2 fOpPipe( vec2 a, vec2 b, float r ) { return vec2( fOpPipe( a.x, b.x, r ), a.y ); }\n      vec2 fOpEngrave( vec2 a, vec2 b, float r ) { return vec2( fOpEngrave( a.x, b.x, r ), a.y ); }\n      vec2 fOpGroove( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpGroove( a.x, b.x, ra, rb ), a.y ); }\n      vec2 fOpTongue( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpTongue( a.x, b.x, ra, rb ), a.y ); }\n\n      float opOnion( in float sdf, in float thickness ){\n        return abs(sdf)-thickness;\n      }\n\n      float opHalve( in float sdf, vec3 p, in int dir ){\n        float _out = 0.;\n        switch( dir ) {\n          case 0:  \n            _out = max( sdf, p.y );\n            break;\n          case 1:\n            _out = max( sdf, -p.y );\n            break;\n          case 2:\n            _out = max( sdf, p.x );\n            break;\n          case 3:\n            _out = max( sdf, -p.x );\n            break;\n        }\n\n        return _out;\n      }\n\n      vec4 opElongate( in vec3 p, in vec3 h ) {\n        //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box\n        \n        vec3 q = abs(p)-h;\n        return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );\n      }\n\n      vec3 polarRepeat(vec3 p, float repetitions) {\n        float angle = 2.*PI/repetitions;\n        float a = atan(p.z, p.x) + angle/2.;\n        float r = length(p.xz);\n        float c = floor(a/angle);\n        a = mod(a,angle) - angle/2.;\n        vec3 _p = vec3( cos(a) * r, p.y,  sin(a) * r );\n        // For an odd number of repetitions, fix cell index of the cell in -x direction\n        // (cell index would be e.g. -5 and 5 in the two halves of the cell):\n        if (abs(c) >= (repetitions/2.)) c = abs(c);\n        return _p;\n      }\n\n      /* ******************************************************* */\n\n      // added k value to glsl-sdf-ops/soft-shadow\n      float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){\n        float res = 1.0;\n        float t = mint;\n\n        for( int i = 0; i < 16; i++ ) {\n          float h = scene( ro + rd * t ).x;\n          res = min( res, k * h / t );\n          t += clamp( h, 0.02, 0.10 );\n          if( h<0.001 || t>tmax ) break;\n        }\n\n        return clamp( res, 0.0, 1.0 );\n      }\n\n","\n\n      vec2 scene(vec3 p) {\n","\n        return ",";\n      }\n \n\n      out vec4 col;\n\n      void main() {\n        vec2 pos = v_uv * 2.0 - 1.0;\n        pos.x *= ( resolution.x / resolution.y );\n        vec3 color = bg; \n        vec3 ro = camera_pos;\n        vec3 rd = camera_normal;\n\n        //vec3 rd = camera( ro, camera_normal, pos, 2.0 );\n        orbitCamera( time * 0.8, ro.y, ro.z, resolution, ro, rd );\n        \n        //camera( ro, camera_normal, pos, 2.0 );\n\n        vec2 t = calcRayIntersection( ro, rd, ",", "," );\n        if( t.x > -0.5 ) {\n          vec3 pos = ro + rd * t.x;\n          vec3 nor = calcNormal( pos );\n\n          color = lighting( pos, nor, ro, rd, t.y ); \n        }\n\n        ","\n        \n\n        col = vec4( color, 1.0 );\n      }",""],variables,geometries,steps,lighting,preface,scene,maxDistance,minDistance,postprocessing)
+    const fs_source = glsl(["     #version 300 es\n      precision highp float;\n#define GLSLIFY 1\n#define GLSLIFY 1\n\n      float PI = 3.141592653589793;\n\n      in vec2 v_uv;\n\n      struct Light {\n        vec3 position;\n        vec3 color;\n        float attenuation;\n      };\n\n      struct Material {\n        int  mode;\n        vec3 ambient;\n        vec3 diffuse;\n        vec3 specular;\n        float shininess;\n        vec3 fresnel;\n        int textureID;\n      };     \n\n      uniform float time;\n      uniform vec2 resolution;\n      uniform vec3 camera_pos;\n      uniform vec3 camera_normal;\n\n      ,\n\n      // must be before geometries!\n      float length8( vec2 p ) { \n        return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); \n      }\n\n      /* GEOMETRIES */\n      ,\n\n      vec2 scene(vec3 p);\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir, float maxd, float precis) {\n  float latest = precis * 2.0;\n  float dist   = +0.0;\n  float type   = -1.0;\n  vec2  res    = vec2(-1.0, -1.0);\n\n  for (int i = 0; i < , ; i++) {\n    if (latest < precis || dist > maxd) break;\n\n    vec2 result = scene(rayOrigin + rayDir * dist);\n\n    latest = result.x;\n    type   = result.y;\n    dist  += latest;\n  }\n\n  if (dist < maxd) {\n    res = vec2(dist, type);\n  }\n\n  return res;\n}\n\nvec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {\n  return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);\n}\n\n      // Originally sourced from https://www.shadertoy.com/view/ldfSWs\n// Thank you Iñigo :)\n\nvec3 calcNormal(vec3 pos, float eps) {\n  const vec3 v1 = vec3( 1.0,-1.0,-1.0);\n  const vec3 v2 = vec3(-1.0,-1.0, 1.0);\n  const vec3 v3 = vec3(-1.0, 1.0,-1.0);\n  const vec3 v4 = vec3( 1.0, 1.0, 1.0);\n\n  return normalize( v1 * scene ( pos + v1*eps ).x +\n                    v2 * scene ( pos + v2*eps ).x +\n                    v3 * scene ( pos + v3*eps ).x +\n                    v4 * scene ( pos + v4*eps ).x );\n}\n\nvec3 calcNormal(vec3 pos) {\n  return calcNormal(pos, 0.002);\n}\n\n      mat3 calcLookAtMatrix(vec3 origin, vec3 target, float roll) {\n  vec3 rr = vec3(sin(roll), cos(roll), 0.0);\n  vec3 ww = normalize(target - origin);\n  vec3 uu = normalize(cross(ww, rr));\n  vec3 vv = normalize(cross(uu, ww));\n\n  return mat3(uu, vv, ww);\n}\n\nvec3 getRay(mat3 camMat, vec2 screenPos, float lensLength) {\n  return normalize(camMat * vec3(screenPos, lensLength));\n}\n\nvec3 getRay(vec3 origin, vec3 target, vec2 screenPos, float lensLength) {\n  mat3 camMat = calcLookAtMatrix(origin, target, 0.0);\n  return getRay(camMat, screenPos, lensLength);\n}\n\n      vec2 squareFrame(vec2 screenSize) {\n  vec2 position = 2.0 * (gl_FragCoord.xy / screenSize.xy) - 1.0;\n  position.x *= screenSize.x / screenSize.y;\n  return position;\n}\n\nvec2 squareFrame(vec2 screenSize, vec2 coord) {\n  vec2 position = 2.0 * (coord.xy / screenSize.xy) - 1.0;\n  position.x *= screenSize.x / screenSize.y;\n  return position;\n}\n\nvoid orbitCamera(\n  in float camAngle,\n  in float camHeight,\n  in float camDistance,\n  in vec2 screenResolution,\n  out vec3 rayOrigin,\n  out vec3 rayDirection\n) {\n  vec2 screenPos = squareFrame(screenResolution);\n  vec3 rayTarget = vec3(0.0);\n\n  rayOrigin = vec3(\n    camDistance * sin(camAngle),\n    camHeight,\n    camDistance * cos(camAngle)\n  );\n\n  rayDirection = getRay(rayOrigin, rayTarget, screenPos, 2.0);\n}\n\n      // OPS\n      float opU( float d1, float d2 )\n{\n    return min(d1,d2);\n}\n\nvec2 opU( vec2 d1, vec2 d2 ){\n\treturn ( d1.x < d2.x ) ? d1 : d2;\n}\n\n      float opI( float d1, float d2 ) {\n        return max(d1,d2);\n      }\n\n      vec2 opI( vec2 d1, vec2 d2 ) {\n        return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);\n      }\n\n      float opS( float d1, float d2 ) { return max(d1,-d2); }\n      vec2  opS( vec2 d1, vec2 d2 ) {\n        return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);\n      }\n\n      /* ******** from http://mercury.sexy/hg_sdf/ ********* */\n\n      float fOpUnionStairs(float a, float b, float r, float n) {\n        float s = r/n;\n        float u = b-r;\n        return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));\n      }\n      vec2 fOpUnionStairs(vec2 a, vec2 b, float r, float n) {\n        float s = r/n;\n        float u = b.x-r;\n        return vec2( min(min(a.x,b.x), 0.5 * (u + a.x + abs ((mod (u - a.x + s, 2. * s)) - s))), a.y );\n      }\n\n      // We can just call Union since stairs are symmetric.\n      float fOpIntersectionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, -b, r, n);\n      }\n\n      float fOpSubstractionStairs(float a, float b, float r, float n) {\n        return -fOpUnionStairs(-a, b, r, n);\n      }\n\n      vec2 fOpIntersectionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, -b.x, r, n), a.y );\n      }\n\n      vec2 fOpSubstractionStairs(vec2 a, vec2 b, float r, float n) {\n        return vec2( -fOpUnionStairs(-a.x, b.x, r, n), a.y );\n      }\n\n      float fOpUnionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r - a,r - b), vec2(0));\n        return max(r, min (a, b)) - length(u);\n      }\n\n      float fOpIntersectionRound(float a, float b, float r) {\n        vec2 u = max(vec2(r + a,r + b), vec2(0));\n        return min(-r, max (a, b)) + length(u);\n      }\n\n      float fOpDifferenceRound (float a, float b, float r) {\n        return fOpIntersectionRound(a, -b, r);\n      }\n\n      vec2 fOpUnionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionRound( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceRound( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceRound( a.x, b.x, r ), a.y );\n      }\n\n      float fOpUnionChamfer(float a, float b, float r) {\n        return min(min(a, b), (a - r + b)*sqrt(0.5));\n      }\n\n      float fOpIntersectionChamfer(float a, float b, float r) {\n        return max(max(a, b), (a + r + b)*sqrt(0.5));\n      }\n\n      float fOpDifferenceChamfer (float a, float b, float r) {\n        return fOpIntersectionChamfer(a, -b, r);\n      }\n      vec2 fOpUnionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpUnionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpIntersectionChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpIntersectionChamfer( a.x, b.x, r ), a.y );\n      }\n      vec2 fOpDifferenceChamfer( vec2 a, vec2 b, float r ) {\n        return vec2( fOpDifferenceChamfer( a.x, b.x, r ), a.y );\n      }\n\n      float fOpPipe(float a, float b, float r) {\n        return length(vec2(a, b)) - r;\n      }\n      float fOpEngrave(float a, float b, float r) {\n        return max(a, (a + r - abs(b))*sqrt(0.5));\n      }\n\n      float fOpGroove(float a, float b, float ra, float rb) {\n        return max(a, min(a + ra, rb - abs(b)));\n      }\n      float fOpTongue(float a, float b, float ra, float rb) {\n        return min(a, max(a - ra, abs(b) - rb));\n      }\n\n      vec2 fOpPipe( vec2 a, vec2 b, float r ) { return vec2( fOpPipe( a.x, b.x, r ), a.y ); }\n      vec2 fOpEngrave( vec2 a, vec2 b, float r ) { return vec2( fOpEngrave( a.x, b.x, r ), a.y ); }\n      vec2 fOpGroove( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpGroove( a.x, b.x, ra, rb ), a.y ); }\n      vec2 fOpTongue( vec2 a, vec2 b, float ra, float rb ) { return vec2( fOpTongue( a.x, b.x, ra, rb ), a.y ); }\n\n      float opOnion( in float sdf, in float thickness ){\n        return abs(sdf)-thickness;\n      }\n\n      float opHalve( in float sdf, vec3 p, in int dir ){\n        float _out = 0.;\n        switch( dir ) {\n          case 0:  \n            _out = max( sdf, p.y );\n            break;\n          case 1:\n            _out = max( sdf, -p.y );\n            break;\n          case 2:\n            _out = max( sdf, p.x );\n            break;\n          case 3:\n            _out = max( sdf, -p.x );\n            break;\n        }\n\n        return _out;\n      }\n\n      vec4 opElongate( in vec3 p, in vec3 h ) {\n        //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box\n        \n        vec3 q = abs(p)-h;\n        return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );\n      }\n\n      vec3 polarRepeat(vec3 p, float repetitions) {\n        float angle = 2.*PI/repetitions;\n        float a = atan(p.z, p.x) + angle/2.;\n        float r = length(p.xz);\n        float c = floor(a/angle);\n        a = mod(a,angle) - angle/2.;\n        vec3 _p = vec3( cos(a) * r, p.y,  sin(a) * r );\n        // For an odd number of repetitions, fix cell index of the cell in -x direction\n        // (cell index would be e.g. -5 and 5 in the two halves of the cell):\n        if (abs(c) >= (repetitions/2.)) c = abs(c);\n        return _p;\n      }\n\n      /* ******************************************************* */\n\n      // added k value to glsl-sdf-ops/soft-shadow\n      float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){\n        float res = 1.0;\n        float t = mint;\n\n        for( int i = 0; i < 16; i++ ) {\n          float h = scene( ro + rd * t ).x;\n          res = min( res, k * h / t );\n          t += clamp( h, 0.02, 0.10 );\n          if( h<0.001 || t>tmax ) break;\n        }\n\n        return clamp( res, 0.0, 1.0 );\n      }\n\n,\n\n      vec2 scene(vec3 p) {\n,\n        return ,;\n      }\n \n\n      out vec4 col;\n\n      void main() {\n        vec2 pos = v_uv * 2.0 - 1.0;\n        pos.x *= ( resolution.x / resolution.y );\n        vec3 color = bg; \n        vec3 ro = camera_pos;\n        vec3 rd = camera_normal;\n\n        //vec3 rd = camera( ro, camera_normal, pos, 2.0 );\n        orbitCamera( time * 0.8, ro.y, ro.z, resolution, ro, rd );\n        \n        //camera( ro, camera_normal, pos, 2.0 );\n\n        vec2 t = calcRayIntersection( ro, rd, ,, , );\n        if( t.x > -0.5 ) {\n          vec3 pos = ro + rd * t.x;\n          vec3 nor = calcNormal( pos );\n\n          color = lighting( pos, nor, ro, rd, t.y ); \n        }\n\n        ,\n        \n\n        col = vec4( color, 1.0 );\n      },"])
 
     return fs_source
   }
@@ -2647,7 +2680,11 @@ SceneNode.prototype = {
     let center = this.center
 
     if( center === undefined && this.sdf !== undefined ) {
-      center = this.sdf.getCenter()
+      if( this.sdf.getCenter === undefined ) {
+        center = this.sdf.__wrapped.getCenter()
+      }else{
+        center = this.sdf.getCenter()
+      }
     }
 
     return center
@@ -2927,16 +2964,55 @@ function int_var_gen(x,name=null) {
 
   return output
 }
-
 function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
 
-function vec2_var_gen(x, y,name=null) { return ()=> Var( Vec2(x, y), name  ) }
+function vec2_var_gen(x, y,name=null) { 
+  if( y === undefined ) y = x
+  return ()=> Var( Vec2(x, y), name  ) 
+}
 
-function vec3_var_gen(x, y, z,name=null) { return ()=> Var( Vec3(x, y, z), name ) }
+function vec3_var_gen(x, y, z,name=null) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  return ()=> Var( Vec3(x, y, z), name ) 
+}
 
-function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ), name ) }
+function vec4_var_gen( x, y, z, w, name=null ) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  if( w === undefined ) w = x
+  return Var( Vec4( x, y, z, w ), name ) 
+}
+//function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
+
+//function vec2_var_gen(x, y,name=null) { return ()=> Var( Vec2(x, y), name  ) }
+
+//function vec3_var_gen(x, y, z,name=null) { return ()=> Var( Vec3(x, y, z), name ) }
+
+//function vec4_var_gen( x, y, z, w, name=null ) { return Var( Vec4( x, y, z, w ), name ) }
 
 module.exports = { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }
+
+/*function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
+
+function vec2_var_gen(x, y,name=null) { 
+  if( y === undefined ) y = x
+  return ()=> Var( Vec2(x, y), name  ) 
+}
+
+function vec3_var_gen(x, y, z,name=null) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  return ()=> Var( Vec3(x, y, z), name ) 
+}
+
+function vec4_var_gen( x, y, z, w, name=null ) { 
+  if( y === undefined ) y = x
+  if( z === undefined ) z = x
+  if( w === undefined ) w = x
+  return Var( Vec4( x, y, z, w ), name ) 
+}
+*/
 
 },{"./float.js":8,"./int.js":11,"./vec.js":24}],24:[function(require,module,exports){
 const float = require( './float.js' )
@@ -2951,7 +3027,10 @@ const Vec2 = function (x=0, y=0) {
 Vec2.prototype = {
   type: 'vec2',
 	emit() { return "vec2(" + this.x + "," + this.y + ")" },
-	emit_decl() { return ""; }
+  emit_decl() { return ""; },
+  copy() {
+    return Vec2( this.x, this.y )
+  }
 }
 
 const Vec3 = function (x=0, y, z) {
@@ -3054,6 +3133,10 @@ Vec3.prototype = {
         this.z.upload_data(gl)
       }      
     }
+  },
+
+  copy() {
+    return Vec3( this.x, this.y, this.z )
   }
 
 }
@@ -3159,8 +3242,11 @@ Vec4.prototype = {
         this.w.upload_data(gl)
       }      
     }
-  }
+  },
 
+  copy() {
+    return Vec4( this.x, this.y, this.z, this.w )
+  }
 }
 // Vec4
 

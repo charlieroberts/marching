@@ -178,8 +178,6 @@ const getDomainOps = function( SDF ) {
         let arg = args[ count ]
         let __var
 
-        console.log( prop.name, arg )
-
         switch( prop.type ) {
           case 'vec2':
             if( typeof arg === 'number' ) arg = Vec2( arg )

@@ -230,11 +230,13 @@ const Lights = function( SDF ) {
           float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
 
           vec4 textureColor;
+          /*
           if( mat.textureID > -1 ) {
             textureColor = texture( textures[ mat.textureID ], pos.xy ); 
           }else{
             textureColor = vec4(1.);
-          }
+          }*/
+          textureColor = vec4(1.);
 
 
           // simulated backlight
@@ -305,6 +307,7 @@ const Lights = function( SDF ) {
           // applies to all lights
           float occlusion = ao( surfacePosition, normal );
 
+          /*
           vec4 textureColor;
           if( mat.textureID > -1 ) {
             //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); 
@@ -315,6 +318,7 @@ const Lights = function( SDF ) {
           }
 
           outputColor = textureColor.xyz;
+          */
 
           for( int i = 0; i < 20000; i++ ) {
             if( i >= MAX_LIGHTS ) break;

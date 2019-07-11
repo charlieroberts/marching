@@ -56,7 +56,7 @@ const __Textures = function( SDF ) {
     dirty( tex ) {},
    
     emit_decl() {
-      if( this.textures.length === 0 ) return `uniform sampler2D textures[1];` 
+      if( this.textures.length === 0 ) return ``//uniform sampler2D textures[1];` 
 
       let str = `uniform sampler2D textures[${this.textures.length}];\n\n` //= Texture[${this.textures.length}](`
 
@@ -64,15 +64,17 @@ const __Textures = function( SDF ) {
     },
     
     update_location( gl, program ) {
-      this.textures.sort( (a,b) => a.id > b.id ? 1 : -1 ) 
+      if( this.textures.length > 0 ) {
+        this.textures.sort( (a,b) => a.id > b.id ? 1 : -1 ) 
 
-      for( let tex of this.textures ) {
-        tex.loc = gl.getUniformLocation( program, `textures[${tex.id}]` )
-        tex.gltexture.bind( tex.id )
+        for( let tex of this.textures ) {
+          tex.loc = gl.getUniformLocation( program, `textures[${tex.id}]` )
+          tex.gltexture.bind( tex.id )
+        }
+
+        this.__textures = this.textures.slice( 0 )
+        this.textures.length = 0
       }
-
-      this.__textures = this.textures.slice( 0 )
-      this.textures.length = 0
     },
 
     upload_data( gl, program='' ) {

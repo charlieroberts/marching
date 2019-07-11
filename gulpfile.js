@@ -6,12 +6,12 @@ var gutil = require( 'gulp-util' )
 
 gulp.task('build', function () {
   
-  var b = browserify({
+  browserify({
     entries: './js/index.js',
-    transform: ['glslify']
-  }).bundle()
-
-  b.pipe( source('index.js') ).pipe( gulp.dest( './dist/' ) )
+  })
+  .bundle()
+  .pipe( source('index.js') )
+  .pipe( gulp.dest( './dist/' ) )
 
 })
 

@@ -28,6 +28,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       uniform vec2 resolution;
       uniform vec3 camera_pos;
       uniform vec3 camera_normal;
+      uniform float camera_rot;
 
       ${variables}
 
@@ -242,7 +243,7 @@ ${preface}
 
 
         //vec3 rd = camera( ro, camera_normal, pos, 2.0 );
-        camera2( time * 0.8, ro.y, ro.z, resolution, ro, rd );
+        camera2( camera_rot, ro.y, ro.z, resolution, ro, rd );
         
         //camera( ro, camera_normal, pos, 2.0 );
 

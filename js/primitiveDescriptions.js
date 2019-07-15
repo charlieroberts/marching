@@ -206,6 +206,34 @@ module.exports = {
     `,
   },
 
+  // adapted from https://www.shadertoy.com/view/llGXDR
+  Mandelbox: {
+    parameters:[
+      { name:'mr2', type:'float', default:.1 },
+      { name:'scale', type:'float', default:3.},
+      { name:'iterations', type:'float', default:5 },
+      { name:'center', type:'vec3', default:[0,0,0] },
+      { name:'material', type:'mat', default:null }
+    ],
+
+    glslify:`float mandelbox( float MR2, float SCALE, float ITER, vec3 position ){
+      vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
+      float C1 = abs(SCALE-1.0), C2 = pow(abs(SCALE), 1.-ITER); // 10 is ITERS
+      vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);  // p.w is knighty's DEfactor
+      for (int i=0; i<int(ITER); i++) {
+        p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;  // box fold: min3, max3gg, mad3
+        float r2 = dot(p.xyz, p.xyz);  // dp3
+        p.xyzw *= clamp(max(MR2/r2, MR2), 0.0, 1.0);  // sphere fold: div1, max1.sat, mul4
+        p.xyzw = p*scalevec + p0;  // mad4
+      }
+      return (length(p.xyz) - C1) / p.w - C2;
+  }`,
+
+    primitiveString( pName ) {
+      return `mandelbox( ${this.mr2.emit()}, ${this.scale.emit()}, ${this.iterations.emit()}, ${pName} - ${this.center.emit()} )`
+    }
+  },
+
 	Octahedron: {
     parameters:[
       { name:'size', type:'float', default:1 },

@@ -30,6 +30,7 @@ for( let name in ops ) {
     const __op = Object.create( Alterations[ name ].prototype )
     __op.sdf = sdf
     __op.variables = []
+    __op.__desc = { parameters:[] }
 
     for( let i = 0; i < op.variables.length; i++ ) {
       const propArray = op.variables[ i ]
@@ -37,6 +38,7 @@ for( let name in ops ) {
       const propType = propArray[ 1 ]
       const propValue = args[ i ] === undefined ? propArray[ 2 ] : args[ i ]
 
+      __op.__desc.parameters.push({ name:propName, value:propValue })
       let param
 
       switch( propType ) {

@@ -279,7 +279,6 @@ const SDF = {
 
     let frameCount = 0
     const render = function( timestamp ){
-      this.currentTime = timestamp
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
       }else if( render.running === false ) {
@@ -287,6 +286,8 @@ const SDF = {
         return
       }
       
+      this.currentTime = timestamp
+
       if( this.delay !== 0 && this.delay >= frameCount ) {
         frameCount++
         return

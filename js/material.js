@@ -20,6 +20,13 @@ const __Materials = function( SDF ) {
 
     default: 'global',
 
+    //defaultMaterials:`
+    //  Material materials[2] = Material[2](
+    //    Material( 0, vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) ),
+    //    Material( 0, vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) )
+    //  );
+    //`,
+
     addMaterial( mat ) {
       if( mat === undefined ) mat = Materials.material.default
 
@@ -131,7 +138,10 @@ const __Materials = function( SDF ) {
     },
    
     emit_materials() {
-      if( this.materials.length === 0 ) return this.defaultMaterials
+      if( this.materials.length === 0 ) {
+        console.log( 'returning undefined?', this.defaultMaterials )
+        return this.defaultMaterials//this.addMaterial() 
+      }
 
       let str = `Material materials[${this.materials.length}] = Material[${this.materials.length}](`
 

@@ -1,8 +1,8 @@
 # marching.js
 
-[Online Playground (Chrome/Firefox)](https://charlieroberts.github.io/marching/playground/)
-[Atom plugin](https://atom.io/packages/atom-marching)
-[Reference](https://charlieroberts.github.io/marching/docs/index.html)
+[Online Playground (Chrome/Firefox)](https://charlieroberts.github.io/marching/playground/)    
+[Atom plugin](https://atom.io/packages/atom-marching)   
+[Reference](https://charlieroberts.github.io/marching/docs/index.html)   
 
 ![Screenshot](https://raw.github.com/charlieroberts/marching/screenshots/crazyball.png) 
 
@@ -12,7 +12,7 @@ Marching.js is a JavaScript shader compiler specifically focused on ray marching
 - Enable JS programmers to explore CSG without having to learn GLSL
 - Provide a terse API suitable for live coding performance
 
-The project borrows code from [the glslify project](https://github.com/glslify/glslify) as well as code originally written by [Chi Shen](http://shenchi.github.io).
+Marching.js builds on the [work of many other people](https://github.com/charlieroberts/marching/blob/master/CREDITS.markdown).
 
 ## Development
 The library is compiled using gulp. Run `npm install` to install all necessary dependencies, and then `gulp build` to rebuild the library.

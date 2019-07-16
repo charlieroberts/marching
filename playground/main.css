@@ -24,10 +24,8 @@ body {
 }
 .CodeMirror pre {
   background-color: rgba( 0,0,0,.75 ) !important;
-
   float:left !important;
   clear:left !important;
-
   font-family:Menlo, sans-serif !important;
 }
 
@@ -39,11 +37,45 @@ body {
 .CodeMirror-gutter { 
   background:black
 }
-#help {
-  position:absolute;
-  top:0; right:2em;
-  z-index:10
+
+#menu {
+  position: fixed;
+  top: 1em;
+  right: 1.5em;
+  z-index: 999;
 }
+
+#menu #help {
+  color: white;
+  display: inline-block;
+  line-height: 2em;
+  vertical-align: top;
+  padding: 0.15em 0.5em;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+#menu #help:hover { 
+  text-decoration: underline; 
+}
+
+#menu #source {
+  width: 2em;
+  height: 2em;
+  display: inline-block;
+  background-image: url(./github.png);
+  background-size: cover;
+  background-position: center;
+  margin-top: -0.2em;
+}
+
+#menu #demo {
+  vertical-align: top;
+  margin: 0.4em;
+}
+
 .panel{
   position:absolute;
   bottom:0; left:0;
@@ -71,13 +103,6 @@ body {
   margin-top:.5em
 }
 
-select {
-  position:absolute;
-  right: 8em;
-  top:0;
-  z-index:10
-}
-
 img {
   position:absolute;
   right: 0em;
@@ -94,11 +119,13 @@ img {
   color:#000;
   font-weight:500;
 }
+
 .CodeMirror {
   font-family:Menlo, monospace;
   font-size:.8em;
   background:rgba(46,50,53,1);
-  color:rgb( 153 ) !important
+  color:rgb( 153 ) !important;
+  padding:1.5em;
 }
 
 span.cm-comment { color:rgb(121,121,121) !important }

@@ -80,7 +80,10 @@ const descriptions = {
       const pId = MaterialID.alloc()//this.matId
       const pName = 'q'+pId
 
-      let preface =`        mat4 m${pName} = rotationMatrix(${this.axis.emit()}, -${this.angle.emit()});`
+      let preface =`        
+        mat4 m${pName} = rotationMatrix(${this.axis.emit()}, -${this.angle.emit()});
+        rotations[ 0 ] = m${pName};
+      `
       const center = this.getCenter()
 
       preface += center !== undefined

@@ -23,7 +23,7 @@ const getScene = function( SDF ) {
       .steps( steps )
       .threshold( minDistance )
       .farPlane( maxDistance )
-      .resolution( size )
+      .resolution( 1 )
 
     scene.useQuality = true
 
@@ -35,8 +35,8 @@ const getScene = function( SDF ) {
   Scene.prototype = {
     animate( v ) { this.__animate = v; return this },  
     resolution( v ) { 
-      this.width = this.canvas.width = window.innerWidth * v
-      this.height = this.canvas.height = window.innerHeight * v
+      this.width = Math.floor( this.canvas.width = window.innerWidth * v )
+      this.height = Math.floor( this.canvas.height = window.innerHeight * v )
       
       this.__resolution = v;
       this.useQuality = false
@@ -57,7 +57,7 @@ const getScene = function( SDF ) {
       this.threshold( .1 / (quality * quality * quality ) )
       this.steps( quality * 20 )
       this.farPlane( quality * 5 )
-      this.resolution( .2 * quality )
+      this.resolution( Math.min( .2 * quality, 2 ) )
 
       return this
     },
@@ -68,9 +68,9 @@ const getScene = function( SDF ) {
     fog: getFog( Scene, SDF ),
     background: require( './background.js' )( Scene, SDF ),
 
-    render( quality=10, animate=false ) {
+    render( quality=10, animate=false, useQuality=true ) {
       this.background() // adds default if none has been specified
-      if( this.useQuality === true ) {
+      if( useQuality === true ) {
         this.quality( quality )
       }
       this.animate( animate )

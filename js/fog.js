@@ -11,7 +11,7 @@ const Fogger = function( Scene, SDF ) {
     Object.defineProperty( fog, 'amount', {
       get() { return __amount },
       set( v ) {
-        __amount.var.set( v )
+        __amount.set( v )
       }
     })
 

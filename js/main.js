@@ -60,7 +60,7 @@ const SDF = {
     obj.FFT = this.FFT
   },
 
-  init( canvas ) {
+  init( canvas, shouldInit = false ) {
     this.primitives = this.__primitives( this )
     this.Scene      = this.__scene( this )
     this.domainOps  = this.__domainOps( this )
@@ -75,16 +75,15 @@ const SDF = {
     this.textures = this.__textures( this )
     this.Texture = this.textures.texture
 
-    //this.canvas.width = window.innerWidth * size
-    //this.canvas.height = window.innerHeight * size
-    this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:false })
+    this.canvas.width = window.innerWidth 
+    this.canvas.height = window.innerHeight
+    this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
 
-    this.initBuffers()
   },
 
   initBuffers() {
     const gl = this.gl
-    gl.clearColor( 0.0, 0.0, 0.0, 1.0 )
+    gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
     gl.clear(gl.COLOR_BUFFER_BIT)
 
     const vbo = gl.createBuffer()
@@ -245,9 +244,12 @@ const SDF = {
 
   initWebGL( vs_source, fs_source, width, height,shouldAnimate=false ) {
     const gl = this.gl
+    //if( shouldInit === true ) this.initBuffers()
+    this.initBuffers()
 
-	  const program = this.program = this.createProgram( vs_source, fs_source )
-	  gl.useProgram(program);
+
+    const program = this.program = this.createProgram( vs_source, fs_source )
+    gl.useProgram(program);
 
     const loc_a_pos = gl.getAttribLocation(program, "a_pos");
     const loc_a_uv = gl.getAttribLocation(program, "a_uv");
@@ -268,6 +270,8 @@ const SDF = {
     gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
     gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
 
+
+    console.log( 'w:',width, 'h:',height )
     gl.viewport( 0,0,width,height )
     gl.uniform2f( loc_u_resolution, width, height )
 

@@ -118,6 +118,7 @@ for( let name in ops ) {
 
       op.params.push({ name:'scale' })
     }
+    op.__desc = { parameters:op.params }
     return op
   } 
 

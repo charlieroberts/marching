@@ -14,6 +14,12 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float attenuation;
       };
 
+      int rotationCount = 1;
+
+      mat4 rotations[4] = mat4[4](
+        mat4(0.), mat4(0.), mat4(0.), mat4(0.)
+      );
+
       struct Material {
         int  mode;
         vec3 ambient;
@@ -37,19 +43,20 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); 
       }
 
+      #pragma glslify: noise3d = require('glsl-noise/simplex/3d')
+
       /* GEOMETRIES */
       ${geometries}
 
       vec2 scene(vec3 p);
 
-      #pragma glslify: raytrace = require( 'glsl-raytrace', map = scene, steps = ${steps} )
+      #pragma glslify: raytrace  = require( 'glsl-raytrace', map = scene, steps = ${steps} )
       #pragma glslify: getNormal = require( 'glsl-sdf-normal', map = scene )
       #pragma glslify: camera    = require( 'glsl-camera-ray' )
-      #pragma glslify: camera2    = require( 'glsl-turntable-camera' )
+      #pragma glslify: camera2   = require( 'glsl-turntable-camera' )
 
       // OPS
       #pragma glslify: opUnion = require( 'glsl-sdf-ops/union' )
-
 
       float opI( float d1, float d2 ) {
         return max(d1,d2);

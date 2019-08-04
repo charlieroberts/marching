@@ -15,7 +15,8 @@ const __Materials = function( SDF ) {
       'global',
       'normal',
       'phong',
-      'orenn'
+      'orenn',
+      'noise'
     ],
 
     default: 'global',
@@ -150,9 +151,9 @@ const __Materials = function( SDF ) {
       for( let mat of this.materials ) {
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
-        const texid = SDF.textures.textures.indexOf( mat.texture )
+        const texid = 0//SDF.textures.textures.indexOf( mat.texture )
         str += mat.texture === null 
-          ? `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, -1 ),` 
+          ? `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, ${ texid } ),` 
           : `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, ${ texid } ),` 
       }
       
@@ -218,7 +219,8 @@ const __Materials = function( SDF ) {
     'white glow' : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,200,5) ),
     glue    : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
 
-    normal  : Materials.material( 'normal' )
+    normal  : Materials.material( 'normal' ),
+    noise   : Materials.material( 'noise',  Vec3( .15 ), Vec3(1,0,0), Vec3(1), 8, Vec3( 0, 1, .5 ))
   })
 
   return Materials

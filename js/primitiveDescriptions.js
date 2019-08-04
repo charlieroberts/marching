@@ -78,13 +78,13 @@ module.exports = {
 
   Julia: {
     parameters:[
-      { name:'atime', type:'float', default:0 },
+      { name:'c0', type:'float', default:0 },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `julia( ${pName} - ${this.center.emit()}, ${this.atime.emit()} )`
+      return `julia( ${pName} - ${this.center.emit()}, ${this.c0.emit()} )`
     },
 
     // https://www.shadertoy.com/view/MsfGRr
@@ -96,7 +96,7 @@ module.exports = {
   }
 
   float julia( in vec3 p, float atime ){
-    vec4 c = 0.45*cos( vec4(0.5,3.9,1.4,1.1) + atime*vec4(1.2,1.7,1.3,2.5) ) - vec4(0.3,0.0,0.0,0.0);
+    vec4 c = 0.45*cos( vec4(0.5,3.9,1.4,1.1) + atime * vec4(1.2,1.7,1.3,2.5) ) - vec4(0.3,0.0,0.0,0.0);
     vec4 z = vec4(p,0.);
     float md2 = 1.0;
     float mz2 = dot(z,z);
@@ -115,7 +115,7 @@ module.exports = {
   },
   KIFS: {
     parameters:[
-      { name:'a', type:'float', default:8 },
+      { name:'count', type:'float', default:8 },
       { name:'fold', type:'float', default:0 },
       { name:'radius', type:'float', default:.01 },
       { name:'threshold', type:'float', default:.004 },
@@ -125,7 +125,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `kifs( ${pName} - ${this.center.emit()}, ${this.a.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()}, ${this.scale.emit()} )`
+      return `kifs( ${pName} - ${this.center.emit()}, ${this.count.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()}, ${this.scale.emit()} )`
     },
 
     // adapted from http://roy.red/folding-the-koch-snowflake-.html
@@ -168,13 +168,13 @@ module.exports = {
 
   Mandelbulb: {
     parameters:[
-      { name:'a', type:'float', default:8 },
+      { name:'c0', type:'float', default:8 },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `mandelbulb( ${pName} - ${this.center.emit()}, ${this.a.emit()} )`
+      return `mandelbulb( ${pName} - ${this.center.emit()}, ${this.c0.emit()} )`
     },
 
     // adapted from: https://www.shadertoy.com/view/ltfSWn
@@ -209,7 +209,7 @@ module.exports = {
   // adapted from https://www.shadertoy.com/view/llGXDR
   Mandelbox: {
     parameters:[
-      { name:'mr2', type:'float', default:.1 },
+      { name:'fold', type:'float', default:.1 },
       { name:'scale', type:'float', default:3.},
       { name:'iterations', type:'float', default:5 },
       { name:'center', type:'vec3', default:[0,0,0] },
@@ -230,22 +230,23 @@ module.exports = {
   }`,
 
     primitiveString( pName ) {
-      return `mandelbox( ${this.mr2.emit()}, ${this.scale.emit()}, ${this.iterations.emit()}, ${pName} - ${this.center.emit()} )`
+      return `mandelbox( ${this.fold.emit()}, ${this.scale.emit()}, ${this.iterations.emit()}, ${pName} - ${this.center.emit()} )`
     }
   },
 
 	Octahedron: {
     parameters:[
-      { name:'size', type:'float', default:1 },
+      { name:'radius', type:'float', default:1 },
       { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdOctahedron( ${pName} - ${this.center.emit()}, ${this.size.emit()} )`
+      return `sdOctahedron( ${pName} - ${this.center.emit()}, ${this.radius.emit()} )`
     },
 
     glslify:`    float sdOctahedron(vec3 p, float h) {
+    p.y = p.y + h; // center vertically... is it centered on the z-axis?
     vec2 d = .5*(abs(p.xz)+p.y) - min(h,p.y);
     return length(max(d,0.)) + min(max(d.x,d.y), 0.);
   }`
@@ -280,6 +281,7 @@ module.exports = {
     },
     glslify:glsl`    #pragma glslify: udQuad		= require('glsl-sdf-primitives/udQuad')`
   }, 
+
   RoundBox: {
     parameters:[
       { name:'size', type:'vec3', default:[1,1,1] },

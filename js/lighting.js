@@ -20,8 +20,8 @@ const Lights = function( SDF ) {
 
     defaultMaterials:`
       Material materials[2] = Material[2](
-        Material( 0, vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) ),
-        Material( 0, vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.) )
+        Material( 0, vec3( 1. ), vec3(0.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.), 0 ),
+        Material( 0, vec3( 1. ), vec3(1.,0.,0.), vec3(1.), 8., Fresnel( 0., 1., 2.), 0 )
       );
     `,
 
@@ -182,11 +182,27 @@ const Lights = function( SDF ) {
 
       let preface = glsl`  int MAX_LIGHTS = ${numlights};
     #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
+    vec3 getTex( int id, vec3 pos, vec3 nor ) {
+      vec3 tex;
+      switch( id ) {
+        case 0: 
+          pos = (vec4(pos,1.) * inverse( rotations[0] ) ).xyz;
+          float n = snoise( pos*2. );
+          tex = vec3( n );
+          break;
+        default:
+          tex = vec3(0.);
+          break;
+      }
 
+      return tex;
+    }
 
     `
 
       let func = `
+
+
     vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
       // applies to all lights (actually, not 'normal' mode... TODO)
       //float occlusion = calcAO( surfacePosition, normal );
@@ -198,6 +214,7 @@ const Lights = function( SDF ) {
       int MAX_LIGHTS = ${numlights};     
 
       ${lights}
+
       vec3 clr;
       switch( mat.mode ) {
         case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
@@ -229,14 +246,15 @@ const Lights = function( SDF ) {
           float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );
           float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
 
-          vec4 textureColor;
+          vec3 textureColor;
           /*
           if( mat.textureID > -1 ) {
             textureColor = texture( textures[ mat.textureID ], pos.xy ); 
           }else{
             textureColor = vec4(1.);
           }*/
-          textureColor = vec4(1.);
+          // XXX uncomment below to loop textures back in...
+          textureColor = vec3(0.);//getTex( mat.textureID, pos, nor );//vec4(1.);
 
 
           // simulated backlight
@@ -258,7 +276,7 @@ const Lights = function( SDF ) {
           brdf += 0.70 * bac * vec3( 0.25 );
           brdf += 0.40 * (fre * light.color);
 
-          return brdf * textureColor.xyz;
+          return brdf + textureColor.xyz;
         }
         `
 
@@ -576,7 +594,8 @@ const Lights = function( SDF ) {
 
       },
 
-      normal() { return '' }
+      normal() { return '' },
+      noise() { return '' }
     },
   }
 

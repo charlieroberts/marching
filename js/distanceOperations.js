@@ -32,6 +32,7 @@ for( let name in ops ) {
 
   // get codegen function
   let op = ops[ name ]
+  const name2 = name + '2'
 
   // create constructor
   DistanceOps[ name ] = function( a,b,c,d ) {
@@ -64,6 +65,27 @@ for( let name in ops ) {
 
     return op
   } 
+  
+  DistanceOps[ name2 ] = function( ...args ) {
+    // accepts unlimited arguments, but the last one could be a blending coefficient
+    let blend = .25, coeff=4, u
+
+    if( typeof args[ args.length - 1 ] === 'number' ) {
+      blend = args.pop()
+
+      // if there are two non-sdf arguments to the function...
+      if( typeof args[ args.length - 1 ] === 'number' ) {
+        coeff = blend
+        blend = args.pop()
+      }
+
+      u = args.reduce( (state,next) => DistanceOps[ name ]( state, next, blend, coeff ) )
+    }else{
+      u = args.reduce( (state,next) => DistanceOps[ name ]( state, next ) )
+    }
+
+    return u
+  }
 
   DistanceOps[ name ].prototype = SceneNode()
 
@@ -132,19 +154,19 @@ DistanceOps.SmoothUnion2 = function( ...args ) {
   return u
 }
 
-DistanceOps.RoundUnion2 = function( ...args ) {
-  // accepts unlimited arguments, but the last one could be a blending coefficient
-  let blend = .25, u
+//DistanceOps.RoundUnion2 = function( ...args ) {
+//  // accepts unlimited arguments, but the last one could be a blending coefficient
+//  let blend = .25, u
 
-  if( typeof args[ args.length - 1 ] === 'number' ) {
-    blend = args.pop()
-    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next, blend ) )
-  }else{
-    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next ) )
-  }
+//  if( typeof args[ args.length - 1 ] === 'number' ) {
+//    blend = args.pop()
+//    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next, blend ) )
+//  }else{
+//    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next ) )
+//  }
 
-  return u
-}
+//  return u
+//}
 
 ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
         float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );

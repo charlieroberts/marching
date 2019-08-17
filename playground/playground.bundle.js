@@ -12237,8 +12237,8 @@ march(
 select code and hit ctrl+enter to  
 execute. alt+enter (option+enter on
 a mac) executes a block of code. 
-ctrl+shift+h toggles hiding
-the code/gui. try the other demos  
+ctrl+shift+g toggles hiding
+the gui/code. try the other demos  
 using the menu in the upper left    
 corner. when you're ready to start 
 coding go through the tutorials     
@@ -12261,12 +12261,13 @@ https://atom.io/packages/atom-marching
 ** __--__--__--__--__--__--__--__*/`
 
 },{}],17:[function(require,module,exports){
-module.exports=`march(
-  Julia( 1.5, null, Material.grey ),
-  Plane( Vec3(0,1,0), .75, Material.grey )
+module.exports=`Material.default = Material.grey
+ 
+march(
+  Julia( 1.5 ),
+  Plane( Vec3(0,1,0), .75 )
 )
 .light( Light( Vec3(0,3,3), Vec3(1) ) )
-.background( Vec3(0) )
 .fog( .25, Vec3(0,0,0) )
 .render()
 .camera( 0,0,2.25 )`
@@ -12636,12 +12637,12 @@ __--__--__--__--__--__--__--____ */`
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0) )
  
 march(
-  ry = Rotation(
-    m = Mandelbulb(6.5, Vec3(0,0,.5), mat1 ),
-    Vec3(1,0,0),
-    Math.PI/2.0001
-  ),
-  Plane( Vec3(0,0,1), .5, Material['white glow'] )
+  Mandelbulb( 6.5 )
+    .rotate( 270, 1,0,0 )
+  	.translate( 0,0,.5 )
+    .material( mat1 ),
+ 
+  Plane( Vec3(0,0,1), .5 ).material( 'white glow')
 )
 .light( 
   Light( Vec3(-3,2,4), Vec3(1), .25 ),
@@ -12722,23 +12723,21 @@ march(
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(0),Vec3(1), 16, Vec3(0,.25,4) )
  
 m = march(
-  r = Rotation(
  
-    // a 3D superformula essentially two 2D supershapes,
-    // first six coefficients govern one, second
-    // six coefficients govern the other. In this example
-    // the two supershapes are the same.
- 
-    s = SuperFormula(
-      1, 1, 16, 1, 1, 1,
-      1, 1, 16, 1, 1, 1,
-      Vec3(0,.35,0),
-      mat1
-    ),
-    Vec3(0,.5,0),
-    0
-  ),
-  Plane( Vec3(0,1,0), 1, Material('phong', Vec3(.15), Vec3(1) ) )
+  // a 3D superformula essentially two 2D supershapes,
+  // first six coefficients govern one, second
+  // six coefficients govern the other. In this example
+  // the two supershapes are the same.
+
+  s = SuperFormula(
+    1, 1, 16, 1, 1, 1,
+    1, 1, 16, 1, 1, 1
+  )
+  .translate( 0, .5, 0 )
+  .rotate( 0, 0,1,0 )
+  .material( mat1 ),
+
+  Plane( Vec3(0,1,0), 1 ).material( Material('phong', Vec3(.15), Vec3(1) ) )
 )
 .light( 
   Light( Vec3(0,5,0), Vec3(.25,.25,.5), .5 ),
@@ -12755,7 +12754,7 @@ onframe = time => {
   s.n1_2 = Math.PI + Math.cos( time )
   s.m_1 = Math.sin( time / 2 ) * t
   s.m_2 = Math.cos( time / 2 ) * t
-  r.angle = time / 4
+  s.rotate( time / 4 )
 }
 
 // thanks to https://github.com/Softwave/glsl-superformula`

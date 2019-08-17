@@ -2,6 +2,7 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_ge
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Vec2, Vec3, Vec4 } = require( './vec.js' )
+const Transform = require( './transform.js' )
 
 const createPrimitives = function( SDF ) {
 
@@ -13,7 +14,6 @@ const createPrimitives = function( SDF ) {
     vec4: vec4_var_gen,
   }
 
-
   const vars = { 
     vec2: Vec2,
     vec3: Vec3,
@@ -23,9 +23,7 @@ const createPrimitives = function( SDF ) {
   // load descriptions of all primtives
   const descriptions = require( './primitiveDescriptions.js' )
 
-  const Primitives = {
-    descriptions
-  }
+  const Primitives = { descriptions }
 
   const createPrimitive = function( name, desc ) {
 
@@ -34,7 +32,10 @@ const createPrimitives = function( SDF ) {
     Primitives[ name ] = function( ...args ) {
       const p = Object.create( Primitives[ name ].prototype )
       p.params = params
+      p.transform = Transform()
 
+      p.__material = null
+      
       let count = 0
 
       // wrap each param in a Var object for codegen
@@ -43,8 +44,8 @@ const createPrimitives = function( SDF ) {
           p.color = args[ count ] === undefined ? param.default : args[ count++ ]
           continue
         }else if( param.name === 'material' ) {
-          p.material = args[ count++ ] 
-          p.material = SDF.materials.addMaterial( p.material )
+          //p.material = args[ count++ ] 
+          //p.material = SDF.materials.addMaterial( p.material )
           //if( SDF.materials.materials.indexOf( p.material ) === -1 ) {
           //  console.log( 'pushing material' )
           //  p.material.id = MaterialID.alloc()
@@ -116,18 +117,24 @@ const createPrimitives = function( SDF ) {
         }
       }
 
-      let mat = p.material
-      Object.defineProperty( p, 'material', {
-        configurable:true,
-        get() { return mat },
-        set(v) {
-          mat = SDF.materials.addMaterial( v )
-        }
-      })
+      //let mat = p.material
+      //Object.defineProperty( p, 'material', {
+      //  configurable:true,
+      //  get() { return mat },
+      //  set(v) {
+      //    mat = SDF.materials.addMaterial( v )
+      //  }
+      //})
       // id used for sdf code
       p.id = VarAlloc.alloc()
 
       p.__desc = desc
+      p.__setMaterial = mat => {
+        if( typeof mat === 'string' ) mat = SDF.Material[ mat ]
+        p.__material = SDF.materials.addMaterial( mat )
+      }
+
+      if( p.__material === null ) p.__setMaterial()
 
       return p
     }
@@ -148,10 +155,16 @@ const createPrimitives = function( SDF ) {
 
       const pname = __name === undefined ? 'p' : __name
 
-      const id = SDF.materials.__materials.indexOf( this.material )
+      const id = SDF.materials.__materials.indexOf( this.__material )
+      const s = this.transform.emit_scale()
 
-      const primitive = `        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this, pname )}, ${id} );\n`
+      const primitive = `
+        vec3 _transform${this.id} = ( vec4( ${pname}, 1.) * ${this.transform.emit()} ).xyz;
+        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * ${s}, ${id} );
+      `
 
+      //vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * ${s}, ${id} );
+      //vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * min( ${s}.x, min( ${s}.y, ${s}.z ) ), ${id} );
       SDF.memo[ this.id ] = name + this.id
 
       return { preface:primitive, out:name+this.id  }
@@ -160,6 +173,7 @@ const createPrimitives = function( SDF ) {
     // declare any uniform variables
     Primitives[ name ].prototype.emit_decl = function() {
       let decl = ''
+      decl += this.transform.emit_decl()
       for( let param of params ) {
         if( param.name !== 'material' )
           decl += this[ param.name ].emit_decl()
@@ -175,6 +189,7 @@ const createPrimitives = function( SDF ) {
             this[ param.name ].update_location( gl,program )
         }
       }
+      this.transform.update_location( gl, program )
     }
 
     Primitives[ name ].prototype.upload_data = function( gl ) {
@@ -182,6 +197,7 @@ const createPrimitives = function( SDF ) {
         if( param.type !== 'obj' && param.name !== 'material' )
           this[ param.name ].upload_data( gl )
       }
+      this.transform.upload_data( gl )
     }
     
     return Primitives[ name ]

@@ -17,5 +17,7 @@ The Mandelbulb primitive is taken from [this demo](https://www.shadertoy.com/vie
 
 The Julia fractal primitive is taken from [this demo](https://www.shadertoy.com/view/MsfGRr) by [Inigo Quilez](http://www.iquilezles.org).  
 
-The SuperFormula primitive is taken from [a repo](https://github.com/Softwave/glsl-superformula) by [JC Leyba](http://s0ftwave.com).  
+The SuperFormula primitive is taken from [a repo](https://github.com/Softwave/glsl-superformula) by [JC Leyba](http://s0ftwave.com). 
+
+A [matrix data structure by Evan Wallace](https://github.com/evanw/lightgl.js/).
 

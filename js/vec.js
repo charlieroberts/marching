@@ -1,5 +1,3 @@
-const float = require( './float.js' )
-
 const Vec2 = function (x=0, y=0) {
   const v = Object.create( Vec2.prototype )
   v.x = x; v.y = y

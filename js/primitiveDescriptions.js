@@ -4,12 +4,10 @@ module.exports = {
   Box: {
     parameters:[
       { name:'size', type:'vec3', default:[1,1,1] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-	    return `sdBox( ${pName} - ${this.center.emit()}, ${this.size.emit()} )`;
+	    return `sdBox( ${pName}, ${this.size.emit()} )`;
     },
 
     glslify:glsl`    #pragma glslify: sdBox		= require('glsl-sdf-primitives/sdBox')`
@@ -19,12 +17,10 @@ module.exports = {
   Cone: {
     parameters:[
       { name:'dimensions', type:'vec3', default:[.8,.6,.3] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdCone( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
+      return `sdCone( ${pName}, ${this.dimensions.emit()} )`
     },
     glslify:glsl`    #pragma glslify: sdCone	= require('glsl-sdf-primitives/sdCappedCone')`
   }, 
@@ -32,12 +28,10 @@ module.exports = {
 	Cylinder: {
     parameters:[
       { name:'dimensions', type:'vec2', default:[.8,.6] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdCappedCylinder( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
+      return `sdCappedCylinder( ${pName}, ${this.dimensions.emit()} )`
     },
 
     glslify:`    float sdCappedCylinder( vec3 p, vec2 h ) {
@@ -51,11 +45,10 @@ module.exports = {
       { name:'start', type:'vec3', default:[0,0,0] },
       { name:'end', type:'vec3', default:[.8,1,0] },
       { name:'radius', type:'float', default:.5 },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdCapsule( ${pName},  ${this.start.emit()}, ${this.end.emit()}, ${this.radius.emit()} )`
+      return `sdCapsule( ${pName}, ${this.start.emit()}, ${this.end.emit()}, ${this.radius.emit()} )`
     },
     glslify:glsl`      #pragma glslify: sdCapsule	= require('glsl-sdf-primitives/sdCapsule')`
 
@@ -66,25 +59,21 @@ module.exports = {
  	HexPrism: {
     parameters:[
       { name:'dimensions', type:'vec2', default:[.8,.6] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdHexPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()} )`
+      return `sdHexPrism( ${pName}, ${this.dimensions.emit()} )`
     },
     glslify:glsl`      #pragma glslify: sdHexPrism	= require('glsl-sdf-primitives/sdHexPrism')`
   },
 
   Julia: {
     parameters:[
-      { name:'c0', type:'float', default:0 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
+      { name:'fold', type:'float', default:0 },
     ],
 
     primitiveString( pName ) { 
-      return `julia( ${pName} - ${this.center.emit()}, ${this.c0.emit()} )`
+      return `julia( ${pName}, ${this.fold.emit()} )`
     },
 
     // https://www.shadertoy.com/view/MsfGRr
@@ -120,12 +109,10 @@ module.exports = {
       { name:'radius', type:'float', default:.01 },
       { name:'threshold', type:'float', default:.004 },
       { name:'scale', type:'float', default:2 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `kifs( ${pName} - ${this.center.emit()}, ${this.count.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()}, ${this.scale.emit()} )`
+      return `kifs( ${pName}, ${this.count.emit()}, ${this.fold.emit()}, ${this.radius.emit()}, ${this.threshold.emit()}, ${this.scale.emit()} )`
     },
 
     // adapted from http://roy.red/folding-the-koch-snowflake-.html
@@ -169,12 +156,10 @@ module.exports = {
   Mandelbulb: {
     parameters:[
       { name:'c0', type:'float', default:8 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `mandelbulb( ${pName} - ${this.center.emit()}, ${this.c0.emit()} )`
+      return `mandelbulb( ${pName}, ${this.c0.emit()} )`
     },
 
     // adapted from: https://www.shadertoy.com/view/ltfSWn
@@ -212,8 +197,6 @@ module.exports = {
       { name:'fold', type:'float', default:.1 },
       { name:'scale', type:'float', default:3.},
       { name:'iterations', type:'float', default:5 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     glslify:`float mandelbox( float MR2, float SCALE, float ITER, vec3 position ){
@@ -230,19 +213,17 @@ module.exports = {
   }`,
 
     primitiveString( pName ) {
-      return `mandelbox( ${this.fold.emit()}, ${this.scale.emit()}, ${this.iterations.emit()}, ${pName} - ${this.center.emit()} )`
+      return `mandelbox( ${this.fold.emit()}, ${this.scale.emit()}, ${this.iterations.emit()}, ${pName} )`
     }
   },
 
 	Octahedron: {
     parameters:[
       { name:'radius', type:'float', default:1 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdOctahedron( ${pName} - ${this.center.emit()}, ${this.radius.emit()} )`
+      return `sdOctahedron( ${pName}, ${this.radius.emit()} )`
     },
 
     glslify:`    float sdOctahedron(vec3 p, float h) {
@@ -256,7 +237,6 @@ module.exports = {
     parameters:[
       { name:'normal', type:'vec3', default:[0,1,0] },
       { name:'distance', type:'float', default:1 },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
@@ -272,12 +252,10 @@ module.exports = {
       { name:'v2', type:'vec3', default:[.5,-.5,0] },
       { name:'v3', type:'vec3', default:[.5,.5,0] },
       { name:'v4', type:'vec3', default:[-.5,.5,0] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `udQuad( ${pName} - ${this.center.emit()}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()}, ${this.v4.emit()} )`
+      return `udQuad( ${pName}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()}, ${this.v4.emit()} )`
     },
     glslify:glsl`    #pragma glslify: udQuad		= require('glsl-sdf-primitives/udQuad')`
   }, 
@@ -286,25 +264,20 @@ module.exports = {
     parameters:[
       { name:'size', type:'vec3', default:[1,1,1] },
       { name:'radius', type:'float', default:1 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `udRoundBox( ${pName} -${this.center.emit()}, ${this.size.emit()},  ${this.radius.emit()} )`
+      return `udRoundBox( ${pName}, ${this.size.emit()},  ${this.radius.emit()} )`
     }, 
     glslify:glsl`    #pragma glslify: udRoundBox = require('glsl-sdf-primitives/udRoundBox')`
   }, 
   Sphere:{
     parameters:[
       { name:'radius', type:'float', default:1 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      //{ name:'color', type:'float', default:Color(0,0,255) }
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdSphere( ${pName} - ${this.center.emit()}, ${this.radius.emit()} )`
+      return `sdSphere( ${pName}, ${this.radius.emit()} )`
     },
     glslify:glsl`    #pragma glslify: sdSphere	= require('glsl-sdf-primitives/sdSphere' )`
   },
@@ -323,12 +296,10 @@ module.exports = {
       { name:'n3_2', type:'float', default:1 },
       { name:'a_2', type:'float', default:1 },
       { name:'b_2', type:'float', default:1 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `superformula( ${pName} - ${this.center.emit()}, ${this.m_1.emit()}, ${this.n1_1.emit()},${this.n2_1.emit()},${this.n3_1.emit()},${this.a_1.emit()},${this.b_1.emit()}, ${this.m_2.emit()}, ${this.n1_2.emit()},${this.n2_2.emit()},${this.n3_2.emit()},${this.a_2.emit()},${this.b_2.emit()} )`
+      return `superformula( ${pName}, ${this.m_1.emit()}, ${this.n1_1.emit()},${this.n2_1.emit()},${this.n3_1.emit()},${this.a_1.emit()},${this.b_1.emit()}, ${this.m_2.emit()}, ${this.n1_2.emit()},${this.n2_2.emit()},${this.n3_2.emit()},${this.a_2.emit()},${this.b_2.emit()} )`
     },
     glslify:glsl`    #pragma glslify: SuperFormula	= require( 'glsl-superformula' )
  float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {
@@ -347,12 +318,11 @@ module.exports = {
   Torus:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1] },
-      { name:'center', type:'vec3', default:[0,0,0] },
       { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdTorus( ${pName} - ${this.center.emit()}, ${this.radii.emit()} )`
+      return `sdTorus( ${pName}, ${this.radii.emit()} )`
     },
     glslify:glsl`    #pragma glslify: sdTorus 	= require('glsl-sdf-primitives/sdTorus')`
 
@@ -360,12 +330,10 @@ module.exports = {
   Torus88:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdTorus88( ${pName} - ${this.center.emit()}, ${this.radii.emit()} )`
+      return `sdTorus88( ${pName}, ${this.radii.emit()} )`
     },
     glslify:`float sdTorus88( vec3 p, vec2 t ) {
         vec2 q = vec2( length8( p.xz ) - t.x, p.y );
@@ -375,12 +343,10 @@ module.exports = {
   Torus82:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdTorus82( ${pName} - ${this.center.emit()}, ${this.radii.emit()} )`
+      return `sdTorus82( ${pName}, ${this.radii.emit()} )`
     },
     glslify:`float sdTorus82( vec3 p, vec2 t ) {
         vec2 q = vec2( length( p.xz ) - t.x, p.y );
@@ -392,12 +358,10 @@ module.exports = {
       { name:'v1', type:'vec3', default:[0,-.5,0] },
       { name:'v2', type:'vec3', default:[-.5,.0,0] },
       { name:'v3', type:'vec3', default:[.5,.0,0] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `udTriangle( ${pName} - ${this.center.emit()}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
+      return `udTriangle( ${pName}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
     },
     glslify:glsl`    #pragma glslify: udTriangle	= require('glsl-sdf-primitives/udTriangle')`
   }, 
@@ -405,17 +369,15 @@ module.exports = {
   TriPrism: {
     parameters:[
       { name:'dimensions', type:'vec2', default:[.5,.5] },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 
-      return `sdTriPrism( ${pName} - ${this.center.emit()}, ${this.dimensions.emit()})`
+      return `sdTriPrism( ${pName}, ${this.dimensions.emit()})`
     },
     glslify:glsl`      #pragma glslify: sdTriPrism = require('glsl-sdf-primitives/sdTriPrism')`
 
   }, 
-  VoxelSphere:{
+  /*VoxelSphere:{
     parameters:[
       { name:'radius', type:'float', default:1 },
       { name:'resolution', type:'float', default:20 },
@@ -424,7 +386,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `VoxelSphere( ${pName} - ${this.center.emit()}, ${this.radius.emit()}, ${this.resolution.emit()} )`
+      return `VoxelSphere( ${pName}, ${this.radius.emit()}, ${this.resolution.emit()} )`
     },
     glslify:glsl`float sdBox( vec3 p, vec3 b ){
         vec3 d = abs(p) - b;
@@ -443,6 +405,6 @@ module.exports = {
 
         return dist; 
     }`
-  },
+  },*/
 
 }

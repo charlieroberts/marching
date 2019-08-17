@@ -270,8 +270,6 @@ const SDF = {
     gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
     gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
 
-
-    console.log( 'w:',width, 'h:',height )
     gl.viewport( 0,0,width,height )
     gl.uniform2f( loc_u_resolution, width, height )
 

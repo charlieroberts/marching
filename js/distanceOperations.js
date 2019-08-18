@@ -1,6 +1,7 @@
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
-const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' )
+const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
+const Transform = require( './transform.js' )
 
 const ops = { 
   Union( a,b )        { return `opU( ${a}, ${b} )` },
@@ -26,6 +27,13 @@ const ops = {
   Switch( a,b,c ) { return `( ${c} < .5 ? ${a} : ${b} )` }
 }
 
+const emit_float = function( a ) {
+	if (a % 1 === 0)
+		return a.toFixed( 1 )
+	else
+		return a
+}
+
 const DistanceOps = {}
 
 for( let name in ops ) {
@@ -39,6 +47,9 @@ for( let name in ops ) {
     const op = Object.create( DistanceOps[ name ].prototype )
     op.a = a
     op.b = b
+    op.transform = Transform()
+    op.id = VarAlloc.alloc()
+    op.type = 'domain_op'
 
     let __c = param_wrap( c, float_var_gen(.3) )
 
@@ -89,22 +100,30 @@ for( let name in ops ) {
 
   DistanceOps[ name ].prototype = SceneNode()
 
-  DistanceOps[ name ].prototype.emit = function ( __name ) {
-    const emitterA = this.a.emit( __name )
-    const emitterB = this.b.emit( __name )
+  DistanceOps[ name ].prototype.emit = function ( pname='p' ) {
+
+    const tname = `transformDO${this.id}`
+    const prequel = `        vec3 ${tname} = ( vec4( ${pname}, 1.) * ${this.transform.emit()} ).xyz;\n`
+    const emitterA = this.a.emit( tname )
+    const emitterB = this.b.emit( tname )
     const emitterC = this.c !== undefined ? this.c.emit() : null
     const emitterD = this.d !== undefined ? this.d.emit() : null
+    
+    const body = `
+        vec2 do${this.id} = ${op( emitterA.out, emitterB.out, emitterC, emitterD )};
+        do${this.id}.x *= ${this.transform.emit()}_scale;
+    `
 
     const output = {
-      out: op( emitterA.out, emitterB.out, emitterC, emitterD ), 
-      preface: (emitterA.preface || '') + (emitterB.preface || '')
+      out: 'do'+this.id,
+      preface: prequel + (emitterA.preface || '') + (emitterB.preface || '') + body
     }
 
     return output
   }
 
   DistanceOps[name].prototype.emit_decl = function () {
-    let str =  this.a.emit_decl() + this.b.emit_decl()
+    let str =  this.transform.emit_decl() + this.a.emit_decl() + this.b.emit_decl()
     if( this.c !== undefined ) str += this.c.emit_decl()
     if( this.d !== undefined ) str += this.d.emit_decl()
 
@@ -120,12 +139,14 @@ for( let name in ops ) {
 
   DistanceOps[name].prototype.update_location = function(gl, program) {
     this.a.update_location( gl, program )
+    this.transform.update_location( gl, program )
     this.b.update_location( gl, program )
     if( this.c !== undefined ) this.c.update_location( gl, program )
     if( this.d !== undefined ) this.d.update_location( gl, program )
   }
 
   DistanceOps[name].prototype.upload_data = function(gl) {
+    this.transform.upload_data( gl )
     this.a.upload_data( gl )
     this.b.upload_data( gl )
     if( this.c !== undefined ) this.c.upload_data( gl )

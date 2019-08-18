@@ -26,23 +26,16 @@ in the scene graph.
 ** __--__--__--__--__--__--__--__*/
 
 spongeDesc = {
-  // define our points of interaction. the 
-  // material property should always be the
-  // the final property in the list to ensure
-  // that the correctlighting will be applied 
-  // automatically by marching.js. By convention, 
-  // the center property (the location of the object) 
-  // is always the second to last argument.
-  
+  // 'parameters' define our points of interaction.
   // types are float, int, vec2, vec3, and vec4
   parameters:[
-    { name:'frequency', type:'float', default:5 },
-    { name:'center', type:'vec3', default:[0,0,0] },
-    { name:'material', type:'mat', default:null }
+    { name:'frequency', type:'float', default:5 }
   ],
  
   // this is the primary signed distance function
-  // used by your form.
+  // used by your form. The first argument should 
+  // always be a point you're testing, subsequent
+  // arguments are your parameters.
   glslify:
    \`float sineSponge( vec3 p, float frequency ) {
       p *= frequency;
@@ -53,13 +46,11 @@ spongeDesc = {
   // to your distance function wherever your form is
   // placed in a graph. It is passed the name of
   // the point (of type vec3) that is being sampled
-  // by the ray marcher. You will usually want to 
-  // subtract your center position from this point to
-  // create the appropritate offset. Following passing 
+  // by the ray marcher. Following passing 
   // the point, you will pass each of the input parameters
   // to your signed distance function (in this case, only frequency)
   primitiveString( pName ) { 
-    return \`sineSponge( \${pName} - \${this.center.emit()}, \${this.frequency.emit()} )\`
+    return \`sineSponge( \${pName}, \${this.frequency.emit()} )\`
   }  
 }
  
@@ -67,14 +58,10 @@ spongeDesc = {
 Sponge = Marching.primitives.create( 'Sponge', spongeDesc )
  
 march( 
-  r = Rotation(
-    RoundDifference( 
-      Sphere(2, 0, Material.glue ), 
-      s = Sponge( 5, Vec3(0), Material.glue ),
-      .125   
-    ),
-    Vec3(1,1,1),
-	Math.PI / 10.
+  obj = RoundDifference( 
+    Sphere(2).material('glue'),
+    s = Sponge( 5 ).material('glue'),
+    .125   
   )
 )
 .light(
@@ -84,6 +71,6 @@ march(
 .render(3,true).camera(0,0,5)
  
 onframe = t => {
-  r.angle = t/3
+  obj.rotate( t*10 )
   s.frequency = 10 + sin(t/2) * 5
 }`

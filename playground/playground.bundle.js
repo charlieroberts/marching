@@ -11791,24 +11791,20 @@ this._directMap={};return this};e.prototype.stopCallback=function(a,b){return-1<
 arguments)}}(b))};e.init();p.Mousetrap=e;"undefined"!==typeof module&&module.exports&&(module.exports=e);"function"===typeof define&&define.amd&&define(function(){return e})}})("undefined"!==typeof window?window:null,"undefined"!==typeof window?document:null);
 
 },{}],11:[function(require,module,exports){
-module.exports = `mat1 = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
+module.exports = `Material.default = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
  
 m = march(
   StairsUnion(
     PolarRepeat(
-      Rotation(
-        PolarRepeat(
-          Torus82(null,null,mat1),
-          20,
-          2.75
-        ),
-        Vec3( 1,0,0 ),
-        Math.PI / 2
-      ),
+      PolarRepeat(
+        Torus82(),
+        20,
+        2.75
+      ).rotate(90, 1,0,0 ),
       25,
       2
     ),
-    Plane( Vec3(0,.5,0), null, mat1 ),
+    Plane( Vec3(0,.5,0) ),
     .25
   )
 )
@@ -11837,16 +11833,13 @@ __--__--__--__--__--__--__--____ */
 
 // create a scene to play with
 march(
-  rot = Rotation(
-    StairsIntersection(
-      Sphere(2, null, Material.white),
-      repeat = Repeat(
-        sphere = Sphere(.125),
-        Vec3(.25)
-      ),
-      .125
+  si = StairsIntersection(
+    Sphere(2).material( 'white' ),
+    repeat = Repeat(
+      sphere = Sphere(.125),
+      Vec3(.5)
     ),
-    Vec3(1)
+    .125
   )
 ).render( 4, true )
  
@@ -11855,7 +11848,7 @@ FFT.start()
  
 // animate
 onframe = time => {
-  rot.angle = time / 4
+  si.rotate( time * 15 )
   
   // our FFT object has low,mid, and high
   // properties that we can assign to elements
@@ -11865,6 +11858,9 @@ onframe = time => {
   repeat.distance.z = FFT.high
   sphere.radius = FFT.mid * FFT.high
 }
+
+si.d = 4
+si.c = .5
 
 /* __--__--__--__--__--__--__--____
 increasing the window size (how many samples 
@@ -11899,19 +11895,16 @@ onframe = t => s.c = t/2 % 1
 
 // extending our first example with Switch...
 march(
-  rot = Rotation(
-    StairsIntersection(
-      swt = Switch( 
-        s = Sphere(2, null, Material.red),
-        b = Box(Vec3(1.75), null, Material.white )
-      ),
-      repeat = Repeat(
-        sphere = Sphere(.125),
-        Vec3(.25)
-      ),
-      .125/2
+  si = StairsIntersection(
+    swt = Switch( 
+      s = Sphere(2).material('red'),
+      b = Box(1.75).material('white')
     ),
-    Vec3(1)
+    repeat = Repeat(
+      sphere = Sphere(.125),
+      Vec3(.25)
+    ),
+    .125/2
   ),
   Plane( Vec3(0,1,0), 1.35 )
 )
@@ -11919,7 +11912,7 @@ march(
 .render( 4, true )
  
 onframe = t => {
-  rot.angle = t / 4
+  si.rotate( t * 15 )
   // try scaling the FFT results
   // by different values to control
   // the switch effect
@@ -11931,7 +11924,7 @@ onframe = t => {
   // scale both our sphere and our box on every
   // frame, since we don't know which will be active
   s.radius = fft
-  b.size = Vec3( fft * .75 )
+  b.size = fft * .75
   
   sphere.radius = FFT.high / 2 
 }`
@@ -11965,23 +11958,16 @@ in the scene graph.
 ** __--__--__--__--__--__--__--__*/
 
 spongeDesc = {
-  // define our points of interaction. the 
-  // material property should always be the
-  // the final property in the list to ensure
-  // that the correctlighting will be applied 
-  // automatically by marching.js. By convention, 
-  // the center property (the location of the object) 
-  // is always the second to last argument.
-  
+  // 'parameters' define our points of interaction.
   // types are float, int, vec2, vec3, and vec4
   parameters:[
-    { name:'frequency', type:'float', default:5 },
-    { name:'center', type:'vec3', default:[0,0,0] },
-    { name:'material', type:'mat', default:null }
+    { name:'frequency', type:'float', default:5 }
   ],
  
   // this is the primary signed distance function
-  // used by your form.
+  // used by your form. The first argument should 
+  // always be a point you're testing, subsequent
+  // arguments are your parameters.
   glslify:
    \`float sineSponge( vec3 p, float frequency ) {
       p *= frequency;
@@ -11992,13 +11978,11 @@ spongeDesc = {
   // to your distance function wherever your form is
   // placed in a graph. It is passed the name of
   // the point (of type vec3) that is being sampled
-  // by the ray marcher. You will usually want to 
-  // subtract your center position from this point to
-  // create the appropritate offset. Following passing 
+  // by the ray marcher. Following passing 
   // the point, you will pass each of the input parameters
   // to your signed distance function (in this case, only frequency)
   primitiveString( pName ) { 
-    return \`sineSponge( \${pName} - \${this.center.emit()}, \${this.frequency.emit()} )\`
+    return \`sineSponge( \${pName}, \${this.frequency.emit()} )\`
   }  
 }
  
@@ -12006,14 +11990,10 @@ spongeDesc = {
 Sponge = Marching.primitives.create( 'Sponge', spongeDesc )
  
 march( 
-  r = Rotation(
-    RoundDifference( 
-      Sphere(2, 0, Material.glue ), 
-      s = Sponge( 5, Vec3(0), Material.glue ),
-      .125   
-    ),
-    Vec3(1,1,1),
-	Math.PI / 10.
+  obj = RoundDifference( 
+    Sphere(2).material('glue'),
+    s = Sponge( 5 ).material('glue'),
+    .125   
   )
 )
 .light(
@@ -12023,7 +12003,7 @@ march(
 .render(3,true).camera(0,0,5)
  
 onframe = t => {
-  r.angle = t/3
+  obj.rotate( t*10 )
   s.frequency = 10 + sin(t/2) * 5
 }`
 
@@ -12048,8 +12028,8 @@ what it looks like.
 ** __--__--__--__--__--__--__--__*/
 
 roundedSphere = Intersection(
-  Box( Vec3(.775), Vec3(0), Material.red ),
-  Sphere( 1, Vec3(0), Material.blue )
+  Box( .775 ).material( 'red' ),
+  Sphere( 1 ).material( 'blue' )
 )
  
 march( roundedSphere ).render()
@@ -12063,17 +12043,15 @@ let's rotate it along two axes.
 ** __--__--__--__--__--__--__--__*/
 
 roundedSphere = Intersection(
-  Box( Vec3(.775), Vec3(0), Material.red ),
-  Sphere( 1, Vec3(0), Material.blue )
+  Box( .775 ).material( 'red' ),
+  Sphere( 1 ).material( 'blue' )
 )
  
-march(
-  Rotation(
-    roundedSphere,
-    Vec3(1,1,0),
-    Math.PI / -4
-  )
-).render()
+// rotate() takes an angle followed by
+// x,y, and z axis for rotation
+roundedSphere.rotate( 45, 1,1,0 )
+ 
+march( roundedSphere ).render()
 
 /* __--__--__--__--__--__--__--__--
 
@@ -12091,19 +12069,16 @@ combine two).
 
 crossRadius = .5
 crossHeight = 1
+dimensions = Vec2(crossRadius, crossHeight )
  
 cross = Union2(
-  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(0,0,1),
-    Math.PI / 2
-  ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(1,0,0 ),
-    Math.PI / 2
-  )
+  Cylinder( dimensions ).material( 'green' ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 0,0,1 ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 1,0,0 )
 )
  
 march( cross ).render()
@@ -12120,89 +12095,106 @@ angles.
 ** __--__--__--__--__--__--__--__*/
 
 roundedSphere = Intersection(
-  Box( Vec3(.775), Vec3(0), Material.red ),
-  Sphere( 1, Vec3(0), Material.blue )
+  Box( .775 ).material( 'red' ),
+  Sphere( 1 ).material( 'blue' )
 )
  
 crossRadius = .5
 crossHeight = 1
+dimensions = Vec2(crossRadius, crossHeight )
   
 cross = Union2(
-  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(0,0,1),
-    Math.PI / 2
-  ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(1,0,0 ),
-    Math.PI / 2
-  )
+  Cylinder( dimensions ).material( 'green' ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 0,0,1 ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 1,0,0 )
 )
  
 march(
-  r = Rotation(
-    Difference(
-      roundedSphere,
-      cross
-    ),
-    Vec3(1,.5,0),
-    Math.PI / 4
-  )
+  obj = Difference(
+    roundedSphere,
+    cross
+  ).rotate( 45, 1,.5,0 )
 )
 .render( 3, true )
  
-callbacks.push( t => r.angle = t )`
+callbacks.push( t => obj.rotate( t * 25 ) )`
 
 },{}],15:[function(require,module,exports){
-module.exports = `T = Translate, R = Rotation, v3 = Vec3, v2 = Vec2
+module.exports = `v3 = Vec3, v2 = Vec2
 
-mat1 = Material( 'phong', v3(.05),v3(1),v3(.5))
-// Torus: Vec2 radius(outer,inner), center, material
-torus   = T( R( Torus( v2(.5,.05), v3(0), mat1 ),  v3(1,0,0,), Math.PI / 2 ), v3(-2,1.5,0) )
+mat1 = Material( 'phong', .05, 1, .5 )
+
+// Torus: Vec2 radius(outer,inner)
+torus = Torus( v2(.5,.1) )
+  .move( -2.25,1.5  )
+  .rotate( 90, 1,0,0 )
+  .material( mat1 )
   
-// Torus82: Vec2 radius, center, material
-torus82 = T( R( Torus82(null,null,mat1), v3(1,0,0,), Math.PI / 2 ), v3(-.75,1.5,0) )
+// Torus82: Vec2 radius
+torus82 = Torus82()
+  .move( -.75,1.5,0 )
+  .rotate( 90, 1,0,0 )
+  .material( mat1 )
   
-// Torus88: Vec2 radius, center, material
-torus88 = T( R( Torus88(null,null,mat1), v3(1,0,0,), Math.PI / 2 ), v3(.5,1.5,0) )
+// Torus88: Vec2 radius
+torus88 = Torus88()
+  .move( .6,1.5,0 )
+  .rotate( 90, 1,0,0 )
+  .material( mat1 )
   
-// Sphere: float radius, center, material
-sphere  = Sphere(.65, v3(2,1.5,0), mat1 )
+// Sphere: float radius
+sphere  = Sphere(.65)
+  .move( 2.25,1.5,0 )
+  .material( mat1 )
  
+// Box: Vec3 size
+box = Box( .5 )
+  .move( -2,0,0 )
+  .material( mat1 )
  
+// Cylinder: Vec2( radius, height )
+cylinder = Cylinder( v2(.35,.5) )
+  .move( -.75,0,0 )
+  .material( mat1 )
  
-// Box: Vec3 size, center, material
-box     = Box( v3(.5), v3(-2,0,0), mat1 )
+// Cone: Vec3 dimensions
+cone = Cone( v3(.1, .075, .925) )
+  .move( .6,.45,0 )
+  .material( mat1 )
  
-// Cylinder: Vec2( radius, height ), center, material
-cylinder = Cylinder( v2(.35,.5), v3(-.75,0,0), mat1 )
+// Octahedron: float size
+octahedron = Octahedron( .65 )
+  .move(2.25,0,0)
+  .material( mat1 )
  
-// Cone: Vec3 dimensions, center, material
-cone    = Cone( v3(.1, .075, .825) , v3(.5,.3,0), mat1 )
+// HexPrism: Vec2 size(radius, depth)
+hexPrism = HexPrism( v2(.6,.45) )
+  .move( -2,-1.5,0 )
+  .material( mat1 )
  
-// Capsule: Vec3 start, Vec3 end, float radius, material
-capsule = T( Capsule( v3( 0, -.45, 0), v3(0,.45,0), .15, mat1 ), v3(2,0,0) )
+// TriPrism: Vec2 size(radius, depth)
+triPrism = TriPrism( v2(.85,.3) )
+  .move( -.5,-1.75,0 )
+  .material( mat1 )
  
+// RoundBox: Vec3 size, roundness
+roundBox = RoundBox( v3(.45), .15 )
+  .move( 1.15,-1.5,0 )
+  .material( mat1 )
  
-// HexPrism: Vec2 size(radius, depth), center, material
-hexPrism = HexPrism( v2(.6,.45), v3(-2,-1.5,0), mat1 )
- 
-// TriPrism: Vec2 size(radius, depth), center, material
-triPrism = TriPrism( v2(.85,.3), v3(-.75,-1.75,0), mat1 )
- 
-// RoundBox: Vec3 size, roundness, center, material
-roundBox = RoundBox( v3(.45), .15 ,v3(1,-1.5,0), mat1 )
- 
-// Octahedron: float size, center, material
-octahedron = Octahedron( .65 , v3(2.75,-2.25,0), mat1 )
- 
+// Capsule: Vec3 start, Vec3 end, float radius
+capsule = Capsule( v3( 0, -.55, 0), v3(0,.4,0), .25 )
+  .move( 2.5,-1.5, 0 )
+  .material( mat1 )
  
  
 mat = Material( 'phong', v3(0), v3(.1), v3(.25) )
-// Plane: Vec3 normal, float distance, material
-plane = Plane( v3(0,0,1), 1, mat )
+// Plane: Vec3 normal, float distance
+plane = Plane( v3(0,0,1), 1).material( mat )
  
 march(
   torus, torus82, torus88, sphere,
@@ -12211,33 +12203,31 @@ march(
   plane
 )
 .light( 
-  Light( Vec3(0,0,5), Vec3(1), .2 ),
-  //Light( Vec3(2,0,5), Vec3(1,1,1), .25 )  
+  Light( Vec3(0,0,5), Vec3(1), .2 )
 ) 
 .render()
 .camera( 0,0, 6 )`
 
 },{}],16:[function(require,module,exports){
-module.exports = `repeatedSpheres = Repeat( 
-  Sphere( .14 ), 
-  Vec3( .25 ) 
-)
- 
-march(
-  Intersection(
+module.exports = `march(
+  StairsDifference(
     Sphere(2),
-	repeatedSpheres
-  )
+    Repeat( Sphere( .1 ), .25 ),
+    .25,
+    10
+  ),
+  Plane()
 )
-.light( Light( Vec3(0), Vec3(2) ) )
+.fog( .1, Vec3(0,0,.25) )
+.background( Vec3(0,0,.25) )
 .render()
 
 /* __--__--__--__--__--__--__--____
-                                   
+                                    
 select code and hit ctrl+enter to  
-execute. alt+enter (option+enter on
-a mac) executes a block of code. 
-ctrl+shift+g toggles hiding
+execute. alt+enter (option+enter on 
+a mac) executes a block of code.   
+ctrl+shift+g toggles hiding         
 the gui/code. try the other demos  
 using the menu in the upper left    
 corner. when you're ready to start 
@@ -12246,18 +12236,18 @@ found in the same menu. Click on
 the ? button for a reference.       
                                    
 For a nice intro on ray marching and
-signed distance functions, which are
-the techniques used by marching.js,
-see:                                
-                                   
-https://bit.ly/2qRMrpe              
-
-Finally, if you'd prefer to work
-outside of the browser, try the
-Atom plugin for marching.js:
-
+signed distance functions,which are
+the techniques used by marching.js, 
+see:                               
+                                    
+https://bit.ly/2qRMrpe             
+                                    
+Finally, if you'd prefer to work   
+outside of the browser, try the     
+Atom plugin for marching.js:       
+                                    
 https://atom.io/packages/atom-marching
-                                   
+                                    
 ** __--__--__--__--__--__--__--__*/`
 
 },{}],17:[function(require,module,exports){
@@ -12296,8 +12286,10 @@ its color.
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0) ),
-  Sphere( 1, Vec3(1,0,0), Material.normal ),
+  Sphere( 1 ).translate(-1.25),
+  Sphere( 1 )
+    .translate(1,0,0)
+    .material( 'normal' ),
   Plane()
 )
 .render()
@@ -12315,9 +12307,13 @@ colors.
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
-  Sphere( 1, Vec3(1,0,0), Material.red ),
-  Plane(  null, null, Material.yellow )
+  Sphere( 1 )
+  	.translate( -1.25 )
+  	.material( 'green' ),
+  Sphere( 1 )
+  	.translate(1)
+  	.material( 'red' ),
+  Plane().material( 'yellow' )
 )
 .render()
 
@@ -12334,9 +12330,13 @@ black (magenta light contains no green).
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
-  Sphere( 1, Vec3(1,0,0), Material.red ),
-  Plane(  null, null, Material.yellow )
+  Sphere( 1 )
+  	.translate( -1.25 )
+  	.material( 'green' ),
+  Sphere( 1 )
+  	.translate(1)
+  	.material( 'red' ),
+  Plane().material( 'yellow' )
 )
 .light( Light( Vec3(2,2,3), Vec3(1,0,1) ) )
 .render()
@@ -12359,8 +12359,8 @@ center.
 
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
 march(
-  Sphere( 1, Vec3(0), mat1 ),
-  Plane(  null, null, mat1 )
+  Sphere( 1 ).material( mat1 ),
+  Plane().material( mat1 )
 )
 .light( Light( Vec3(2,2,3), Vec3(1) ) )
 .render()
@@ -12388,8 +12388,8 @@ and power.
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,50,5) )
 mat2 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
 march(
-  Sphere( 1, Vec3(0), mat1 ),
-  Plane(  null, null, mat2 )
+  Sphere( 1 ).material( mat1 ),
+  Plane().material( mat2 )
 )
 .light( Light( Vec3(2,2,3), Vec3(1) ) )
 .render()
@@ -12406,8 +12406,8 @@ realtime work.
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,50,5) )
 mat2 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
 march(
-  Sphere( 1, Vec3(0), mat1 ),
-  Plane(  null, null, mat2 )
+  Sphere( 1 ).material( mat1 ),
+  Plane().material( mat2 )
 )
 .light( 
   Light( Vec3(2,2,3), Vec3(1) ),
@@ -12430,9 +12430,13 @@ color for the scene.
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
-  Sphere( 1, Vec3(1,0,0), Material.red ),
-  Plane(  null, null, Material.yellow )
+  Sphere()
+  	.translate(-1.25,0,0)
+  	.material( 'green' ),
+  Sphere()
+  	.translate(1)
+  	.material( 'red' ),
+  Plane().material( 'yellow' )
 )
 .background( Vec3(0,0,.5) )
 .fog( .125, Vec3(0,0,.5) )
@@ -12450,7 +12454,7 @@ the fog and run it again.
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,4,1) )
 march(
   Repeat(
-    Sphere( .25, Vec3(0), mat1 ),
+    Sphere( .25 ).material( mat1 ),
     Vec3( .75)
   )
 )
@@ -12479,8 +12483,10 @@ values to the shadow method below.
 
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(0,1,2) )
 march(
-  Box( Vec3(.75), Vec3(0,.25,1), mat1 ),
-  Plane(  null, null, mat1 )
+  Box( .75 )
+  	.translate( 0,.25,1 )
+    .material( mat1 ),
+  Plane().material( mat1 )
 )
 .light( Light( Vec3(-1,2,2), Vec3(1) ) )
 .shadow(2)
@@ -12654,47 +12660,38 @@ march(
 },{}],21:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
+Material.default = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
+ 
 const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
-      grey =  Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
       a = .45, b = .25 // for side bands on drum
  
 stick = ()=> {
   return Union(
     Groove(
-      Cylinder( Vec2(.2,2.5), Vec3(.5,4.5,-.5), grey ),     
+      Cylinder( Vec2(.2,2.5), Vec3(.5,4.5,-.5) ).move( .5,4.5,-.5 ),
       Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), 1 ),
       .08
     ),
-    Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), .175, grey )
+    Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), .175 )
   )
 }
-  
-stickL = Translate(
-  Rotation(
-    stick(),
-    Vec3(0,0,1),
-    Math.PI / 3
-  ),
-  Vec3(-1.5,.25,0)
-)
  
-stickR = Translate(
-  Rotation(
-    stick(),
-    Vec3(0,.75,.5),
-    Math.PI / 3
-  ),
-  Vec3(-2.05,.0,-.5)
-)
+stickL = stick()
+  .rotate( 300, 0,0,1 )
+  .move( -1.5,.25, 0 )
+ 
+stickR = stick()
+  .rotate( 300, 0,.75,.5 )
+  .move( -2.05,.0, -.5 )
  
 drum = RoundUnion(
   Union2(
     ChamferDifference(
-      Cylinder( Vec2(2.25, .45), null, grey ),
-      Cylinder( Vec2(2,.4), null, grey ),
+      Cylinder( Vec2(2.25, .45) ),
+      Cylinder( Vec2(2,.4) ),
       .1
     ),
-    Cylinder( Vec2(2,.3), null, white )
+    Cylinder( Vec2(2,.3) ).material( white )
   ),
   PolarRepeat(
     Quad( Vec3(0,-a,-b), Vec3(0,-a,0), Vec3(0,a,b), Vec3(0,a,0), Vec3(0) ),
@@ -12705,11 +12702,7 @@ drum = RoundUnion(
 )
  
 march(
-  Rotation(
-    drum,   
-    Vec3(1,1,0),
-    -1
-  ),
+  drum.rotate( 60, 1,1,0 ),
   stickL,
   stickR
 )
@@ -12754,7 +12747,7 @@ onframe = time => {
   s.n1_2 = Math.PI + Math.cos( time )
   s.m_1 = Math.sin( time / 2 ) * t
   s.m_2 = Math.cos( time / 2 ) * t
-  s.rotate( time / 4 )
+  s.rotate( time * 10 )
 }
 
 // thanks to https://github.com/Softwave/glsl-superformula`
@@ -12776,7 +12769,6 @@ ctrl+. (period) to clear graphics.
 sphere1 = Sphere()
  
 march( sphere1 )
-  .farPlane(10)
   .render( 2, true )
 
 /* __--__--__--__--__--__--__--__--
@@ -12793,15 +12785,11 @@ sphere1.radius = 1.25
 
 /* __--__--__--__--__--__--__--__--
                                     
-or its center point...note that the
-center point is a three-item vector 
-(for x,y, and z position), whereas 
-radius was a single float.          
+or change its position...        
                                    
 ** __--__--__--__--__--__--__--__*/
 
-sphere1.center.x = .5
-sphere1.center.y = -.5
+sphere1.move( .5, -.5 )
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -12828,8 +12816,11 @@ position.
 ** __--__--__--__--__--__--__--__*/
 
 onframe = time => {
-  sphere1.center.z = -2 + Math.sin( time/2 ) * 2
-  sphere1.center.x = Math.sin( time ) * 4
+  sphere1.move( 
+    Math.sin( time/2 ) * 2,
+    null,
+    Math.sin( time ) * 4
+  )
 }
 
 /* __--__--__--__--__--__--__--__--
@@ -12882,7 +12873,7 @@ repetitions are.
 march(  
   Repeat( 
     Sphere( .25 ),
-    Vec3( 1 )
+    1
   ) 
 ) 
 .render()
@@ -12903,7 +12894,7 @@ box3 = Box( Vec3( .35 ) )
 sphereBox = SmoothUnion( sphere3, box3, .9 )
  
 march(  
-  Repeat( sphereBox, Vec3( 2,2,2 ) )
+  Repeat( sphereBox, 2 )
 ) 
 .render( 3, true )
  
@@ -12942,19 +12933,17 @@ march(
 
 
 },{}],24:[function(require,module,exports){
-module.exports =`m = march(
+module.exports =`Material.default = Material.grey
+
+m = march(
   StairsUnion(
     Repeat(
       t = Twist(
-        Rotation(
-          PolarRepeat(
-            Cylinder( Vec2(.025,2.75) ),
-            10,
-            .25
-          ),
-          Vec3(1,0,0),
-          Math.PI / 2
-        ),
+        PolarRepeat(
+          Cylinder( Vec2(.025,2.75) ),
+          10,
+          .25
+        ).rotate( 270, 1,0,0 ),
         Vec3(0)
       ),
       Vec3(2.5,0,0)

@@ -1,4 +1,5 @@
 const { param_wrap, MaterialID } = require( './utils.js' )
+const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const Matrix = require( './external/matrix.js' )
 
 const MatrixWrap = function () {
@@ -124,7 +125,7 @@ const MatrixWrap = function () {
     },
   })
 
-  m.__id   = MaterialID.alloc()  
+  m.__id   = VarAlloc.alloc()  
   m.__data = Matrix.identity()
   m.__dirty = function() {}
   m.varName = 'transform' + m.__id

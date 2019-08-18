@@ -21,8 +21,10 @@ its color.
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0) ),
-  Sphere( 1, Vec3(1,0,0), Material.normal ),
+  Sphere( 1 ).translate(-1.25),
+  Sphere( 1 )
+    .translate(1,0,0)
+    .material( 'normal' ),
   Plane()
 )
 .render()
@@ -40,9 +42,13 @@ colors.
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
-  Sphere( 1, Vec3(1,0,0), Material.red ),
-  Plane(  null, null, Material.yellow )
+  Sphere( 1 )
+  	.translate( -1.25 )
+  	.material( 'green' ),
+  Sphere( 1 )
+  	.translate(1)
+  	.material( 'red' ),
+  Plane().material( 'yellow' )
 )
 .render()
 
@@ -59,9 +65,13 @@ black (magenta light contains no green).
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
-  Sphere( 1, Vec3(1,0,0), Material.red ),
-  Plane(  null, null, Material.yellow )
+  Sphere( 1 )
+  	.translate( -1.25 )
+  	.material( 'green' ),
+  Sphere( 1 )
+  	.translate(1)
+  	.material( 'red' ),
+  Plane().material( 'yellow' )
 )
 .light( Light( Vec3(2,2,3), Vec3(1,0,1) ) )
 .render()
@@ -84,8 +94,8 @@ center.
 
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
 march(
-  Sphere( 1, Vec3(0), mat1 ),
-  Plane(  null, null, mat1 )
+  Sphere( 1 ).material( mat1 ),
+  Plane().material( mat1 )
 )
 .light( Light( Vec3(2,2,3), Vec3(1) ) )
 .render()
@@ -113,8 +123,8 @@ and power.
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,50,5) )
 mat2 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
 march(
-  Sphere( 1, Vec3(0), mat1 ),
-  Plane(  null, null, mat2 )
+  Sphere( 1 ).material( mat1 ),
+  Plane().material( mat2 )
 )
 .light( Light( Vec3(2,2,3), Vec3(1) ) )
 .render()
@@ -131,8 +141,8 @@ realtime work.
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,50,5) )
 mat2 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8 )
 march(
-  Sphere( 1, Vec3(0), mat1 ),
-  Plane(  null, null, mat2 )
+  Sphere( 1 ).material( mat1 ),
+  Plane().material( mat2 )
 )
 .light( 
   Light( Vec3(2,2,3), Vec3(1) ),
@@ -155,9 +165,13 @@ color for the scene.
 ** __--__--__--__--__--__--__--__*/
 
 march(
-  Sphere( 1, Vec3(-1.25,0,0), Material.green ),
-  Sphere( 1, Vec3(1,0,0), Material.red ),
-  Plane(  null, null, Material.yellow )
+  Sphere()
+  	.translate(-1.25,0,0)
+  	.material( 'green' ),
+  Sphere()
+  	.translate(1)
+  	.material( 'red' ),
+  Plane().material( 'yellow' )
 )
 .background( Vec3(0,0,.5) )
 .fog( .125, Vec3(0,0,.5) )
@@ -175,7 +189,7 @@ the fog and run it again.
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(1,4,1) )
 march(
   Repeat(
-    Sphere( .25, Vec3(0), mat1 ),
+    Sphere( .25 ).material( mat1 ),
     Vec3( .75)
   )
 )
@@ -204,8 +218,10 @@ values to the shadow method below.
 
 mat1 = Material( 'phong', Vec3(.05), Vec3(.5), Vec3(1), 8, Vec3(0,1,2) )
 march(
-  Box( Vec3(.75), Vec3(0,.25,1), mat1 ),
-  Plane(  null, null, mat1 )
+  Box( .75 )
+  	.translate( 0,.25,1 )
+    .material( mat1 ),
+  Plane().material( mat1 )
 )
 .light( Light( Vec3(-1,2,2), Vec3(1) ) )
 .shadow(2)

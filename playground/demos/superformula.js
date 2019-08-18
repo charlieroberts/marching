@@ -32,7 +32,7 @@ onframe = time => {
   s.n1_2 = Math.PI + Math.cos( time )
   s.m_1 = Math.sin( time / 2 ) * t
   s.m_2 = Math.cos( time / 2 ) * t
-  s.rotate( time / 4 )
+  s.rotate( time * 10 )
 }
 
 // thanks to https://github.com/Softwave/glsl-superformula`

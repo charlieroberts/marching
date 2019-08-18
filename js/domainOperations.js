@@ -2,6 +2,7 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_ge
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Vec2, Vec3, Vec4 } = require( './vec.js' )
+const Transform = require( './transform.js' )
 
 const descriptions = {
   Elongation: {
@@ -31,7 +32,9 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
-      let preface =`        vec3 ${pName} = polarRepeat( ${name}, ${this.count.emit() } ); 
+      let preface =`
+          vec3 _transform${pName} = ( vec4( ${name}, 1.) * ${this.transform.emit()} ).xyz;
+          vec3 ${pName} = polarRepeat( _transform${pName}, ${this.count.emit() } ); 
           ${pName} -= vec3(${this.distance.emit()},0.,0.);\n`
 
       const sdf = this.sdf.emit( pName )
@@ -44,11 +47,14 @@ const descriptions = {
   Repetition: {
     parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
-      const pId = this.sdf.matId
+      const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
-      let preface =`        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
+      let preface =`
+        vec3 _transform${pName} = ( vec4( ${name}, 1.) * ${this.transform.emit()} ).xyz;
+        vec3 ${pName} = mod( _transform${pName}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
 
+      //vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
       const sdf = this.sdf.emit( pName )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
@@ -173,6 +179,7 @@ const getDomainOps = function( SDF ) {
       const op = Object.create( ops[ key ].prototype )
       op.sdf = sdf
       op.parameters = []
+      op.transform = Transform()
 
       let count = 0
       for( let prop of opDesc.parameters ) {
@@ -281,6 +288,7 @@ const getDomainOps = function( SDF ) {
     ops[ key ].prototype.emit = opDesc.emit
     ops[ key ].prototype.emit_decl = function() {
       let decl = ''
+      decl += this.transform.emit_decl()
       for( let param of this.parameters ) {
         decl += this[ param.name ].emit_decl() 
       }
@@ -298,10 +306,12 @@ const getDomainOps = function( SDF ) {
     ops[ key ].prototype.update_location = function( gl, program ) {
       for( let param of this.parameters ) this[ param.name ].update_location( gl, program)
       this.sdf.update_location( gl, program )
+      this.transform.update_location( gl, program )
     }
     ops[ key ].prototype.upload_data = function( gl ) {
       for( let param of this.parameters ) this[ param.name ].upload_data( gl )
       this.sdf.upload_data( gl )
+      this.transform.upload_data( gl )
     }
   }
   

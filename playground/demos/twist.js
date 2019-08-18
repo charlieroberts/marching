@@ -1,16 +1,14 @@
-module.exports =`m = march(
+module.exports =`Material.default = Material.grey
+
+m = march(
   StairsUnion(
     Repeat(
       t = Twist(
-        Rotation(
-          PolarRepeat(
-            Cylinder( Vec2(.025,2.75) ),
-            10,
-            .25
-          ),
-          Vec3(1,0,0),
-          Math.PI / 2
-        ),
+        PolarRepeat(
+          Cylinder( Vec2(.025,2.75) ),
+          10,
+          .25
+        ).rotate( 270, 1,0,0 ),
         Vec3(0)
       ),
       Vec3(2.5,0,0)

@@ -17,16 +17,13 @@ __--__--__--__--__--__--__--____ */
 
 // create a scene to play with
 march(
-  rot = Rotation(
-    StairsIntersection(
-      Sphere(2, null, Material.white),
-      repeat = Repeat(
-        sphere = Sphere(.125),
-        Vec3(.25)
-      ),
-      .125
+  si = StairsIntersection(
+    Sphere(2).material( 'white' ),
+    repeat = Repeat(
+      sphere = Sphere(.125),
+      Vec3(.5)
     ),
-    Vec3(1)
+    .125
   )
 ).render( 4, true )
  
@@ -35,7 +32,7 @@ FFT.start()
  
 // animate
 onframe = time => {
-  rot.angle = time / 4
+  si.rotate( time * 15 )
   
   // our FFT object has low,mid, and high
   // properties that we can assign to elements
@@ -45,6 +42,9 @@ onframe = time => {
   repeat.distance.z = FFT.high
   sphere.radius = FFT.mid * FFT.high
 }
+
+si.d = 4
+si.c = .5
 
 /* __--__--__--__--__--__--__--____
 increasing the window size (how many samples 
@@ -79,19 +79,16 @@ onframe = t => s.c = t/2 % 1
 
 // extending our first example with Switch...
 march(
-  rot = Rotation(
-    StairsIntersection(
-      swt = Switch( 
-        s = Sphere(2, null, Material.red),
-        b = Box(Vec3(1.75), null, Material.white )
-      ),
-      repeat = Repeat(
-        sphere = Sphere(.125),
-        Vec3(.25)
-      ),
-      .125/2
+  si = StairsIntersection(
+    swt = Switch( 
+      s = Sphere(2).material('red'),
+      b = Box(1.75).material('white')
     ),
-    Vec3(1)
+    repeat = Repeat(
+      sphere = Sphere(.125),
+      Vec3(.25)
+    ),
+    .125/2
   ),
   Plane( Vec3(0,1,0), 1.35 )
 )
@@ -99,7 +96,7 @@ march(
 .render( 4, true )
  
 onframe = t => {
-  rot.angle = t / 4
+  si.rotate( t * 15 )
   // try scaling the FFT results
   // by different values to control
   // the switch effect
@@ -111,7 +108,7 @@ onframe = t => {
   // scale both our sphere and our box on every
   // frame, since we don't know which will be active
   s.radius = fft
-  b.size = Vec3( fft * .75 )
+  b.size = fft * .75
   
   sphere.radius = FFT.high / 2 
 }`

@@ -14,7 +14,6 @@ ctrl+. (period) to clear graphics.
 sphere1 = Sphere()
  
 march( sphere1 )
-  .farPlane(10)
   .render( 2, true )
 
 /* __--__--__--__--__--__--__--__--
@@ -31,15 +30,11 @@ sphere1.radius = 1.25
 
 /* __--__--__--__--__--__--__--__--
                                     
-or its center point...note that the
-center point is a three-item vector 
-(for x,y, and z position), whereas 
-radius was a single float.          
+or change its position...        
                                    
 ** __--__--__--__--__--__--__--__*/
 
-sphere1.center.x = .5
-sphere1.center.y = -.5
+sphere1.move( .5, -.5 )
 
 /* __--__--__--__--__--__--__--__--
                                     
@@ -66,8 +61,11 @@ position.
 ** __--__--__--__--__--__--__--__*/
 
 onframe = time => {
-  sphere1.center.z = -2 + Math.sin( time/2 ) * 2
-  sphere1.center.x = Math.sin( time ) * 4
+  sphere1.move( 
+    Math.sin( time/2 ) * 2,
+    null,
+    Math.sin( time ) * 4
+  )
 }
 
 /* __--__--__--__--__--__--__--__--
@@ -120,7 +118,7 @@ repetitions are.
 march(  
   Repeat( 
     Sphere( .25 ),
-    Vec3( 1 )
+    1
   ) 
 ) 
 .render()
@@ -141,7 +139,7 @@ box3 = Box( Vec3( .35 ) )
 sphereBox = SmoothUnion( sphere3, box3, .9 )
  
 march(  
-  Repeat( sphereBox, Vec3( 2,2,2 ) )
+  Repeat( sphereBox, 2 )
 ) 
 .render( 3, true )
  

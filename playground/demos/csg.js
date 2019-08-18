@@ -18,8 +18,8 @@ what it looks like.
 ** __--__--__--__--__--__--__--__*/
 
 roundedSphere = Intersection(
-  Box( Vec3(.775), Vec3(0), Material.red ),
-  Sphere( 1, Vec3(0), Material.blue )
+  Box( .775 ).material( 'red' ),
+  Sphere( 1 ).material( 'blue' )
 )
  
 march( roundedSphere ).render()
@@ -33,17 +33,15 @@ let's rotate it along two axes.
 ** __--__--__--__--__--__--__--__*/
 
 roundedSphere = Intersection(
-  Box( Vec3(.775), Vec3(0), Material.red ),
-  Sphere( 1, Vec3(0), Material.blue )
+  Box( .775 ).material( 'red' ),
+  Sphere( 1 ).material( 'blue' )
 )
  
-march(
-  Rotation(
-    roundedSphere,
-    Vec3(1,1,0),
-    Math.PI / -4
-  )
-).render()
+// rotate() takes an angle followed by
+// x,y, and z axis for rotation
+roundedSphere.rotate( 45, 1,1,0 )
+ 
+march( roundedSphere ).render()
 
 /* __--__--__--__--__--__--__--__--
 
@@ -61,19 +59,16 @@ combine two).
 
 crossRadius = .5
 crossHeight = 1
+dimensions = Vec2(crossRadius, crossHeight )
  
 cross = Union2(
-  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(0,0,1),
-    Math.PI / 2
-  ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(1,0,0 ),
-    Math.PI / 2
-  )
+  Cylinder( dimensions ).material( 'green' ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 0,0,1 ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 1,0,0 )
 )
  
 march( cross ).render()
@@ -90,37 +85,30 @@ angles.
 ** __--__--__--__--__--__--__--__*/
 
 roundedSphere = Intersection(
-  Box( Vec3(.775), Vec3(0), Material.red ),
-  Sphere( 1, Vec3(0), Material.blue )
+  Box( .775 ).material( 'red' ),
+  Sphere( 1 ).material( 'blue' )
 )
  
 crossRadius = .5
 crossHeight = 1
+dimensions = Vec2(crossRadius, crossHeight )
   
 cross = Union2(
-  Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(0,0,1),
-    Math.PI / 2
-  ),
-  Rotation(
-    Cylinder( Vec2(crossRadius,crossHeight), Vec3(0), Material.green ),
-    Vec3(1,0,0 ),
-    Math.PI / 2
-  )
+  Cylinder( dimensions ).material( 'green' ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 0,0,1 ),
+  Cylinder( dimensions )
+    .material( 'green' )
+    .rotate( 270, 1,0,0 )
 )
  
 march(
-  r = Rotation(
-    Difference(
-      roundedSphere,
-      cross
-    ),
-    Vec3(1,.5,0),
-    Math.PI / 4
-  )
+  obj = Difference(
+    roundedSphere,
+    cross
+  ).rotate( 45, 1,.5,0 )
 )
 .render( 3, true )
  
-callbacks.push( t => r.angle = t )`
+callbacks.push( t => obj.rotate( t * 25 ) )`

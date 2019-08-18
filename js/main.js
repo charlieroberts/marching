@@ -162,7 +162,7 @@ const SDF = {
       const output = {
         out:`  vec2( _out.x, _out.y )`,
 
-        preface: (emitted.preface || '') + `        vec2 _out = ${emitted.out};\n`
+        preface: (emitted.preface || '') + `    vec2 _out = ${emitted.out};\n`
       }
 
       return output 

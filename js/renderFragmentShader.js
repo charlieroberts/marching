@@ -30,6 +30,12 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         int textureID;
       };     
 
+      struct SDF {
+        int textureID;
+        int materialID;
+        int transformID;
+      };
+
       uniform float time;
       uniform vec2 resolution;
       uniform vec3 camera_pos;
@@ -216,7 +222,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float res = 1.0;
         float t = mint;
 
-        for( int i = 0; i < 16; i++ ) {
+        for( int i = 0; i < 12; i++ ) {
           float h = scene( ro + rd * t ).x;
           res = min( res, k * h / t );
           t += clamp( h, 0.02, 0.10 );
@@ -225,10 +231,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
         return clamp( res, 0.0, 1.0 );
       }
-
-
-
-
 
 ${lighting}
 
@@ -248,7 +250,6 @@ ${preface}
         vec3 ro = camera_pos;
         vec3 rd = camera_normal;
 
-
         //vec3 rd = camera( ro, camera_normal, pos, 2.0 );
         camera2( camera_rot, ro.y, ro.z, resolution, ro, rd );
         
@@ -264,7 +265,6 @@ ${preface}
 
         ${postprocessing}
         
-
         col = vec4( color, 1.0 );
       }`
 

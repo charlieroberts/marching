@@ -160,9 +160,9 @@ const SDF = {
     scene.output.emit = ()=> {
       const emitted = scene.output.__emit()
       const output = {
-        out:`  vec2( _out.x, _out.y )`,
+        out:`vec2( _out.x, _out.y )`,
 
-        preface: (emitted.preface || '') + `    vec2 _out = ${emitted.out};\n`
+        preface: (emitted.preface || '') + `  vec2 _out = ${emitted.out};\n`
       }
 
       return output 

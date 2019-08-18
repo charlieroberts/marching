@@ -36,6 +36,12 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         int textureID;
       };
 
+      struct opOut {
+        float distance;
+        float id;
+        mat4  transform;
+      };
+
       uniform float time;
       uniform vec2 resolution;
       uniform vec3 camera_pos;
@@ -54,15 +60,126 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       /* GEOMETRIES */
       ${geometries}
 
-      vec2 scene(vec3 p);
+      opOut scene(vec3 p);
 
-      #pragma glslify: raytrace  = require( 'glsl-raytrace', map = scene, steps = ${steps} )
-      #pragma glslify: getNormal = require( 'glsl-sdf-normal', map = scene )
-      #pragma glslify: camera    = require( 'glsl-camera-ray' )
-      #pragma glslify: camera2   = require( 'glsl-turntable-camera' )
+      
+      // Adapted from from https://www.shadertoy.com/view/ldfSWs
 
-      // OPS
-      #pragma glslify: opUnion = require( 'glsl-sdf-ops/union' )
+      opOut calcRayIntersection( vec3 rayOrigin, vec3 rayDir, float maxd, float precis ) {
+        float latest = precis * 2.0;
+        float dist   = +0.0;
+        float type   = -1.0;
+        opOut result;
+        opOut res = opOut( -1., -1., mat4(1.) );
+
+        for (int i = 0; i < ${steps} ; i++) {
+          if (latest < precis || dist > maxd) break;
+
+          result = scene(rayOrigin + rayDir * dist);
+
+          latest = result.distance;
+          type   = result.id;
+          dist  += latest;
+        }
+
+        if( dist < maxd ) {
+          result.distance = dist;
+          res = result;
+        }
+
+        return res;
+      }
+
+      opOut calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {
+        return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);
+      }
+
+      // adapted from https://www.shadertoy.com/view/ldfSWs
+      vec3 calcNormal(vec3 pos, float eps) {
+        const vec3 v1 = vec3( 1.0,-1.0,-1.0);
+        const vec3 v2 = vec3(-1.0,-1.0, 1.0);
+        const vec3 v3 = vec3(-1.0, 1.0,-1.0);
+        const vec3 v4 = vec3( 1.0, 1.0, 1.0);
+
+        return normalize( v1 * scene ( pos + v1*eps ).distance +
+                          v2 * scene ( pos + v2*eps ).distance +
+                          v3 * scene ( pos + v3*eps ).distance +
+                          v4 * scene ( pos + v4*eps ).distance );
+      }
+
+      vec3 calcNormal(vec3 pos) {
+        return calcNormal(pos, 0.002);
+      }
+
+      mat3 calcLookAtMatrix(vec3 origin, vec3 target, float roll) {
+        vec3 rr = vec3(sin(roll), cos(roll), 0.0);
+        vec3 ww = normalize(target - origin);
+        vec3 uu = normalize(cross(ww, rr));
+        vec3 vv = normalize(cross(uu, ww));
+
+        return mat3(uu, vv, ww);
+      }
+
+      vec3 getRay(mat3 camMat, vec2 screenPos, float lensLength) {
+        return normalize(camMat * vec3(screenPos, lensLength));
+      }
+
+      vec3 getRay(vec3 origin, vec3 target, vec2 screenPos, float lensLength) {
+        mat3 camMat = calcLookAtMatrix(origin, target, 0.0);
+        return getRay(camMat, screenPos, lensLength);
+      }
+
+      vec2 squareFrame(vec2 screenSize) {
+        vec2 position = 2.0 * (gl_FragCoord.xy / screenSize.xy) - 1.0;
+        position.x *= screenSize.x / screenSize.y;
+        return position;
+      }
+
+      vec2 squareFrame(vec2 screenSize, vec2 coord) {
+        vec2 position = 2.0 * (coord.xy / screenSize.xy) - 1.0;
+        position.x *= screenSize.x / screenSize.y;
+        return position;
+      }
+
+      void orbitCamera(
+        in float camAngle,
+        in float camHeight,
+        in float camDistance,
+        in vec2 screenResolution,
+        out vec3 rayOrigin,
+        out vec3 rayDirection
+      ) {
+        vec2 screenPos = squareFrame(screenResolution);
+        vec3 rayTarget = vec3(0.0);
+
+        rayOrigin = vec3(
+          camDistance * sin(camAngle),
+          camHeight,
+          camDistance * cos(camAngle)
+        );
+
+        rayDirection = getRay(rayOrigin, rayTarget, screenPos, 2.0);
+      }
+
+      float opU( float d1, float d2 ) {
+        return min(d1,d2);
+      }
+
+      vec2 opU( vec2 d1, vec2 d2 ) {
+        return ( d1.x < d2.x ) ? d1 : d2; //max(d1,d2);
+      }
+
+      opOut opU( vec2 d1, vec2 d2, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o;
+
+        if( d1.x < d2.x ) {
+          o = opOut( d1.x, d1.y, t1 * top );
+        }else{
+          o = opOut( d2.x, d2.y, t2 * top );
+        }
+
+        return o;
+      }
 
       float opI( float d1, float d2 ) {
         return max(d1,d2);
@@ -223,7 +340,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float t = mint;
 
         for( int i = 0; i < 12; i++ ) {
-          float h = scene( ro + rd * t ).x;
+          float h = scene( ro + rd * t ).distance;
           res = min( res, k * h / t );
           t += clamp( h, 0.02, 0.10 );
           if( h<0.001 || t>tmax ) break;
@@ -234,7 +351,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
 ${lighting}
 
-      vec2 scene(vec3 _p) {
+      opOut scene(vec3 _p) {
         vec4 p = vec4( _p, 1. );
 ${preface}
         return ${scene};
@@ -251,17 +368,17 @@ ${preface}
         vec3 ro = camera_pos;
         vec3 rd = camera_normal;
 
-        //vec3 rd = camera( ro, camera_normal, pos, 2.0 );
-        camera2( camera_rot, ro.y, ro.z, resolution, ro, rd );
+        orbitCamera( camera_rot, ro.y, ro.z, resolution, ro, rd );
         
-        //camera( ro, camera_normal, pos, 2.0 );
+        opOut t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
+        //if( t.distance > -.5 ) {
+        //  color = vec3(t.distance * 100.);//vec3(abs( t.distance ));
+        //}
+        if( t.distance > -0.5 ) {
+          vec3 pos = ro + rd * t.distance;
+          vec3 nor = calcNormal( pos );
 
-        vec2 t = raytrace( ro, rd, ${maxDistance}, ${minDistance} );
-        if( t.x > -0.5 ) {
-          vec3 pos = ro + rd * t.x;
-          vec3 nor = getNormal( pos );
-
-          color = lighting( pos, nor, ro, rd, t.y ); 
+          color = lighting( pos, nor, ro, rd, t.id, t.transform ); 
         }
 
         ${postprocessing}

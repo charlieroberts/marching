@@ -4,7 +4,7 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_ge
 const Transform = require( './transform.js' )
 
 const ops = { 
-  Union( a,b )        { return `opU( ${a}, ${b} )` },
+  Union( a,b,c,d,e )        { return `opU( ${a}, ${b}, ${c}, ${d}, ${e} )` },
   SmoothUnion(  a,b,c) { return `opSmoothUnion( ${a}, ${b}, ${c} )` },
   Intersection( a,b ) { return `opI( ${a}, ${b} )` },
   SmoothIntersection( a,b,c ) { return `opSmoothIntersection( ${a}, ${b}, ${c} )` },  
@@ -106,11 +106,13 @@ for( let name in ops ) {
     const prequel = `        vec4 ${tname} = ${pname} * ${this.transform.emit()};\n`
     const emitterA = this.a.emit( tname )
     const emitterB = this.b.emit( tname )
-    const emitterC = this.c !== undefined ? this.c.emit() : null
-    const emitterD = this.d !== undefined ? this.d.emit() : null
+    const emitterC = this.c !== undefined ? this.c.emit() : this.a.transform.emit()
+    const emitterD = this.d !== undefined ? this.d.emit() : this.b.transform.emit()
+    const emitterE = this.e !== undefined ? this.e.emit() : this.transform.emit()
     
+
     const body = `
-        vec2 do${this.id} = ${op( emitterA.out, emitterB.out, emitterC, emitterD )};
+        vec2 do${this.id} = ${op( emitterA.out, emitterB.out, emitterC, emitterD, emitterE )};
         do${this.id}.x *= ${this.transform.emit()}_scale;
     `
 

@@ -205,7 +205,7 @@ const createPrimitives = function( SDF ) {
       const pointString = `( ${pname} * ${this.transform.emit()} ).xyz`
 
       const primitive = `
-        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  pointString )} * ${s}, ${id} );
+        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${this.transform.emit()});
       `
 
       //vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * ${s}, ${id} );

@@ -187,7 +187,20 @@ const Lights = function( SDF ) {
 
 
       let preface = glsl`  int MAX_LIGHTS = ${numlights};
-    #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
+    float ao( in vec3 pos, in vec3 nor ){
+      float occ = 0.0;
+        float sca = 1.0;
+        for( int i=0; i<5; i++ )
+        {
+            float hr = 0.01 + 0.12 * float( i ) / 4.0;
+            vec3 aopos =  nor * hr + pos;
+            float dd = scene ( aopos ).distance;
+            occ += -(dd-hr)*sca;
+            sca *= 0.95;
+        }
+        return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    
+    }
+
     vec3 getTexture( int id, vec3 pos, vec3 nor ) {
       vec3 tex;
       switch( id ) {
@@ -236,7 +249,7 @@ const Lights = function( SDF ) {
 
       let func = `
 
-    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float sdfID ) {
+    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float sdfID, mat4 transform ) {
       ${sdfs}
       SDF sdf = sdfs[ int( sdfID ) ];
 
@@ -247,19 +260,17 @@ const Lights = function( SDF ) {
 
       ${lights}
 
+      vec3 tex = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*transform).xyz, normal );
+
       vec3 clr;
       switch( mat.mode ) {
-        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
+        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights, tex ); break;
         case 1: clr = normal; break;
         case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
         case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
         default:
           clr = normal;
       }
-
-      vec3 textureClr = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*sdf.transform).xyz, normal );
-
-      clr = clr + textureClr;
 
       return clr; 
     }
@@ -273,24 +284,13 @@ const Lights = function( SDF ) {
 
         const str = glsl`
 
-        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS] ) {
+        vec3 global( vec3 pos, vec3 nor, vec3 ro, vec3 rd, Material mat, Light lights[MAX_LIGHTS], vec3 textureColor ) {
           Light light = lights[ 0 ];
           vec3  ref = reflect( rd, nor ); // reflection angle
           float occ = ao( pos, nor );
           vec3  lig = normalize( light.position ); // light position
           float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );
           float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
-
-          vec3 textureColor;
-          /*
-          if( mat.textureID > -1 ) {
-            textureColor = texture( textures[ mat.textureID ], pos.xy ); 
-          }else{
-            textureColor = vec4(1.);
-          }*/
-          // XXX uncomment below to loop textures back in...
-          textureColor = vec3(0.);//getTex( mat.textureID, pos, nor );//vec4(1.);
-
 
           // simulated backlight
           float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );

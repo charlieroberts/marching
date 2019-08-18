@@ -20,6 +20,7 @@ const SDF = {
 
   // additional callbacks that are run once per frame
   callbacks: [],
+  geometries: [],
 
   // the main drawing callback
   render: null,
@@ -160,9 +161,8 @@ const SDF = {
     scene.output.emit = ()=> {
       const emitted = scene.output.__emit()
       const output = {
-        out:`vec2( _out.x, _out.y )`,
-
-        preface: (emitted.preface || '') + `  vec2 _out = ${emitted.out};\n`
+        out:     emitted.out,
+        preface: emitted.preface || '' 
       }
 
       return output 
@@ -237,6 +237,7 @@ const SDF = {
   clear() {
     if( this.callbacks !== undefined ) this.callbacks.length = 0
     if( this.render !== null ) this.render.running = false
+    this.geometries.length = 0
 
     const gl = this.gl
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )

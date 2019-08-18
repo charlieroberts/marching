@@ -31,11 +31,10 @@ const descriptions = {
     emit( name='p' ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
-
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
       let preface =`
-          vec3 _transform${pName} = ( vec4( ${name}, 1.) * ${this.transform.emit()} ).xyz;
-          vec3 ${pName} = polarRepeat( _transform${pName}, ${this.count.emit() } ); 
-          ${pName} -= vec3(${this.distance.emit()},0.,0.);\n`
+          vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.count.emit() } ), 1. ); 
+          ${pName} -= vec4(${this.distance.emit()},0.,0.,0.);\n`
 
       const sdf = this.sdf.emit( pName )
 
@@ -49,10 +48,10 @@ const descriptions = {
     emit( name='p' ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
 
       let preface =`
-        vec3 _transform${pName} = ( vec4( ${name}, 1.) * ${this.transform.emit()} ).xyz;
-        vec3 ${pName} = mod( _transform${pName}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
+        vec4 ${pName} = vec4( mod( ${pointString}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() }, 1. );\n`
 
       //vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
       const sdf = this.sdf.emit( pName )

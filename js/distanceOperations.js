@@ -103,7 +103,7 @@ for( let name in ops ) {
   DistanceOps[ name ].prototype.emit = function ( pname='p' ) {
 
     const tname = `transformDO${this.id}`
-    const prequel = `        vec3 ${tname} = ( vec4( ${pname}, 1.) * ${this.transform.emit()} ).xyz;\n`
+    const prequel = `        vec4 ${tname} = ${pname} * ${this.transform.emit()};\n`
     const emitterA = this.a.emit( tname )
     const emitterB = this.b.emit( tname )
     const emitterC = this.c !== undefined ? this.c.emit() : null

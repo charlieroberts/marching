@@ -23,7 +23,42 @@ const createPrimitives = function( SDF ) {
   // load descriptions of all primtives
   const descriptions = require( './primitiveDescriptions.js' )
 
-  const Primitives = { descriptions }
+  const Primitives = { 
+    descriptions,
+
+    emit_geometries() {
+      const head = Array.isArray( SDF.__scene.__prerender ) ? SDF.__scene.__prerender[0] : SDF.__scene.__prerender
+      const geos = Primitives.crawlNode( head, [] )
+
+      geos.forEach( (geo,i) => geo.__sdfID = i )
+
+      const length = geos.length
+      const materials = SDF.materials.__materials
+
+      let decl = `SDF sdfs[${length}] = SDF[${length}](\n`
+      geos.forEach( (geo, i) => {
+        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${geo.__texture} )`
+        if( i < geos.length - 1 ) decl += ','
+        decl += '\n'
+      })
+
+      decl += `      );\n`
+
+      return decl
+    },
+
+    crawlNode( node, arr ) {
+      if( node.type === 'geometry' ) {
+        arr.push( node )
+      }else{
+        if( node.a !== undefined ) Primitives.crawlNode( node.a, arr )
+        if( node.b !== undefined ) Primitives.crawlNode( node.b, arr )
+        if( node.sdf !== undefined ) Primitives.crawlNode( node.sdf, arr )
+      }
+
+      return arr
+    }
+  }
 
   const createPrimitive = function( name, desc ) {
 
@@ -33,8 +68,10 @@ const createPrimitives = function( SDF ) {
       const p = Object.create( Primitives[ name ].prototype )
       p.params = params
       p.transform = Transform()
+      p.type = 'geometry'
 
       p.__material = null
+      p.__texture  = 500000
       
       let count = 0
 
@@ -134,7 +171,14 @@ const createPrimitives = function( SDF ) {
         p.__material = SDF.materials.addMaterial( mat )
       }
 
+      p.__setTexture = tex => {
+        if( typeof mat === 'string' ) mat = SDF.Texture[ tex ]
+        p.__texture = SDF.texture.addTexture( tex )
+      }
+
       if( p.__material === null ) p.__setMaterial()
+
+      SDF.geometries.push( p )
 
       return p
     }
@@ -155,12 +199,13 @@ const createPrimitives = function( SDF ) {
 
       const pname = __name === undefined ? 'p' : __name
 
-      const id = SDF.materials.__materials.indexOf( this.__material )
+      //const id = SDF.materials.__materials.indexOf( this.__material )
+      const id = this.__sdfID
       const s = this.transform.emit_scale()
+      const pointString = `( ${pname} * ${this.transform.emit()} ).xyz`
 
       const primitive = `
-        vec3 _transform${this.id} = ( vec4( ${pname}, 1.) * ${this.transform.emit()} ).xyz;
-        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * ${s}, ${id} );
+        vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  pointString )} * ${s}, ${id} );
       `
 
       //vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * ${s}, ${id} );

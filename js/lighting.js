@@ -127,7 +127,13 @@ const Lights = function( SDF ) {
         }
       }
 
-      const lighting = this.shell( this.lights.length || 2, this.emit_lights(), SDF.materials.emit_materials(), shadows )
+      const lighting = this.shell( 
+        this.lights.length || 2, 
+        this.emit_lights(), 
+        SDF.materials.emit_materials(), 
+        shadows,
+        SDF.primitives.emit_geometries()
+      )
 
       let lightingFuncStr = lightingFunctions.join('\n')
       lightingFuncStr = lightingFuncStr.replace( /(MAX\_LIGHTS)/g, this.lights.length || 2 )
@@ -174,7 +180,7 @@ const Lights = function( SDF ) {
       '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
     ],
 
-    shell( numlights, lights, materials, shadow=0 ) {
+    shell( numlights, lights, materials, shadow=0, sdfs ) {
       const __shadow = shadow > 0
         ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
         : ''
@@ -182,7 +188,7 @@ const Lights = function( SDF ) {
 
       let preface = glsl`  int MAX_LIGHTS = ${numlights};
     #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
-    vec3 getTex( int id, vec3 pos, vec3 nor ) {
+    vec3 getTexture( int id, vec3 pos, vec3 nor ) {
       vec3 tex;
       switch( id ) {
         case 0: 
@@ -200,16 +206,42 @@ const Lights = function( SDF ) {
 
     `
 
+//      let func = `
+
+//    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
+//      // applies to all lights (actually, not 'normal' mode... TODO)
+//      //float occlusion = calcAO( surfacePosition, normal );
+
+//      ${materials}
+//      Material mat = materials[ int(materialID) ];
+
+
+//      int MAX_LIGHTS = ${numlights};     
+
+//      ${lights}
+
+//      vec3 clr;
+//      switch( mat.mode ) {
+//        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
+//        case 1: clr = normal; break;
+//        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
+//        case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
+//        default:
+//          clr = normal;
+//      }
+
+//      return clr; /[> textureColor.rgb;
+//    }
+//`
+
       let func = `
 
-
-    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
-      // applies to all lights (actually, not 'normal' mode... TODO)
-      //float occlusion = calcAO( surfacePosition, normal );
+    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float sdfID ) {
+      ${sdfs}
+      SDF sdf = sdfs[ int( sdfID ) ];
 
       ${materials}
-      Material mat = materials[ int(materialID) ];
-
+      Material mat = materials[ sdf.materialID ];
 
       int MAX_LIGHTS = ${numlights};     
 
@@ -225,10 +257,13 @@ const Lights = function( SDF ) {
           clr = normal;
       }
 
-      return clr; //* textureColor.rgb;
+      vec3 textureClr = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*sdf.transform).xyz, normal );
+
+      clr = clr + textureClr;
+
+      return clr; 
     }
 `
-
       return [ preface, func ]
     }, 
 

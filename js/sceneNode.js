@@ -64,6 +64,11 @@ SceneNode.prototype = {
   material( mat ) {
     this.__setMaterial( mat )
     return this
+  },
+
+  texture( tex ) {
+    this.__setTexture( tex )
+    return this
   }
 }
 

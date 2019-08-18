@@ -31,9 +31,9 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       };     
 
       struct SDF {
-        int textureID;
         int materialID;
-        int transformID;
+        mat4 transform;
+        int textureID;
       };
 
       uniform float time;
@@ -234,7 +234,8 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
 ${lighting}
 
-      vec2 scene(vec3 p) {
+      vec2 scene(vec3 _p) {
+        vec4 p = vec4( _p, 1. );
 ${preface}
         return ${scene};
       }

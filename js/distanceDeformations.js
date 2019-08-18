@@ -28,7 +28,7 @@ const ops = {
     let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
         float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
-        vec3  q${this.id} = vec3( m${this.id} * ${name}.xz, ${name}.y );\n`
+        vec4  q${this.id} = vec4( m${this.id} * ${name}.xz, ${name}.y, 1. );\n`
 
     if( typeof sdf.preface === 'string' ) {
       preface += sdf.preface
@@ -44,7 +44,7 @@ const ops = {
     let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
         float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
-        vec3  q${this.id} = vec3( m${this.id} * ${name}.xz, ${name}.y );\n`
+        vec4  q${this.id} = vec4( m${this.id} * ${name}.xz, ${name}.y, 1. );\n`
 
     if( typeof sdf.preface === 'string' ) {
       preface += sdf.preface

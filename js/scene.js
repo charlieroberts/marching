@@ -12,6 +12,12 @@ const getScene = function( SDF ) {
 
     SDF.lighting.lights = []
 
+    scene.__prerender = objs
+    if( objs.length > 1 ) {
+      // reduce objects to nested Unions
+      scene.__prerender = objs.reduce( ( current, next ) => SDF.Union( current, next ) )
+    }
+
     Object.assign( scene, { 
       objs, 
       canvas,

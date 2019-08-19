@@ -9,9 +9,56 @@ const glsl = require( 'glslify' )
 
 const __Textures = function( SDF ) {
 
+  const TextureTypes = 
+
   const Textures = {
     textures:[],
     __textures:[],
+
+    __types:{
+      checkers: {
+        glslpreface: '',
+        glslbody:`          
+            pos  = pos * 8.;
+            if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
+              tex = vec3(.5);
+            }else{
+              tex = vec3(0.);
+            }`,
+        properties: {
+          size: { type:'float', default:8 }
+        }
+      },
+    },
+
+    __emitFunction() {
+      const decl = `
+      vec3 getTexture( int id, vec3 pos, vec3 nor, vec3 pos_nt ) {
+        vec3 tex;
+        switch( id ) {\n`
+
+      this.__textures.forEach( (t,i) => {
+
+      })  
+        //  case 0: 
+        //    float n = snoise( pos*2. );
+        //    tex = vec3( n );
+        //    break;
+        //  case 1:
+        //    pos  = pos * 8.;
+        //    if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
+        //      tex = vec3(.5);
+        //    }else{
+        //      tex = vec3(0.);
+        //    }
+        //    break;
+        //  default:
+        //    tex = vec3(0.);
+        //    break;
+        //}
+
+        //return tex;
+    },
 
     addTexture( tex ) {
       if( tex === undefined ) tex = Textures.texture.default

@@ -11791,20 +11791,20 @@ this._directMap={};return this};e.prototype.stopCallback=function(a,b){return-1<
 arguments)}}(b))};e.init();p.Mousetrap=e;"undefined"!==typeof module&&module.exports&&(module.exports=e);"function"===typeof define&&define.amd&&define(function(){return e})}})("undefined"!==typeof window?window:null,"undefined"!==typeof window?document:null);
 
 },{}],11:[function(require,module,exports){
-module.exports = `Material.default = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
+module.exports = `mat1 = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
  
 m = march(
   StairsUnion(
     PolarRepeat(
       PolarRepeat(
-        Torus82(),
+        Torus82().material( mat1 ),
         20,
         2.75
       ).rotate(90, 1,0,0 ),
       25,
       2
     ),
-    Plane( Vec3(0,.5,0) ),
+    Plane( Vec3(0,.5,0) ).material( mat1 ),
     .25
   )
 )
@@ -12660,19 +12660,20 @@ march(
 },{}],21:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
-Material.default = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) )
- 
-const white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
+const grey = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) ),
+      white = Material( 'phong', Vec3(0), Vec3(50), Vec3(1), 8, Vec3(0,50,2) ),
       a = .45, b = .25 // for side bands on drum
  
 stick = ()=> {
   return Union(
     Groove(
-      Cylinder( Vec2(.2,2.5), Vec3(.5,4.5,-.5) ).move( .5,4.5,-.5 ),
-      Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), 1 ),
+      Cylinder( Vec2(.2,2.5), Vec3(.5,4.5,-.5) )
+        .move( .5,4.5,-.5 )
+        .material( grey ),
+      Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), 1 ).material( grey ),
       .08
     ),
-    Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), .175 )
+    Capsule( Vec3(.5, 2,-.5), Vec3(.5,2.25,-.5), .175 ).material( grey )
   )
 }
  
@@ -12687,14 +12688,14 @@ stickR = stick()
 drum = RoundUnion(
   Union2(
     ChamferDifference(
-      Cylinder( Vec2(2.25, .45) ),
-      Cylinder( Vec2(2,.4) ),
+      Cylinder( Vec2(2.25, .45) ).material( grey ),
+      Cylinder( Vec2(2,.4) ).material( grey ),
       .1
     ),
     Cylinder( Vec2(2,.3) ).material( white )
   ),
   PolarRepeat(
-    Quad( Vec3(0,-a,-b), Vec3(0,-a,0), Vec3(0,a,b), Vec3(0,a,0), Vec3(0) ),
+    Quad( Vec3(0,-a,-b), Vec3(0,-a,0), Vec3(0,a,b), Vec3(0,a,0) ).material( grey ),
     15,
     2.25
   ),
@@ -12891,7 +12892,7 @@ do that we need to create a union.
 
 sphere3 = Sphere( .35 )
 box3 = Box( Vec3( .35 ) ) 
-sphereBox = SmoothUnion( sphere3, box3, .9 )
+sphereBox = RoundUnion( sphere3, box3, .9 )
  
 march(  
   Repeat( sphereBox, 2 )

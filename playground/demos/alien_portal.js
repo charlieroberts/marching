@@ -1,17 +1,17 @@
-module.exports = `Material.default = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
+module.exports = `mat1 = Material( 'phong', Vec3(.05), Vec3(1), Vec3(3), 64, Vec3( 0,4,4 ) )
  
 m = march(
   StairsUnion(
     PolarRepeat(
       PolarRepeat(
-        Torus82(),
+        Torus82().material( mat1 ),
         20,
         2.75
       ).rotate(90, 1,0,0 ),
       25,
       2
     ),
-    Plane( Vec3(0,.5,0) ),
+    Plane( Vec3(0,.5,0) ).material( mat1 ),
     .25
   )
 )

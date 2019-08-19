@@ -1,6 +1,6 @@
 {
   "name": "marching",
-  "version": "0.3.1",
+  "version": "1.0.0-0",
   "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
   "main": "js/index.js",
   "dependencies": {
@@ -56,6 +56,10 @@
   "bugs": {
     "url": "https://github.com/charlieroberts/marching/issues"
   },
-  "browserify": { "transform": [ "glslify" ] },
+  "browserify": {
+    "transform": [
+      "glslify"
+    ]
+  },
   "homepage": "https://github.com/charlieroberts/marching#readme"
 }

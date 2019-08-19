@@ -37,7 +37,7 @@ const createPrimitives = function( SDF ) {
 
       let decl = `SDF sdfs[${length}] = SDF[${length}](\n`
       geos.forEach( (geo, i) => {
-        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${geo.__texture} )`
+        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${geo.__textureID} )`
         if( i < geos.length - 1 ) decl += ','
         decl += '\n'
       })
@@ -71,7 +71,7 @@ const createPrimitives = function( SDF ) {
       p.type = 'geometry'
 
       p.__material = null
-      p.__texture  = 500000
+      p.__textureID  = 500000
       
       let count = 0
 
@@ -172,8 +172,10 @@ const createPrimitives = function( SDF ) {
       }
 
       p.__setTexture = tex => {
-        if( typeof mat === 'string' ) mat = SDF.Texture[ tex ]
-        p.__texture = SDF.texture.addTexture( tex )
+        if( typeof tex === 'string' ) {
+          p.__textureObj = SDF.Texture( tex )
+          p.__textureID = p.__textureObj.id
+        }
       }
 
       if( p.__material === null ) p.__setMaterial()

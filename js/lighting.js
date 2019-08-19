@@ -127,12 +127,15 @@ const Lights = function( SDF ) {
         }
       }
 
+      const textures = Marching.textures.__emitFunction()
       const lighting = this.shell( 
         this.lights.length || 2, 
         this.emit_lights(), 
         SDF.materials.emit_materials(), 
         shadows,
-        SDF.primitives.emit_geometries()
+        SDF.primitives.emit_geometries(),
+        textures.glsldefs,
+        textures.mainfunc
       )
 
       let lightingFuncStr = lightingFunctions.join('\n')
@@ -180,7 +183,7 @@ const Lights = function( SDF ) {
       '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
     ],
 
-    shell( numlights, lights, materials, shadow=0, sdfs ) {
+    shell( numlights, lights, materials, shadow=0, sdfs, texturePreface, textureBody ) {
       const __shadow = shadow > 0
         ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
         : ''
@@ -221,30 +224,32 @@ const Lights = function( SDF ) {
       // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].
       return (uv+0.5);
     }
-
+    
+    ${texturePreface}
+    ${textureBody}
     // pos_nt is the position before applying transformations...
-    vec3 getTexture( int id, vec3 pos, vec3 nor, vec3 pos_nt ) {
-      vec3 tex;
-      switch( id ) {
-        case 0: 
-          float n = snoise( pos*2. );
-          tex = vec3( n );
-          break;
-        case 1:
-          pos  = pos * 8.;
-          if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
-            tex = vec3(.5);
-          }else{
-            tex = vec3(0.);
-          }
-          break;
-        default:
-          tex = vec3(0.);
-          break;
-      }
+    //vec3 getTexture( int id, vec3 pos, vec3 nor, vec3 pos_nt ) {
+    //  vec3 tex;
+    //  switch( id ) {
+    //    case 0: 
+    //      float n = snoise( pos*2. );
+    //      tex = vec3( n );
+    //      break;
+    //    case 1:
+    //      pos  = pos * 8.;
+    //      if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
+    //        tex = vec3(.5);
+    //      }else{
+    //        tex = vec3(0.);
+    //      }
+    //      break;
+    //    default:
+    //      tex = vec3(0.);
+    //      break;
+    //  }
 
-      return tex;
-    }
+    //  return tex;
+    //}
     `
       let func = `
 

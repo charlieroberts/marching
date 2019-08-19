@@ -136,7 +136,7 @@ do that we need to create a union.
 
 sphere3 = Sphere( .35 )
 box3 = Box( Vec3( .35 ) ) 
-sphereBox = SmoothUnion( sphere3, box3, .9 )
+sphereBox = RoundUnion( sphere3, box3, .9 )
  
 march(  
   Repeat( sphereBox, 2 )

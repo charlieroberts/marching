@@ -263,9 +263,53 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return vec2( -fOpUnionStairs(-a.x, b.x, r, n), a.y );
       }
 
+      opOut fOpSubstractionStairs( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o = opOut( -1., -1., mat4(1.));
+        o.x = -fOpUnionStairs( -d1.x, d2.x, r, n );
+
+        if( -d1.x <= d2.x ) {
+          o.y = d1.y;
+          o.transform = t1 * top;
+        }else{
+          o.y = d2.y;
+          o.transform = t2 * top;
+        }
+
+        return o;
+      }
+
+      opOut fOpIntersectionStairs( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o = opOut( -1., -1., mat4(1.));
+        o.x = -fOpUnionStairs( -d1.x, -d2.x, r, n );
+
+        if( -d1.x <= -d2.x ) {
+          o.y = d1.y;
+          o.transform = t1 * top;
+        }else{
+          o.y = d2.y;
+          o.transform = t2 * top;
+        }
+
+        return o;
+      }
       float fOpUnionRound(float a, float b, float r) {
         vec2 u = max(vec2(r - a,r - b), vec2(0));
         return max(r, min (a, b)) - length(u);
+      }
+
+      opOut fOpUnionRound( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o = opOut( -1., -1., mat4(1.));
+        o.x = fOpUnionRound( d1.x, d2.x, r );
+
+        if( d1.x <= d2.x ) {
+          o.y = d1.y;
+          o.transform = t1 * top;
+        }else{
+          o.y = d2.y;
+          o.transform = t2 * top;
+        }
+
+        return o;
       }
 
       float fOpIntersectionRound(float a, float b, float r) {
@@ -273,8 +317,38 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return min(-r, max (a, b)) + length(u);
       }
 
+      opOut fOpIntersectionRound( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o = opOut( -1., -1., mat4(1.));
+        o.x = fOpIntersectionRound( d1.x, d2.x, r );
+
+        if( d1.x >= d2.x ) {
+          o.y = d1.y;
+          o.transform = t1 * top;
+        }else{
+          o.y = d2.y;
+          o.transform = t2 * top;
+        }
+
+        return o;
+      }
+
       float fOpDifferenceRound (float a, float b, float r) {
         return fOpIntersectionRound(a, -b, r);
+      }
+
+      opOut fOpDifferenceRound( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o = opOut( -1., -1., mat4(1.));
+        o.x = fOpDifferenceRound( d1.x, d2.x, r );
+
+        if( d1.x >= -d2.x ) {
+          o.y = d1.y;
+          o.transform = t1 * top;
+        }else{
+          o.y = d2.y;
+          o.transform = t2 * top;
+        }
+
+        return o;
       }
 
       vec2 fOpUnionRound( vec2 a, vec2 b, float r ) {

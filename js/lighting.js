@@ -174,9 +174,9 @@ const Lights = function( SDF ) {
     // a switch statement selecting lighting. They are overridden by actual lighting functions if any
     // material in the scene uses a corresponding function.
     defaultFunctionDeclarations: [
-      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
+      '    vec3 global( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS], vec3 textureColor ) { return vec3(0.); }',
       '    vec3 normal( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
-      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
+      '    vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS], vec3 textureColor ) { return vec3(0.); }',
       '    vec3 orenn( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) { return vec3(0.); }',
     ],
 
@@ -189,25 +189,54 @@ const Lights = function( SDF ) {
       let preface = glsl`  int MAX_LIGHTS = ${numlights};
     float ao( in vec3 pos, in vec3 nor ){
       float occ = 0.0;
-        float sca = 1.0;
-        for( int i=0; i<5; i++ )
-        {
-            float hr = 0.01 + 0.12 * float( i ) / 4.0;
-            vec3 aopos =  nor * hr + pos;
-            float dd = scene ( aopos ).x;
-            occ += -(dd-hr)*sca;
-            sca *= 0.95;
-        }
-        return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    
+      float sca = 1.0;
+      for( int i=0; i<5; i++ )
+      {
+          float hr = 0.01 + 0.12 * float( i ) / 4.0;
+          vec3 aopos =  nor * hr + pos;
+          float dd = scene ( aopos ).x;
+          occ += -(dd-hr)*sca;
+          sca *= 0.95;
+      }
+      return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    
     }
 
-    vec3 getTexture( int id, vec3 pos, vec3 nor ) {
+    // p = point on surface, p0 = object center
+    vec2 getUVCubic(vec3 p, vec3 p0){
+        
+      // Center the surface position about the zero point.
+      p -= p0;
+        
+      vec3 absp = abs(p);
+        
+      // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).
+      // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and
+      // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).
+      vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);
+        
+      //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some 
+      // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)
+      if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;
+             
+      // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].
+      return (uv+0.5);
+    }
+
+    // pos_nt is the position before applying transformations...
+    vec3 getTexture( int id, vec3 pos, vec3 nor, vec3 pos_nt ) {
       vec3 tex;
       switch( id ) {
         case 0: 
-          pos = (vec4(pos,1.) * inverse( rotations[0] ) ).xyz;
           float n = snoise( pos*2. );
           tex = vec3( n );
+          break;
+        case 1:
+          pos  = pos * 8.;
+          if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
+            tex = vec3(.5);
+          }else{
+            tex = vec3(0.);
+          }
           break;
         default:
           tex = vec3(0.);
@@ -216,37 +245,7 @@ const Lights = function( SDF ) {
 
       return tex;
     }
-
     `
-
-//      let func = `
-
-//    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float materialID ) {
-//      // applies to all lights (actually, not 'normal' mode... TODO)
-//      //float occlusion = calcAO( surfacePosition, normal );
-
-//      ${materials}
-//      Material mat = materials[ int(materialID) ];
-
-
-//      int MAX_LIGHTS = ${numlights};     
-
-//      ${lights}
-
-//      vec3 clr;
-//      switch( mat.mode ) {
-//        case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
-//        case 1: clr = normal; break;
-//        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
-//        case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
-//        default:
-//          clr = normal;
-//      }
-
-//      return clr; /[> textureColor.rgb;
-//    }
-//`
-
       let func = `
 
     vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float sdfID, mat4 transform ) {
@@ -260,13 +259,13 @@ const Lights = function( SDF ) {
 
       ${lights}
 
-      vec3 tex = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*transform).xyz, normal );
+      vec3 tex = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*transform).xyz, normal, surfacePosition );
 
       vec3 clr;
       switch( mat.mode ) {
         case 0: clr = global( surfacePosition, normal, rayOrigin, rayDirection, mat, lights, tex ); break;
         case 1: clr = normal; break;
-        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
+        case 2: clr = directional( surfacePosition, normal, rayOrigin, rayDirection, mat, lights, tex ); break;
         case 3: clr = orenn( surfacePosition, normal, rayOrigin, rayDirection, mat, lights ); break;
         default:
           clr = normal;
@@ -303,7 +302,7 @@ const Lights = function( SDF ) {
           dif *= softshadow( pos, lig, 0.02, 2.5, ${shadow.toFixed(1)} );
           dom *= softshadow( pos, ref, 0.02, 2.5, ${shadow.toFixed(1)} );
 
-          vec3 brdf = vec3( 0.0 );
+          vec3 brdf = textureColor;//vec3( 0.0 );
           brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;
           brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;
           brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;
@@ -311,7 +310,7 @@ const Lights = function( SDF ) {
           brdf += 0.70 * bac * vec3( 0.25 );
           brdf += 0.40 * (fre * light.color);
 
-          return brdf + textureColor.xyz;
+          return brdf;;
         }
         `
 
@@ -326,52 +325,12 @@ const Lights = function( SDF ) {
           : ''
 
         const str = glsl`  
-        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {
-            vec3 m = pow( abs( n ), vec3(scale) );
-            vec4 x = texture( sam, p.yz );
-            vec4 y = texture( sam, p.zx );
-            vec4 z = texture( sam, p.xy );
-            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);
-        }
-        // p = point on surface, p0 = object center
-        vec2 getUVCubic(vec3 p, vec3 p0){
-            
-          // Center the surface position about the zero point.
-          p -= p0;
-            
-          vec3 absp = abs(p);
-            
-          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).
-          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and
-          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).
-          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);
-            
-          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some 
-          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)
-          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;
-                 
-          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].
-          return (uv+0.5);
-        }
-
-        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {
-          vec3  outputColor   = vec3( 0. );
+        
+        vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS], vec3 textureColor ) {
+          vec3  outputColor   = textureColor;//vec3( 0. );
    
           // applies to all lights
           float occlusion = ao( surfacePosition, normal );
-
-          /*
-          vec4 textureColor;
-          if( mat.textureID > -1 ) {
-            //textureColor = texcube( textures[ mat.textureID ], surfacePosition, normal, 1. );//texture( textures[ mat.textureID ], surfacePosition.xy - normal.xy ); 
-            vec2 uv = getUVCubic( surfacePosition, vec3(0.) );//surfacePosition.xz*vec2(0.03,0.07);
-            textureColor = texture( textures[ mat.textureID ], uv );
-          }else{
-            textureColor = vec4(0.);
-          }
-
-          outputColor = textureColor.xyz;
-          */
 
           for( int i = 0; i < 20000; i++ ) {
             if( i >= MAX_LIGHTS ) break;
@@ -429,33 +388,7 @@ const Lights = function( SDF ) {
           : ''
 
         const str = glsl`  
-        vec4 texcube( sampler2D sam, in vec3 p, in vec3 n, in float scale ) {
-            vec3 m = pow( abs( n ), vec3(scale) );
-            vec4 x = texture( sam, p.yz );
-            vec4 y = texture( sam, p.zx );
-            vec4 z = texture( sam, p.xy );
-            return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);
-        }
-        // p = point on surface, p0 = object center
-        vec2 getUVCubic(vec3 p, vec3 p0){
-            
-          // Center the surface position about the zero point.
-          p -= p0;
-            
-          vec3 absp = abs(p);
-            
-          // First conditional: If the point is in one of the sextants to the left or right of the x-axis, the uv cordinate will be (0.5*p.zy)/(p.x).
-          // If you trace a line out to a zy plane that is 0.5 units from the zero origin,  (0.5*p.xyz)/(p.x) will be the result, and
-          // the yz components will be our uv coordinates, hence (0.5*p.zy)/(p.x).
-          vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) ? (0.5*p.zy)/(p.x) : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);
-            
-          //We still need to determine which side our uv cordinates are on so that the texture orients the right way. Note that there's some 
-          // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)
-          if( ((p.x<0.)&&(absp.x>=absp.y)&&(absp.x>=absp.z)) || ((p.y<0.)&&(absp.y>=absp.z)&&(absp.y>=absp.x)) || ((p.z>0.)&&(absp.z>=absp.x)&&(absp.z>=absp.y)) ) uv.y*=-1.;
-                 
-          // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].
-          return (uv+0.5);
-        }
+
 
         vec3 directional( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, Material mat, Light lights[MAX_LIGHTS] ) {
           vec3  outputColor   = vec3( 0. );

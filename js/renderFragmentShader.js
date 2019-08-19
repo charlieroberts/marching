@@ -37,8 +37,8 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       };
 
       struct opOut {
-        float distance;
-        float id;
+        float x;
+        float y;
         mat4  transform;
       };
 
@@ -77,13 +77,13 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
           result = scene(rayOrigin + rayDir * dist);
 
-          latest = result.distance;
-          type   = result.id;
+          latest = result.x;
+          type   = result.y;
           dist  += latest;
         }
 
         if( dist < maxd ) {
-          result.distance = dist;
+          result.x= dist;
           res = result;
         }
 
@@ -101,10 +101,10 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         const vec3 v3 = vec3(-1.0, 1.0,-1.0);
         const vec3 v4 = vec3( 1.0, 1.0, 1.0);
 
-        return normalize( v1 * scene ( pos + v1*eps ).distance +
-                          v2 * scene ( pos + v2*eps ).distance +
-                          v3 * scene ( pos + v3*eps ).distance +
-                          v4 * scene ( pos + v4*eps ).distance );
+        return normalize( v1 * scene ( pos + v1*eps ).x+
+                          v2 * scene ( pos + v2*eps ).x+
+                          v3 * scene ( pos + v3*eps ).x+
+                          v4 * scene ( pos + v4*eps ).x);
       }
 
       vec3 calcNormal(vec3 pos) {
@@ -169,7 +169,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return ( d1.x < d2.x ) ? d1 : d2; //max(d1,d2);
       }
 
-      opOut opU( vec2 d1, vec2 d2, mat4 t1, mat4 t2, mat4 top ) {
+      opOut opU( opOut d1, opOut d2, mat4 t1, mat4 t2, mat4 top ) {
         opOut o;
 
         if( d1.x < d2.x ) {
@@ -189,9 +189,32 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return ( d1.x > d2.x ) ? d1 : d2; //max(d1,d2);
       }
 
+      opOut opI( opOut d1, opOut d2, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o;
+
+        if( d1.x > d2.x ) {
+          o = opOut( d1.x, d1.y, t1 * top );
+        }else{
+          o = opOut( d2.x, d2.y, t2 * top );
+        }
+
+        return o;
+      }
+
       float opS( float d1, float d2 ) { return max(d1,-d2); }
       vec2  opS( vec2 d1, vec2 d2 ) {
         return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
+      }
+      opOut opS( opOut d1, opOut d2, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o;
+
+        if( d1.x >= -d2.x ) {
+          o = opOut( d1.x, d1.y, t1 * top );
+        }else{
+          o = opOut( -d2.x, d2.y, t2 * top );
+        }
+
+        return o;
       }
 
       /* ******** from http://mercury.sexy/hg_sdf/ ********* */
@@ -201,12 +224,28 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float u = b-r;
         return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));
       }
+
       vec2 fOpUnionStairs(vec2 a, vec2 b, float r, float n) {
         float s = r/n;
         float u = b.x-r;
         return vec2( min(min(a.x,b.x), 0.5 * (u + a.x + abs ((mod (u - a.x + s, 2. * s)) - s))), a.y );
       }
 
+      opOut fOpUnionStairs( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top ) {
+        opOut o = opOut(-1., -1., mat4(1.));
+
+        if( d1.x <= d2.x ) {
+          o.y = d1.y; //opOut( d1.x, d1.y, t1 * top );
+          o.transform = t1 * top;
+        }else{
+          o.y = d2.y; //opOut( d1.x, d1.y, t1 * top );
+          o.transform = t2 * top;
+        }
+
+        o.x = fOpUnionStairs( d1.x, d2.x, r, n );
+
+        return o;
+      }
       // We can just call Union since stairs are symmetric.
       float fOpIntersectionStairs(float a, float b, float r, float n) {
         return -fOpUnionStairs(-a, -b, r, n);
@@ -340,7 +379,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float t = mint;
 
         for( int i = 0; i < 12; i++ ) {
-          float h = scene( ro + rd * t ).distance;
+          float h = scene( ro + rd * t ).x;
           res = min( res, k * h / t );
           t += clamp( h, 0.02, 0.10 );
           if( h<0.001 || t>tmax ) break;
@@ -371,14 +410,12 @@ ${preface}
         orbitCamera( camera_rot, ro.y, ro.z, resolution, ro, rd );
         
         opOut t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
-        //if( t.distance > -.5 ) {
-        //  color = vec3(t.distance * 100.);//vec3(abs( t.distance ));
-        //}
-        if( t.distance > -0.5 ) {
-          vec3 pos = ro + rd * t.distance;
+ 
+        if( t.x > -0.5 ) {
+          vec3 pos = ro + rd * t.x;
           vec3 nor = calcNormal( pos );
 
-          color = lighting( pos, nor, ro, rd, t.id, t.transform ); 
+          color = lighting( pos, nor, ro, rd, t.y, t.transform ); 
         }
 
         ${postprocessing}

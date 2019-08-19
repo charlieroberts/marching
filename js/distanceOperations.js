@@ -4,25 +4,25 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_ge
 const Transform = require( './transform.js' )
 
 const ops = { 
-  Union( a,b,c,d,e )        { return `opU( ${a}, ${b}, ${c}, ${d}, ${e} )` },
-  SmoothUnion(  a,b,c) { return `opSmoothUnion( ${a}, ${b}, ${c} )` },
-  Intersection( a,b ) { return `opI( ${a}, ${b} )` },
-  SmoothIntersection( a,b,c ) { return `opSmoothIntersection( ${a}, ${b}, ${c} )` },  
-  Difference( a,b ) { return `opS( ${a}, ${b} )` },  
-  SmoothDifference( a,b,c ) { return `opSmoothSubtraction( ${b}, ${a}, ${c} )` },  
-  StairsUnion(  a,b,c,d ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d} )` },
-  StairsIntersection( a,b,c,d ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d} )` },
-  StairsDifference( a,b,c,d ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d} )` },
-  RoundUnion( a,b,c ) { return `fOpUnionRound( ${a}, ${b}, ${c} )` },
-  RoundDifference( a,b,c ) { return `fOpDifferenceRound( ${a}, ${b}, ${c} )` },
-  RoundIntersection( a,b,c ) { return `fOpIntersectionRound( ${a}, ${b}, ${c} )` },
-  ChamferUnion( a,b,c ) { return `fOpUnionChamfer( ${a}, ${b}, ${c} )` },
-  ChamferDifference( a,b,c ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c} )` },
-  ChamferIntersection( a,b,c ) { return `fOpIntersectionChamfer( ${a}, ${b}, ${c} )` },
-  Pipe( a,b,c ) { return `fOpPipe( ${a}, ${b}, ${c} )` },
-  Engrave( a,b,c ) { return `fOpEngrave( ${a}, ${b}, ${c} )` },
-  Groove( a,b,c,d ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d} )` },
-  Tongue( a,b,c,d ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d} )` },
+  Union( a,b,c,d,e ) { return `opU( ${a}, ${b}, ${c}, ${d}, ${e} )` },
+  SmoothUnion(  a,b,c,d,e,f) { return `opSmoothUnion( ${a}, ${b}, ${c}, ${d}, ${e}, ${f} )` },
+  Intersection( a,b,c,d,e ) { return `opI( ${a}, ${b}, ${c}, ${d}, ${e} )` },
+  SmoothIntersection( a,b,c,d,e,f ) { return `opSmoothIntersection( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },  
+  Difference( a,b,c,d,e ) { return `opS( ${a}, ${b}, ${c}, ${d}, ${e} )` },  
+  SmoothDifference( a,b,c,d,e,f ) { return `opSmoothSubtraction( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },  
+  StairsUnion(  a,b,c,d,e,f,g ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
+  StairsIntersection( a,b,c,d,e,f,g ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
+  StairsDifference( a,b,c,d,e,f,g ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
+  RoundUnion( a,b,c,d,e,f ) { return `fOpUnionRound( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
+  RoundDifference( a,b,c,d,e,f ) { return `fOpDifferenceRound( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
+  RoundIntersection( a,b,c,d,e,f ) { return `fOpIntersectionRound( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
+  ChamferUnion( a,b,c,d,e,f ) { return `fOpUnionChamfer( ${a}, ${b}, ${c}, ${d}, ${e}, ${f} )` },
+  ChamferDifference( a,b,c,d,e,f ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
+  ChamferIntersection( a,b,c,d,e,f ) { return `fOpIntersectionChamfer( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
+  Pipe( a,b,c,d,e,f ) { return `fOpPipe( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
+  Engrave( a,b,c,d,e,f ) { return `fOpEngrave( ${a}, ${b}, ${c}, ${d}, ${e}, ${f} )` },
+  Groove( a,b,c,d,e,f,g ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
+  Tongue( a,b,c,d,e,f,g ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
   Onion( a,b ) { return `opOnion( ${a}, ${b} )` },
   Switch( a,b,c ) { return `( ${c} < .5 ? ${a} : ${b} )` }
 }
@@ -53,21 +53,26 @@ for( let name in ops ) {
 
     let __c = param_wrap( c, float_var_gen(.3) )
 
-    Object.defineProperty( op, 'c', {
-      get() { return __c },
-      set(v) {
-        __c.set( v )
-      }
-    })
+    op.__len = ops[ name ].length
+    if( op.__len > 5 ) {
+      Object.defineProperty( op, 'c', {
+        get() { return __c },
+        set(v) {
+          __c.set( v )
+        }
+      })
+      
+      if( op.__len > 6 ) {
+        let __d = param_wrap( d, float_var_gen(4) )
 
-    let __d = param_wrap( d, float_var_gen(4) )
-
-    Object.defineProperty( op, 'd', {
-      get() { return __d },
-      set(v) {
-        __d.set( v )
+        Object.defineProperty( op, 'd', {
+          get() { return __d },
+          set(v) {
+            __d.set( v )
+          }
+        })
       }
-    })
+    }
 
     op.matId = MaterialID.alloc()
 
@@ -104,15 +109,34 @@ for( let name in ops ) {
 
     const tname = `transformDO${this.id}`
     const prequel = `        vec4 ${tname} = ${pname} * ${this.transform.emit()};\n`
+    
+    // up to seven arguments... sdfa, sdfb, arg1 | sdfa.transform, arg2 | sdfb.transform, op.transform etc.
+    // first two are fixed, rest are variable
     const emitterA = this.a.emit( tname )
     const emitterB = this.b.emit( tname )
-    const emitterC = this.c !== undefined ? this.c.emit() : this.a.transform.emit()
-    const emitterD = this.d !== undefined ? this.d.emit() : this.b.transform.emit()
-    const emitterE = this.e !== undefined ? this.e.emit() : this.transform.emit()
-    
+    const emitterC = this.c !== undefined ? this.c.emit() : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
+    const emitterD = this.d !== undefined 
+      ? this.d.emit() 
+      : this.__len === 5 
+        ? this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit() 
+        : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
 
+    const emitterE = this.__len <= 5 
+      ? this.transform.emit() 
+      : this.__len === 6 
+        ? this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit()
+        : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
+
+    const emitterF = this.__len <= 5 
+      ? null 
+      : this.__len === 6 
+        ? this.transform.emit() 
+        : this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit()
+ 
+    const emitterG = this.__len <= 6 ? null : this.transform.emit()
+    
     const body = `
-        vec2 do${this.id} = ${op( emitterA.out, emitterB.out, emitterC, emitterD, emitterE )};
+        opOut do${this.id} = ${op( emitterA.out, emitterB.out, emitterC, emitterD, emitterE, emitterF, emitterG )};
         do${this.id}.x *= ${this.transform.emit()}_scale;
     `
 

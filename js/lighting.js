@@ -227,29 +227,6 @@ const Lights = function( SDF ) {
     
     ${texturePreface}
     ${textureBody}
-    // pos_nt is the position before applying transformations...
-    //vec3 getTexture( int id, vec3 pos, vec3 nor, vec3 pos_nt ) {
-    //  vec3 tex;
-    //  switch( id ) {
-    //    case 0: 
-    //      float n = snoise( pos*2. );
-    //      tex = vec3( n );
-    //      break;
-    //    case 1:
-    //      pos  = pos * 8.;
-    //      if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
-    //        tex = vec3(.5);
-    //      }else{
-    //        tex = vec3(0.);
-    //      }
-    //      break;
-    //    default:
-    //      tex = vec3(0.);
-    //      break;
-    //  }
-
-    //  return tex;
-    //}
     `
       let func = `
 
@@ -264,7 +241,7 @@ const Lights = function( SDF ) {
 
       ${lights}
 
-      vec3 tex = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*transform).xyz, normal, surfacePosition );
+      vec3 tex = getTexture( int(sdf.textureID), (vec4(surfacePosition,1.)*transform).xyz, normal, transform );
 
       vec3 clr;
       switch( mat.mode ) {

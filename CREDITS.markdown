@@ -21,3 +21,4 @@ The SuperFormula primitive is taken from [a repo](https://github.com/Softwave/gl
 
 A [matrix data structure by Evan Wallace](https://github.com/evanw/lightgl.js/).
 
+The Worley noise texture is taken from [a repo](https://github.com/Erkaman/glsl-worley) by [Eric Arnebäck](https://erkaman.github.io/).

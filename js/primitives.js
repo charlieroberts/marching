@@ -168,12 +168,12 @@ const createPrimitives = function( SDF ) {
       p.__desc = desc
       p.__setMaterial = mat => {
         if( typeof mat === 'string' ) mat = SDF.Material[ mat ]
-        p.__material = SDF.materials.addMaterial( mat )
+        p.__material = p.mat = SDF.materials.addMaterial( mat )
       }
 
-      p.__setTexture = tex => {
+      p.__setTexture = (tex,props) => {
         if( typeof tex === 'string' ) {
-          p.__textureObj = SDF.Texture( tex )
+          p.__textureObj = p.tex = SDF.Texture( tex,props )
           p.__textureID = p.__textureObj.id
         }
       }

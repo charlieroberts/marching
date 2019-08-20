@@ -66,8 +66,8 @@ SceneNode.prototype = {
     return this
   },
 
-  texture( tex ) {
-    this.__setTexture( tex )
+  texture( tex,props ) {
+    this.__setTexture( tex,props )
     return this
   }
 }

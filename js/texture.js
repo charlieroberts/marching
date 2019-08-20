@@ -33,19 +33,21 @@ const __Textures = function( SDF ) {
       checkers: {
         name:'checkers',
         glsl:`          
-            vec3 checkers( vec3 pos, vec3 normal, float size ) {
+            vec3 checkers( vec3 pos, vec3 normal, float size, vec3 color1, vec3 color2 ) {
               vec3 tex;
               pos  = pos * size;
               if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
-                tex = vec3(.5);
+                tex = color1;//vec3(.5);
               }else{
-                tex = vec3(0.);
+                tex = color2;//vec3(0.);
               }
 
               return tex;
             }`,
         parameters: [
-          { name:'scale', type:'float', default:8 }
+          { name:'scale', type:'float', default:5 },
+          { name:'color1', type:'vec3', default:[1,1,1] },
+          { name:'color2', type:'vec3', default:[0,0,0] }
         ],
       },
       noise: {
@@ -62,49 +64,53 @@ const __Textures = function( SDF ) {
       arcs: {
         name:'arcs',
         glsl:`          
-            vec3 arcs( vec3 pos, vec3 nor, float scale ) {
+            vec3 arcs( vec3 pos, vec3 nor, float scale, vec3 color ) {
               vec3 tex;
-              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract(abs(pos)*scale) )) );
+              tex = vec3( color - smoothstep(0.3, 0.32, length(fract(abs(pos)*scale) )) );
               return tex;
             }` ,
         parameters: [
-          { name:'scale', type:'float', default:5 }
+          { name:'scale', type:'float', default:5 },
+          { name:'color', type:'vec3', default:[1,1,1] }
         ],
       },
       dots: {
         name:'dots',
         glsl:`          
-            vec3 dots( vec3 pos, vec3 nor, float scale ) {
+            vec3 dots( vec3 pos, vec3 nor, float scale, vec3 color ) {
               vec3 tex;
-              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract(pos*(round(scale)+.5)) -.5 )) );
+              tex = vec3( color - smoothstep(0.3, 0.32, length(fract(pos*(round(scale)+.5)) -.5 )) );
               return tex;
             }` ,
         parameters: [
-          { name:'scale', type:'float', default:5 }
+          { name:'scale', type:'float', default:5 },
+          { name:'color', type:'vec3', default:[1,1,1] }
         ],
       },
       stars: {
         name:'stars',
         glsl:`          
-            vec3 stars( vec3 pos, vec3 nor, float scale ) {
+            vec3 stars( vec3 pos, vec3 nor, float scale, vec3 color ) {
               vec3 tex;
-              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract((pos.x*pos.y*pos.z)*scale) -.5 )) );
+              tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x*pos.y*pos.z)*scale) -.5 )) );
               return tex;
             }` ,
         parameters: [
-          { name:'scale', type:'float', default:5 }
+          { name:'scale', type:'float', default:5 },
+          { name:'color', type:'vec3', default:[1,1,1] }
         ],
       },
       stripes: {
         name:'stripes',
         glsl:`          
-            vec3 stripes( vec3 pos, vec3 nor, float scale ) {
+            vec3 stripes( vec3 pos, vec3 nor, float scale, vec3 color ) {
               vec3 tex;
-              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
+              tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
               return tex;
             }` ,
         parameters: [
-          { name:'scale', type:'float', default:5 }
+          { name:'scale', type:'float', default:5 },
+          { name:'color', type:'vec3', default:[1,1,1] }
         ],
       },
       worley: {
@@ -211,7 +217,7 @@ const __Textures = function( SDF ) {
 
         let count = 0
         if( isArray ) {
-          let val = args[ count++ ], __var
+          let val = props[ param.name ], __var
 
           if( typeof val === 'number' ) {
             __var = Var( vars[ param.type ]( val ), null, 'vec3' )

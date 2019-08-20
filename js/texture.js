@@ -45,27 +45,101 @@ const __Textures = function( SDF ) {
               return tex;
             }`,
         parameters: [
-          { name:'size', type:'float', default:8 }
+          { name:'scale', type:'float', default:8 }
         ],
-        init(){}
       },
       noise: {
         name:'noise',
         glsl:`          
-            vec3 noise( vec3 pos, vec3 normal ) {
-              float n = snoise( pos*2. );
+            vec3 noise( vec3 pos, vec3 normal, float scale ) {
+              float n = snoise( pos*scale );
               return vec3( n );
             }`,
-        parameters: [],
-        init(){}
+        parameters: [
+          { name:'scale', type:'float', default:2 }
+        ],
       },
+      arcs: {
+        name:'arcs',
+        glsl:`          
+            vec3 arcs( vec3 pos, vec3 nor, float scale ) {
+              vec3 tex;
+              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract(abs(pos)*scale) )) );
+              return tex;
+            }` ,
+        parameters: [
+          { name:'scale', type:'float', default:5 }
+        ],
+      },
+      dots: {
+        name:'dots',
+        glsl:`          
+            vec3 dots( vec3 pos, vec3 nor, float scale ) {
+              vec3 tex;
+              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract(pos*(round(scale)+.5)) -.5 )) );
+              return tex;
+            }` ,
+        parameters: [
+          { name:'scale', type:'float', default:5 }
+        ],
+      },
+      stars: {
+        name:'stars',
+        glsl:`          
+            vec3 stars( vec3 pos, vec3 nor, float scale ) {
+              vec3 tex;
+              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract((pos.x*pos.y*pos.z)*scale) -.5 )) );
+              return tex;
+            }` ,
+        parameters: [
+          { name:'scale', type:'float', default:5 }
+        ],
+      },
+      stripes: {
+        name:'stripes',
+        glsl:`          
+            vec3 stripes( vec3 pos, vec3 nor, float scale ) {
+              vec3 tex;
+              tex = vec3( 1. - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
+              return tex;
+            }` ,
+        parameters: [
+          { name:'scale', type:'float', default:5 }
+        ],
+      },
+      worley: {
+        name:'worley',
+        glsl:glsl`
+            #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
+
+            vec3 worley( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
+              vec2 w = worley3D( pos * scale, jitter, false );
+              vec3 o;
+              if( mode == 0. ) {
+                o = vec3( w.x );
+              } else if ( mode == 1. ) {
+                o = vec3( w.y );
+              } else{
+                o = vec3( w.y - w.x );
+              }
+
+              return o * strength;
+            }
+        `,
+        parameters: [
+          { name:'scale', type:'float', default:1 },
+          { name:'jitter', type:'float', default:1 },
+          { name:'mode',  type:'float', default: 0 },
+          { name:'strength', type:'float', default:2 }
+        ],     
+      }
     },
 
     //      float n = snoise( pos*2. );
     //      tex = vec3( n );
     __emitFunction() {
       let decl = `
-      vec3 getTexture( int id, vec3 pos, vec3 nor, vec3 pos_nt ) {
+      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
         vec3 tex;
         switch( id ) {\n`
 
@@ -76,7 +150,7 @@ const __Textures = function( SDF ) {
           Textures.__textureBodies.push( t.glsl )
         }
 
-        const args = t.parameters.map( p => t[ p.name ].emit() ) 
+        const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
 
         decl +=`
           case ${i}:
@@ -119,7 +193,7 @@ const __Textures = function( SDF ) {
       return tex
     },
 
-    texture( presetName='noise', props={} ){
+    texture( presetName='noise', props={}, target=null ){
       //const isPreset = filenameOrPreset.indexOf( '.' ) === -1
       //const defaults = { wrap:SDF.gl.MIRRORED_REPEAT }
 
@@ -127,6 +201,9 @@ const __Textures = function( SDF ) {
         console.log( `the texture type '${presetName}' does not exist.` )
       }
       const tex = Object.assign( {}, Textures.__types[ presetName ], props )
+
+      if( target === null ) target = tex
+      tex.__target = target
 
       for( let param of tex.parameters ) {
         const defaultValues = param.default
@@ -146,7 +223,7 @@ const __Textures = function( SDF ) {
           }
 
           // for assigning entire new vectors to property
-          Object.defineProperty( tex, param.name, {
+          Object.defineProperty( target, param.name, {
             configurable:true,
             get() { return __var },
             set(v) {
@@ -169,7 +246,7 @@ const __Textures = function( SDF ) {
           )
 
           //__var.set( defaultValues )
-          Object.defineProperty( tex, param.name, {
+          Object.defineProperty( target, param.name, {
             configurable:true,
             get() { return __var },
             set(v) {
@@ -205,7 +282,7 @@ const __Textures = function( SDF ) {
       this.textures.forEach( (tex,i) => {
         for( let param of tex.parameters ) {
           if( param.name !== 'material' )
-            decl += tex[ param.name ].emit_decl()
+            decl += tex.__target[ param.name ].emit_decl()
         }
       })
 
@@ -218,7 +295,7 @@ const __Textures = function( SDF ) {
           for( let param of tex.parameters ) {
             if( param.type !== 'obj' ) {
               if( param.name !== 'material' ) 
-                tex[ param.name ].update_location( gl,program )
+                tex.__target[ param.name ].update_location( gl,program )
             }
           }
         })
@@ -242,7 +319,7 @@ const __Textures = function( SDF ) {
         this.textures.forEach( (tex,i) => {
           for( let param of tex.parameters ) {
             if( param.type !== 'obj' && param.name !== 'material' )
-              tex[ param.name ].upload_data( gl )
+              tex.__target[ param.name ].upload_data( gl )
           }
         })
       }

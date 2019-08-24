@@ -43,20 +43,23 @@ const __Textures = function( SDF ) {
 
       let funcdefs = ''
       this.textures.forEach( (t,i) => {
+        const mode = t.wrap !== true && t.glsl3d !== undefined ? '3d' : '2d'
+
         // add texture wrap function if needed
-        if( t.wrap === true && pushedWrap === false ) {
+        if( mode === '2d' && pushedWrap === false ) {
           Textures.__textureBodies.push( Textures.__wrap )
           pushedWrap = true
         }
 
-        Textures.__textureBodies.push( t.glsl )
+        Textures.__textureBodies.push( mode === '3d' ? t.glsl3d : t.glsl2d )
 
         const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
+        const functionName = mode === '2d' ? t.name + '2d' : t.name + '3d'
 
         decl +=`
           case ${i}:
-            ${t.wrap === true ? `     vec2 pos2 = getUVCubic( pos, vec3(0.));\n` : ''} 
-            tex = ${t.name}( ${t.wrap==='true' ?'pos2':'pos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
+            ${mode === '2d' ? `     vec2 pos2 = getUVCubic( pos, vec3(0.));\n` : ''} 
+            tex = ${functionName}( ${mode === '2d' ?'pos2':'pos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
             break;\n`            
 
       })

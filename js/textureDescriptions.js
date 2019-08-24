@@ -15,17 +15,25 @@ const textures = {
 
           return tex;
         }`,
+    glsl2d:`
+        vec3 checkers2d( vec2 uv, vec3 normal, float size, vec3 color1, vec3 color2 ) {
+          float fmodResult = mod(floor(size * uv.x) + floor(size * uv.y), 2.0);
+          float fin = max(sign(fmodResult), 0.0); 
+
+          return vec3(fin);
+        }
+    `,
     parameters: [
-      { name:'scale', type:'float', default:5 },
+      { name:'size', type:'float', default:5 },
       { name:'color1', type:'vec3', default:[1,1,1] },
       { name:'color2', type:'vec3', default:[0,0,0] }
     ],
   },
   noise: {
     name:'noise',
-    glsl:glsl`          
+    glsl3d:glsl`          
         #pragma glslify: snoise = require('glsl-noise/simplex/3d')
-        vec3 noise( vec3 pos, vec3 normal, float scale ) {
+        vec3 noise3d( vec3 pos, vec3 normal, float scale ) {
           float n = snoise( pos*scale );
           return vec3( n );
         }`,
@@ -33,23 +41,47 @@ const textures = {
       { name:'scale', type:'float', default:2 }
     ],
   },
-  arcs: {
-    name:'arcs',
-    glsl:`          
-        vec3 arcs( vec3 pos, vec3 nor, float scale, vec3 color ) {
-          vec3 tex;
-          tex = vec3( color - smoothstep(0.3, 0.32, length(fract(abs(pos)*scale) )) );
-          return tex;
-        }` ,
+  truchet: {
+    name:'truchet',
+    glsl2d:`    
+        float random_truchet(in vec2 _st) {
+          return fract(sin(dot(_st.xy,
+                         vec2(12.9898,78.233)))*
+                        43758.5453123);
+        }
+
+        vec2 truchetPattern(in vec2 _st, in float _index){
+            _index = fract(((_index-0.5)*2.0));
+            if (_index > 0.75) {
+                _st = vec2(1.0) - _st;
+            } else if (_index > 0.5) {
+                _st = vec2(1.0-_st.x,_st.y);
+            } else if (_index > 0.25) {
+                _st = 1.0-vec2(1.0-_st.x,_st.y);
+            }
+            return _st;
+        }
+
+        vec3 truchet2d( vec2 st, vec3 nor, float scale, vec3 color ) {
+            st = st * scale;
+            vec2 ipos = floor(st);  // integer
+            vec2 fpos = fract(st);  // fraction
+
+            vec2 tile = truchetPattern(fpos, random_truchet( ipos ));
+
+            float col = smoothstep(tile.x-0.3,tile.x,tile.y)-smoothstep(tile.x,tile.x+.3,tile.y);
+            return vec3(col);
+        }
+` ,
     parameters: [
-      { name:'scale', type:'float', default:5 },
+      { name:'scale', type:'float', default:10 },
       { name:'color', type:'vec3', default:[1,1,1] }
     ],
   },
   dots: {
     name:'dots',
-    glsl:`          
-        vec3 dots( vec3 pos, vec3 nor, float count, vec3 color ) {
+    glsl3d:`          
+        vec3 dots3d( vec3 pos, vec3 nor, float count, vec3 color ) {
           vec3 tex;
           tex = vec3( color - smoothstep(0.3, 0.32, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
           return tex;
@@ -61,8 +93,8 @@ const textures = {
   },
   stars: {
     name:'stars',
-    glsl:`          
-        vec3 stars( vec3 pos, vec3 nor, float scale, vec3 color ) {
+    glsl3d:`          
+        vec3 stars3d( vec3 pos, vec3 nor, float scale, vec3 color ) {
           vec3 tex;
           tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x*pos.y*pos.z)*scale) -.5 )) );
           return tex;
@@ -74,8 +106,8 @@ const textures = {
   },
   stripes: {
     name:'stripes',
-    glsl:`          
-        vec3 stripes( vec3 pos, vec3 nor, float scale, vec3 color ) {
+    glsl3d:`          
+        vec3 stripes3d( vec3 pos, vec3 nor, float scale, vec3 color ) {
           vec3 tex;
           tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
           return tex;
@@ -87,10 +119,10 @@ const textures = {
   },
   cellular: {
     name:'cellular',
-    glsl:glsl`
+    glsl3d:glsl`
         #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
-        vec3 cellular( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
+        vec3 cellular3d( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
           vec2 w = worley3D( pos * scale, jitter, false );
           vec3 o;
           if( mode == 0. ) {
@@ -117,7 +149,7 @@ const textures = {
       { name:'scale', type:'float', default:1 },
       { name:'res', type:'float', default:100 }
     ],
-    glsl:`
+    glsl3d:`
     vec3 voronoi_hash(vec3 p) {
       return fract(
           sin(vec3(dot(p, vec3(1.0, 57.0, 113.0)), dot(p, vec3(57.0, 113.0, 1.0)),

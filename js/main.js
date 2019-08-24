@@ -158,8 +158,8 @@ const SDF = {
     // with an id #.
 
     scene.output.__emit = scene.output.emit.bind( scene.output )
-    scene.output.emit = ()=> {
-      const emitted = scene.output.__emit()
+    scene.output.emit = function( ...args ) {
+      const emitted = scene.output.__emit(...args)
       const output = {
         out:     emitted.out,
         preface: emitted.preface || '' 
@@ -180,9 +180,7 @@ const SDF = {
       variablesDeclaration += processor.emit_decl()
     }
 
-    variablesDeclaration += this.materials.emit_decl() 
-    variablesDeclaration += this.textures.emit_decl() 
-    variablesDeclaration += this.lighting.emit_decl() 
+
 
     this.postprocessing = __scene.postprocessing
 

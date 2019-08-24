@@ -12,7 +12,6 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 
 const demos = {
   introduction: require( './demos/intro.js' ),
-  //['tutorial #1']: require( './demos/tutorial_1.js' ),
   ['the superformula']: require('./demos/superformula.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
@@ -30,7 +29,8 @@ const tutorials = {
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
   ['live coding']: require( './demos/livecoding.js' ),
-  ['defining your own GLSL shapes']: require( './demos/constructors.js' )
+  ['defining your own GLSL shapes']: require( './demos/constructors.js' ),
+  ['defining procedural textures']: require( './demos/procedural_textures.js' )
 }
 
 Math.export = ()=> {

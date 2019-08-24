@@ -72,4 +72,18 @@ SceneNode.prototype = {
   }
 }
 
+const ops = [ 'repeat', 'polarRepeat', 'elongation' ]
+
+ops.forEach( op => {
+  const constructorName = op[0].toUpperCase() + op.slice(1)
+  SceneNode.prototype[ op ] = function( ...args ) {
+    this[ op ] = this[ op ].bind( this )
+    Object.assign( this[ op ], SceneNode.prototype )
+    this.__target = this[ op ]
+    this[ '__'+op ] = Marching[ constructorName ]( this, ...args, this[ op ] )
+    this[ op ].transform = this[ '__'+op ].transform
+    return this
+  }
+})
+
 module.exports = SceneNode

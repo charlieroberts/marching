@@ -55,7 +55,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); 
       }
 
-      #pragma glslify: noise3d = require('glsl-noise/simplex/3d')
 
       /* GEOMETRIES */
       ${geometries}

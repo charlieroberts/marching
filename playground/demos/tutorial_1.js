@@ -160,8 +160,10 @@ we can also change the performance
 of our raymarcher to get fun glitch
 effects.                            
                                    
-** __--__--__--__--__--__--__--__*/
+** __--__--__--__--__--__--__--__*/`
 
+
+/*
 march(  
   Sphere( Noise() )
 )
@@ -174,5 +176,4 @@ march(
 // ignore quality parameter in favor
 // of the other settings we've defined
 // and animate
-.render(null, true)`
-
+.render(null, true)*/

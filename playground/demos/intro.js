@@ -1,11 +1,14 @@
 module.exports = `march(
-  StairsDifference(
-    Sphere(2),
-    Repeat( Sphere( .1 ), .25 ),
-    .25,
-    10
-  ),
-  Plane()
+  Repeat(
+    StairsDifference(
+      Sphere(2),
+      Repeat( Sphere( .1 ), .25 ),
+      .25,
+      10
+    ),
+    6
+  ).translate( 0,-1.5 ),
+  Plane().texture( 'cellular', { strength:-.5, scale:10 })
 )
 .fog( .1, Vec3(0,0,.25) )
 .background( Vec3(0,0,.25) )

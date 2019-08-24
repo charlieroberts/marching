@@ -5,7 +5,6 @@ const SceneNode = require( './sceneNode.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' ), 
       { Vec2, Vec3, Vec4 } = require( './vec.js' )
 
-const glsl = require( 'glslify' )
 
 const __Textures = function( SDF ) {
   const gens = { 
@@ -29,138 +28,35 @@ const __Textures = function( SDF ) {
     __texturePrefaces:[],
     __textureBodies:  [],
 
-    __types:{
-      checkers: {
-        name:'checkers',
-        glsl:`          
-            vec3 checkers( vec3 pos, vec3 normal, float size, vec3 color1, vec3 color2 ) {
-              vec3 tex;
-              pos  = pos * size;
-              if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
-                tex = color1;//vec3(.5);
-              }else{
-                tex = color2;//vec3(0.);
-              }
-
-              return tex;
-            }`,
-        parameters: [
-          { name:'scale', type:'float', default:5 },
-          { name:'color1', type:'vec3', default:[1,1,1] },
-          { name:'color2', type:'vec3', default:[0,0,0] }
-        ],
-      },
-      noise: {
-        name:'noise',
-        glsl:`          
-            vec3 noise( vec3 pos, vec3 normal, float scale ) {
-              float n = snoise( pos*scale );
-              return vec3( n );
-            }`,
-        parameters: [
-          { name:'scale', type:'float', default:2 }
-        ],
-      },
-      arcs: {
-        name:'arcs',
-        glsl:`          
-            vec3 arcs( vec3 pos, vec3 nor, float scale, vec3 color ) {
-              vec3 tex;
-              tex = vec3( color - smoothstep(0.3, 0.32, length(fract(abs(pos)*scale) )) );
-              return tex;
-            }` ,
-        parameters: [
-          { name:'scale', type:'float', default:5 },
-          { name:'color', type:'vec3', default:[1,1,1] }
-        ],
-      },
-      dots: {
-        name:'dots',
-        glsl:`          
-            vec3 dots( vec3 pos, vec3 nor, float scale, vec3 color ) {
-              vec3 tex;
-              tex = vec3( color - smoothstep(0.3, 0.32, length(fract(pos*(round(scale)+.5)) -.5 )) );
-              return tex;
-            }` ,
-        parameters: [
-          { name:'scale', type:'float', default:5 },
-          { name:'color', type:'vec3', default:[1,1,1] }
-        ],
-      },
-      stars: {
-        name:'stars',
-        glsl:`          
-            vec3 stars( vec3 pos, vec3 nor, float scale, vec3 color ) {
-              vec3 tex;
-              tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x*pos.y*pos.z)*scale) -.5 )) );
-              return tex;
-            }` ,
-        parameters: [
-          { name:'scale', type:'float', default:5 },
-          { name:'color', type:'vec3', default:[1,1,1] }
-        ],
-      },
-      stripes: {
-        name:'stripes',
-        glsl:`          
-            vec3 stripes( vec3 pos, vec3 nor, float scale, vec3 color ) {
-              vec3 tex;
-              tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
-              return tex;
-            }` ,
-        parameters: [
-          { name:'scale', type:'float', default:5 },
-          { name:'color', type:'vec3', default:[1,1,1] }
-        ],
-      },
-      worley: {
-        name:'worley',
-        glsl:glsl`
-            #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
-
-            vec3 worley( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
-              vec2 w = worley3D( pos * scale, jitter, false );
-              vec3 o;
-              if( mode == 0. ) {
-                o = vec3( w.x );
-              } else if ( mode == 1. ) {
-                o = vec3( w.y );
-              } else{
-                o = vec3( w.y - w.x );
-              }
-
-              return o * strength;
-            }
-        `,
-        parameters: [
-          { name:'scale', type:'float', default:1 },
-          { name:'jitter', type:'float', default:1 },
-          { name:'mode',  type:'float', default: 0 },
-          { name:'strength', type:'float', default:2 }
-        ],     
-      }
-    },
-
-    //      float n = snoise( pos*2. );
-    //      tex = vec3( n );
+    __types: require( './textureDescriptions.js' ),
+    __wrap : require( './textureWrap.js' ), 
+    
     __emitFunction() {
+      let pushedWrap = false
+
       let decl = `
       vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
         vec3 tex;
         switch( id ) {\n`
 
+      Textures.__textureBodies.length = 0
 
       let funcdefs = ''
       this.textures.forEach( (t,i) => {
-        if( Textures.__textureBodies.indexOf( t.glsl ) === -1 ) {
-          Textures.__textureBodies.push( t.glsl )
+        // add texture wrap function if needed
+        if( t.wrap === true && pushedWrap === false ) {
+          Textures.__textureBodies.push( Textures.__wrap )
+          pushedWrap = true
         }
+
+        Textures.__textureBodies.push( t.glsl )
 
         const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
 
         decl +=`
           case ${i}:
-            tex = ${t.name}( pos, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
+            ${t.wrap === true ? `     vec2 pos2 = getUVCubic( pos, vec3(0.));\n` : ''} 
+            tex = ${t.name}( ${t.wrap==='true' ?'pos2':'pos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
             break;\n`            
 
       })
@@ -182,19 +78,24 @@ const __Textures = function( SDF ) {
     },
 
     addTexture( tex ) {
-      //if( tex === undefined ) tex = Textures.texture.default
-
-      //if( Textures.textures.indexOf( tex ) === -1 ) {
-      tex.id = Textures.textures.length
-
       // we have to dirty the texture so that its data
       // will be uploaded to new shaders, otherwise the
       // texture will only work the first time it's used, when
       // it's dirty on initialization.
       Textures.dirty( tex )
 
-      Textures.textures.push( tex )
-      //} 
+      // if texture with same name is already found, replace it,
+      // otherwise push texture
+      //const oldTex = Textures.textures.find( __tex => tex.name === __tex.name )
+      //if( oldTex !== undefined ) {
+      //  const idx = Textures.textures.indexOf( oldTex )
+      //  Textures.textures.splice( idx, 1, tex )
+
+      //  tex.id = idx 
+      //}else{
+        tex.id = Textures.textures.length
+        Textures.textures.push( tex )
+      //}
 
       return tex
     },
@@ -206,7 +107,7 @@ const __Textures = function( SDF ) {
       if( Textures.__types[ presetName ] === undefined ) {
         console.log( `the texture type '${presetName}' does not exist.` )
       }
-      const tex = Object.assign( {}, Textures.__types[ presetName ], props )
+      const tex = Object.assign( { wrap:false }, Textures.__types[ presetName ], props )
 
       if( target === null ) target = tex
       tex.__target = target
@@ -272,8 +173,6 @@ const __Textures = function( SDF ) {
       //  tex.gltexture.wrap = tex.wrap
       //})
 
-      Textures.addTexture( tex )
-
       return tex 
     },
 
@@ -331,6 +230,10 @@ const __Textures = function( SDF ) {
       }
     }
 
+  }
+
+  Textures.texture.create = function( props ) {
+    Textures.__types[ props.name ] = props
   }
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 

@@ -30,14 +30,20 @@ const createPrimitives = function( SDF ) {
       const head = Array.isArray( SDF.__scene.__prerender ) ? SDF.__scene.__prerender[0] : SDF.__scene.__prerender
       const geos = Primitives.crawlNode( head, [] )
 
-      geos.forEach( (geo,i) => geo.__sdfID = i )
+      geos.forEach( (geo,i) => {
+        geo.__sdfID = i 
+        if( geo.__textureObj !== undefined ) {
+          SDF.textures.addTexture( geo.__textureObj )
+        }
+      })
 
       const length = geos.length
       const materials = SDF.materials.__materials
 
       let decl = `SDF sdfs[${length}] = SDF[${length}](\n`
       geos.forEach( (geo, i) => {
-        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${geo.__textureID} )`
+        const textureID = geo.__textureObj === undefined ? 50000 : geo.__textureObj.id
+        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${textureID} )`
         if( i < geos.length - 1 ) decl += ','
         decl += '\n'
       })
@@ -173,7 +179,8 @@ const createPrimitives = function( SDF ) {
 
       p.__setTexture = (tex,props) => {
         if( typeof tex === 'string' ) {
-          p.__textureObj = p.tex = SDF.Texture( tex,props )
+          p.texture = p.texture.bind( p )
+          p.__textureObj = p.tex = SDF.Texture( tex,props,p.texture )
           p.__textureID = p.__textureObj.id
         }
       }
@@ -189,7 +196,7 @@ const createPrimitives = function( SDF ) {
     Primitives[ name ].prototype = SceneNode()
 
     // create codegen string
-    Primitives[ name ].prototype.emit = function ( __name ) {
+    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null ) {
       let shaderCode = desc.glslify.indexOf('#') > -1 ? desc.glslify.slice(18) : desc.glslify
       if( SDF.requiredGeometries.indexOf( shaderCode ) === - 1 ) {
         SDF.requiredGeometries.push( shaderCode )
@@ -199,31 +206,40 @@ const createPrimitives = function( SDF ) {
         return { preface:'', out:name+this.matId }
       }
 
-      const pname = __name === undefined ? 'p' : __name
+      const pname = __name === undefined || __name === null ? 'p' : __name
 
       //const id = SDF.materials.__materials.indexOf( this.__material )
       const id = this.__sdfID
       const s = this.transform.emit_scale()
-      const pointString = `( ${pname} * ${this.transform.emit()} ).xyz`
-
-      const primitive = `
-        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${this.transform.emit()});
+      
+      let pointString = `( ${pname} * ${this.transform.emit()} ).xyz`
+      if( this.__repeat !== undefined && shouldRepeat === true ) {
+        return this.__repeat.emit( pname )// + pointString
+      }else if(this.__polarRepeat !== undefined && shouldRepeat === true) {
+        return this.__polarRepeat.emit( pname )
+      }else {
+        const transformString = transform === null ? this.transform.emit() : `${transform} * ${this.transform.emit()}`
+        const primitive = `
+        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${transformString});
       `
+        SDF.memo[ this.id ] = name + this.id
 
-      //vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * ${s}, ${id} );
-      //vec2 ${name}${this.id} = vec2(${desc.primitiveString.call( this,  '_transform'+this.id )} * min( ${s}.x, min( ${s}.y, ${s}.z ) ), ${id} );
-      SDF.memo[ this.id ] = name + this.id
-
-      return { preface:primitive, out:name+this.id  }
+        return { preface:primitive, out:name+this.id  }
+      }
     }
     
     // declare any uniform variables
     Primitives[ name ].prototype.emit_decl = function() {
       let decl = ''
       decl += this.transform.emit_decl()
+
+      //debugger
+      if( this.__repeat !== undefined ) decl += this.__repeat.emit_decl( false )
+      if( this.__polarRepeat !== undefined ) decl += this.__polarRepeat.emit_decl( false )
+
       for( let param of params ) {
         if( param.name !== 'material' )
-          decl += this[ param.name ].emit_decl()
+          decl += this[ param.name ].emit_decl( )
       }
 
       return decl
@@ -236,6 +252,9 @@ const createPrimitives = function( SDF ) {
             this[ param.name ].update_location( gl,program )
         }
       }
+
+      if( this.__repeat !== undefined ) this.__repeat.update_location( gl, program, false )
+      if( this.__polarRepeat !== undefined ) this.__polarRepeat.update_location( gl, program, false )
       this.transform.update_location( gl, program )
     }
 
@@ -244,6 +263,8 @@ const createPrimitives = function( SDF ) {
         if( param.type !== 'obj' && param.name !== 'material' )
           this[ param.name ].upload_data( gl )
       }
+
+      if( this.__polarRepeat !== undefined ) this.__polarRepeat.upload_data( gl, false )
       this.transform.upload_data( gl )
     }
     

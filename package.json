@@ -26,6 +26,7 @@
     "glsl-inverse": "^1.0.0",
     "glsl-specular-gaussian": "^1.0.0",
     "glsl-turntable-camera": "^1.0.0",
+    "glsl-voronoi-noise": "^1.2.2",
     "glsl-worley": "^1.0.2",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",

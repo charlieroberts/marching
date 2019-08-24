@@ -33,10 +33,10 @@ const descriptions = {
       const pName = 'p' + pId
       const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
       let preface =`
-          vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.count.emit() } ), 1. ); 
-          ${pName} -= vec4(${this.distance.emit()},0.,0.,0.);\n`
+          vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.__target.count.emit() } ), 1. ); 
+          ${pName} -= vec4(${this.__target.distance.emit()},0.,0.,0.);\n`
 
-      const sdf = this.sdf.emit( pName )
+      const sdf = this.sdf.emit( pName, false, this.transform.emit() )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface
 
@@ -49,12 +49,14 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
       const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+      //const s = this.transform.emit_scale()
 
       let preface =`
-        vec4 ${pName} = vec4( mod( ${pointString}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() }, 1. );\n`
+        vec4 ${pName} = vec4( mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }, 1. );\n`
 
       //vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
-      const sdf = this.sdf.emit( pName )
+      //debugger
+      const sdf = this.sdf.emit( pName, false, this.transform.emit() )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 
@@ -179,6 +181,8 @@ const getDomainOps = function( SDF ) {
       op.sdf = sdf
       op.parameters = []
       op.transform = Transform()
+      const target = op.__target = sdf.__target !== undefined ? sdf.__target : op
+
 
       let count = 0
       for( let prop of opDesc.parameters ) {
@@ -197,7 +201,7 @@ const getDomainOps = function( SDF ) {
               vec2_var_gen( prop.default )    
             )
 
-            Object.defineProperty( op, prop.name, {
+            Object.defineProperty( target, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -220,7 +224,7 @@ const getDomainOps = function( SDF ) {
               vec3_var_gen( prop.default )
             )
 
-            Object.defineProperty( op, prop.name, {
+            Object.defineProperty( target, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -244,7 +248,7 @@ const getDomainOps = function( SDF ) {
 
             if( arg === undefined ) arg = prop.default.copy()
 
-            Object.defineProperty( op, prop.name, {
+            Object.defineProperty( target, prop.name, {
               get() { return __var },
               set(v) {
                 if( typeof v === 'object' ) {
@@ -266,7 +270,7 @@ const getDomainOps = function( SDF ) {
               float_var_gen( prop.default )
             )
 
-            Object.defineProperty( op, prop.name, {
+            Object.defineProperty( target, prop.name, {
               get() { return __var },
               set(v) {
                 __var.set( v ) 
@@ -285,13 +289,13 @@ const getDomainOps = function( SDF ) {
 
     ops[ key ].prototype = SceneNode()
     ops[ key ].prototype.emit = opDesc.emit
-    ops[ key ].prototype.emit_decl = function() {
+    ops[ key ].prototype.emit_decl = function( shouldEmitSDF=true ) {
       let decl = ''
       decl += this.transform.emit_decl()
       for( let param of this.parameters ) {
-        decl += this[ param.name ].emit_decl() 
+        decl += this.__target[ param.name ].emit_decl() 
       }
-      decl += this.sdf.emit_decl()
+      if( shouldEmitSDF ) decl += this.sdf.emit_decl()
       
       // for rotation etc... any extra glsl function that needs to
       // be added to the shader
@@ -302,14 +306,14 @@ const getDomainOps = function( SDF ) {
 
       return decl
     }
-    ops[ key ].prototype.update_location = function( gl, program ) {
-      for( let param of this.parameters ) this[ param.name ].update_location( gl, program)
-      this.sdf.update_location( gl, program )
+    ops[ key ].prototype.update_location = function( gl, program, shouldUpdateSDF=true ) {
+      for( let param of this.parameters ) this.__target[ param.name ].update_location( gl, program)
+      if( shouldUpdateSDF ) this.sdf.update_location( gl, program )
       this.transform.update_location( gl, program )
     }
-    ops[ key ].prototype.upload_data = function( gl ) {
-      for( let param of this.parameters ) this[ param.name ].upload_data( gl )
-      this.sdf.upload_data( gl )
+    ops[ key ].prototype.upload_data = function( gl, shouldUploadSDF=true ) {
+      for( let param of this.parameters ) this.__target[ param.name ].upload_data( gl )
+      if( shouldUploadSDF ) this.sdf.upload_data( gl )
       this.transform.upload_data( gl )
     }
   }

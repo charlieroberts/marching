@@ -81,9 +81,15 @@ const getScene = function( SDF ) {
       }
       this.animate( animate )
 
-      const lighting = SDF.lighting.gen( this.__shadow )
+      SDF.textures.clear()
+      const geometries = SDF.primitives.emit_geometries()
 
-      const [ variablesDeclaration, sceneRendering, postprocessing ] = SDF.generateSDF( this )
+      let [ variablesDeclaration, sceneRendering, postprocessing ] = SDF.generateSDF( this )
+
+      const lighting = SDF.lighting.gen( this.__shadow, geometries )
+      variablesDeclaration += SDF.materials.emit_decl() 
+      variablesDeclaration += SDF.textures.emit_decl() 
+      variablesDeclaration += SDF.lighting.emit_decl() 
 
       this.fs = SDF.renderFragmentShader( 
         variablesDeclaration, 

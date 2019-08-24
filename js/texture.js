@@ -43,7 +43,7 @@ const __Textures = function( SDF ) {
 
       let funcdefs = ''
       this.textures.forEach( (t,i) => {
-        const mode = t.wrap !== true && t.glsl3d !== undefined ? '3d' : '2d'
+        const mode = t.wrap !== true && t.glsl !== undefined ? '3d' : '2d'
 
         // add texture wrap function if needed
         if( mode === '2d' && pushedWrap === false ) {
@@ -51,10 +51,10 @@ const __Textures = function( SDF ) {
           pushedWrap = true
         }
 
-        Textures.__textureBodies.push( mode === '3d' ? t.glsl3d : t.glsl2d )
+        Textures.__textureBodies.push( mode === '3d' ? t.glsl : t.glsl2d )
 
         const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
-        const functionName = mode === '2d' ? t.name + '2d' : t.name + '3d'
+        const functionName = mode === '2d' ? t.name + '2d' : t.name 
 
         decl +=`
           case ${i}:
@@ -126,10 +126,8 @@ const __Textures = function( SDF ) {
           if( typeof val === 'number' ) {
             __var = Var( vars[ param.type ]( val ), null, 'vec3' )
           }else{
-            __var =  param_wrap(
-              val,
-              gens[ param.type ]( ...defaultValues ) 
-            )
+            const initvalues = val !== undefined ? val : defaultValues
+            __var = Var( vars[ param.type ]( ...initvalues ), null, param.type )
           }
 
           // for assigning entire new vectors to property

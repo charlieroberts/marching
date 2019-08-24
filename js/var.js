@@ -159,7 +159,7 @@ function vec2_var_gen(x, y,name=null) {
   return ()=> Var( Vec2(x, y), name  ) 
 }
 
-function vec3_var_gen(x, y, z,name=null) { 
+function vec3_var_gen(x=0, y, z,name=null) { 
   if( y === undefined ) y = x
   if( z === undefined ) z = x
   return ()=> Var( Vec3(x, y, z), name ) 

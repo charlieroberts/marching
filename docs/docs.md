@@ -136,8 +136,6 @@ Box
 
 #### Constructor/Properties ####
 **size** &nbsp; *[Vec3](#other-vec3)* &nbsp; The size of the box on the x,y, and z axes. Defaults to 1,1,1 (cube).  
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 
 Capsule
@@ -149,8 +147,6 @@ Capsule
 **start** &nbsp; *[Vec3](#other-vec3)* &nbsp; The starting coordinates (x,y,z) of the capsule.  
 **end** &nbsp; *[Vec3](#other-vec3)* &nbsp; The ending coordinates (x,y,z) of the capsule.  
 **radius** &nbsp; *float* &nbsp; The radius of the capsule.  
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
 Cone
 ----
@@ -159,8 +155,6 @@ Cone
 
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; Dimensions of the cone.   
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.   
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
 Cylinder
 ----
@@ -169,8 +163,6 @@ Cylinder
 
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the cylinder (radius, length). 
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
 HexPrism
 ----
@@ -179,8 +171,6 @@ HexPrism
 
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the prism (radius, length). 
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
 Julia
 ----
@@ -217,8 +207,6 @@ Octahedron
 
 #### Constructor/Properties ####
 **size** &nbsp; *float* &nbsp; The size of the octahedron (think spherical radius). 
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Plane
 ----
@@ -230,7 +218,6 @@ A flat plane that extends infinitely perpendicular to its normal.
 #### Constructor/Properties ####
 **normal** &nbsp; *[Vec3](#other-vec3)* &nbsp; The angle, along all three axes, that the plane faces.   
 **distance** &nbsp; *float* &nbsp; Distance from the origin along the normal axis.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Quad
 ----
@@ -244,8 +231,6 @@ A four-sided shape, with vertices determined by giving on offset from the center
 **v2** &nbsp; *[Vec3](#other-vec3)* &nbsp; A vertex defining one corner of the quad.  
 **v3** &nbsp; *[Vec3](#other-vec3)* &nbsp; A vertex defining one corner of the quad.  
 **v4** &nbsp; *[Vec3](#other-vec3)* &nbsp; A vertex defining one corner of the quad.   
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 RoundBox
 ----
@@ -257,8 +242,6 @@ A box with rounded corners.
 #### Constructor/Properties ####
 **size** &nbsp; *[Vec3](#other-vec3)* &nbsp; The size of the box on the x,y, and z axes. Defaults to 1,1,1 (cube).  
 **radius** &nbsp; *float* &nbsp; The amount of rounding applied to the corners of the box.  
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Sphere
 ----
@@ -267,8 +250,6 @@ Sphere
 
 #### Constructor/Properties ####
 **radius** &nbsp; *float* &nbsp; The radius of the sphere.  
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Torus
 ----
@@ -279,8 +260,6 @@ By default, this geometry lies flat along the z-plane; you need to rotate it wit
 
 #### Constructor/Properties ####
 **radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the tubular radis on the y-axis.   
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Torus88
 ----
@@ -291,8 +270,6 @@ A "squared" torus that is not tubular; the second member of the `radii` property
 
 #### Constructor/Properties ####
 **radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the height on the y-axis.   
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object. 
 
 Torus82
 ----
@@ -303,8 +280,6 @@ A circular torus that is not tubular; the second member of the `radii` property 
 
 #### Constructor/Properties ####
 **radii** &nbsp; *[Vec2](#other-vec2)* &nbsp; Assuming the geometry is not rotated, the first radius determines the radius on the z-plane. The second radius determines the height on the y-axis.   
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 Triangle
 ----
@@ -317,8 +292,6 @@ A three-sided shape, with vertices determined by giving on offset from the cente
 **v1** &nbsp; *[Vec3](#other-vec3)* &nbsp; A vertex defining one corner of the triangle.  
 **v2** &nbsp; *[Vec3](#other-vec3)* &nbsp; A vertex defining one corner of the triangle.  
 **v3** &nbsp; *[Vec3](#other-vec3)* &nbsp; A vertex defining one corner of the triangle.  
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.  
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
 
 TriPrism
 ----
@@ -327,10 +300,6 @@ TriPrism
 
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; The radius and depth of the prism.   
-**center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geoemtry. Defaults to 0,0,0.   
-**material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the object.  
-
-
 
 # Combinators 
 

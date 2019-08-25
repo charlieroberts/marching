@@ -38,7 +38,7 @@ const createPrimitives = function( SDF ) {
       })
 
       const length = geos.length
-      const materials = SDF.materials.__materials
+      const materials = SDF.materials.materials
 
       let decl = `SDF sdfs[${length}] = SDF[${length}](\n`
       geos.forEach( (geo, i) => {

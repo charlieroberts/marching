@@ -21,6 +21,7 @@ const demos = {
   //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
+  ['textures catalog']: require( './demos/textures.js' ),
 }
 
 const tutorials = {
@@ -130,12 +131,12 @@ window.onload = function() {
   const toggleToolbar = function() {
     if( hidden === false ) {
       document.querySelector('select').style.display = 'none'
-      document.querySelector('button').style.display = 'none'
-      document.querySelector('img').style.display = 'none'
+      document.querySelector('#help').style.display = 'none'
+      document.querySelector('#source').style.display = 'none'
     }else{
-      document.querySelector('select').style.display = 'block'
-      document.querySelector('button').style.display = 'block'
-      document.querySelector('img').style.display = 'block'
+      document.querySelector('select').style.display = 'inline-block'
+      document.querySelector('#help').style.display = 'inline-block'
+      document.querySelector('#source').style.display = 'inline-block'
     }
   }
 

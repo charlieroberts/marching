@@ -24,7 +24,7 @@ const textures = {
         }
     `,
     parameters: [
-      { name:'size', type:'float', default:5 },
+      { name:'scale', type:'float', default:5 },
       { name:'color1', type:'vec3', default:[1,1,1] },
       { name:'color2', type:'vec3', default:[0,0,0] }
     ],
@@ -33,7 +33,7 @@ const textures = {
     name:'noise',
     glsl:glsl`          
         #pragma glslify: snoise = require('glsl-noise/simplex/3d')
-        vec3 noise3d( vec3 pos, vec3 normal, float scale ) {
+        vec3 noise( vec3 pos, vec3 normal, float scale ) {
           float n = snoise( pos*scale );
           return vec3( n );
         }`,
@@ -120,8 +120,8 @@ const textures = {
     glsl:glsl`
         #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
-        vec3 cellular( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
-          vec2 w = worley3D( pos * scale, jitter, false );
+        vec3 cellular( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength, float time ) {
+          vec2 w = worley3D( pos * scale + time, jitter, false );
           vec3 o;
           if( mode == 0. ) {
             o = vec3( w.x );
@@ -134,13 +134,36 @@ const textures = {
           return o * strength;
         }
     `,
+    glsl2d:glsl`
+        #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
+
+        vec3 cellular( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
+          vec2 w = worley3D( pos, jitter, false );
+          vec3 o;
+          if( mode == 0. ) {
+            o = vec3( w.x );
+          } else if ( mode == 1. ) {
+            o = vec3( w.y );
+          } else{
+            o = vec3( w.y - w.x );
+          }
+
+          return o * strength;
+        }
+
+        vec3 cellular2d( vec2 st, vec3 nor, float scale, float jitter, float mode, float strength, float time ) {
+          return cellular( vec3(st * scale, time), nor, scale, jitter, mode, strength );
+        }
+    `,
     parameters: [
       { name:'scale', type:'float', default:1 },
       { name:'jitter', type:'float', default:1 },
       { name:'mode',  type:'float', default: 0 },
-      { name:'strength', type:'float', default:2 }
+      { name:'strength', type:'float', default:2 },
+      { name:'time', type:'float', default:1 }
     ],     
   },
+
   voronoi: {
     name:'voronoi',
     parameters: [
@@ -240,6 +263,40 @@ const textures = {
     }
 
 ` ,
+  },
+  // adapted from https://thebookofshaders.com/edit.php#09/zigzag.frag
+  zigzag: {
+    name:'zigzag',
+    glsl2d:`    
+       vec2 mirrorTile(vec2 _st, float _zoom){
+         _st *= _zoom;
+         if (fract(_st.y * 0.5) > 0.5){
+           _st.x = _st.x+0.5;
+           _st.y = 1.0-_st.y;
+         }
+         return fract(_st);
+       }
+
+       float fillY(vec2 _st, float _pct,float _antia){
+         return smoothstep( _pct-_antia, _pct, _st.y);
+       }
+
+       vec3 zigzag2d( vec2 st, vec3 nor, float scale, float time ) {
+         st = mirrorTile(st*vec2(1.,2.),scale);
+         float x = st.x*2.;
+         float a = floor(1.+sin(x*3.14));
+         float b = floor(1.+sin((x+1.)*3.14));
+         float f = fract(x);
+
+         vec3 color = vec3( fillY(st,mix(a,b,f),0.01) ); 
+
+         return vec3(color);
+       }
+` ,
+    parameters: [
+      { name:'scale', type:'float', default:5 },
+      { name:'time', type:'float', default:1 }
+    ],
   }
 }
 

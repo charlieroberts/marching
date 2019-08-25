@@ -54,8 +54,6 @@ const descriptions = {
       let preface =`
         vec4 ${pName} = vec4( mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }, 1. );\n`
 
-      //vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
-      //debugger
       const sdf = this.sdf.emit( pName, false, this.transform.emit() )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
@@ -181,8 +179,7 @@ const getDomainOps = function( SDF ) {
       op.sdf = sdf
       op.parameters = []
       op.transform = Transform()
-      const target = op.__target = sdf.__target !== undefined ? sdf.__target : op
-
+      const target = op.__target = op // sdf.__target !== undefined ? sdf.__target : op
 
       let count = 0
       for( let prop of opDesc.parameters ) {

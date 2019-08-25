@@ -12817,46 +12817,133 @@ march(
 .camera( 0,0,7 )`
 
 },{}],23:[function(require,module,exports){
-module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(0),Vec3(1), 16, Vec3(0,.25,4) )
+module.exports = `// a 3D superformula essentially two 2D supershapes,
+// first six coefficients govern one, second
+// six coefficients govern the other.
+
+mat1 = Material( 'phong', Vec3(.0),Vec3(0),Vec3(1), 16, Vec3(0,.25,4) )
  
 m = march(
- 
-  // a 3D superformula essentially two 2D supershapes,
-  // first six coefficients govern one, second
-  // six coefficients govern the other. In this example
-  // the two supershapes are the same.
-
   s = SuperFormula(
     1, 1, 16, 1, 1, 1,
     1, 1, 16, 1, 1, 1
   )
-  .translate( 0, .5, 0 )
-  .rotate( 0, 0,1,0 )
-  .material( mat1 ),
-
+  .translate( 0, .5, .85 )
+  .material( mat1 )
+  .texture( 'truchet', { color:.125, scale:30 } ),
+ 
   Plane( Vec3(0,1,0), 1 ).material( Material('phong', Vec3(.15), Vec3(1) ) )
 )
 .light( 
   Light( Vec3(0,5,0), Vec3(.25,.25,.5), .5 ),
   Light( Vec3(3,3,0), Vec3(.5), .5 )
 )
-.fog( .1, Vec3(0) )
-.shadow(16)
+.fog( .25, Vec3(0) )
 .render( 2, true )
-.camera( 0,0,4 )
-
+.camera( 0,0,5 )
+ 
 onframe = time => {
   t = 12
   s.n1_1 = Math.PI + Math.sin( time )
   s.n1_2 = Math.PI + Math.cos( time )
   s.m_1 = Math.sin( time / 2 ) * t
   s.m_2 = Math.cos( time / 2 ) * t
-  s.rotate( time * 10 )
+  s.rotate( time * 10, 0,1,0 )
 }
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
 },{}],24:[function(require,module,exports){
+module.exports = `zigzag = Box(.5)
+  .move( -2,1.25 )
+  .texture(
+    'zigzag', 
+    { scale:5 }
+  )
+ 
+dots = Box(.5)
+  .move( -0,1.25 )
+  .texture(
+    'dots', 
+    { 
+      scale:10, 
+      color:[1,0,0]
+    }
+  )
+ 
+noise = Box(.5)
+  .move( 2,1.25 )
+  .texture(
+    'noise', 
+    { 
+      wrap:true, 
+      scale:20, 
+      color:[1,0,0]
+    }
+)
+ 
+truchet = Box(.5)
+  .move( -2,-.15 )
+  .texture(
+    'truchet', 
+    { 
+      scale:20, 
+      color:[0,1,1] 
+    }
+)
+ 
+stripes = Box(.5)
+  .move( -0,-.15)
+  .texture(
+    'stripes', 
+    { 
+      scale:10, 
+      color:[1,0,0]
+    }
+)
+ 
+checkers = Box(.5)
+  .move( 2, -.15 )
+  .texture(
+    'checkers', 
+    { 
+      scale:20, 
+      color1:[0,1,1], 
+      color2:[1,0,0] 
+    }
+  )
+ 
+cellular = Box(.5)
+  .move( -2, -1.55 )
+  .texture(
+    'cellular', 
+    { 
+      scale:10, 
+      strength:1 
+    }
+)
+ 
+voronoi= Box(.5)
+  .move( 2,-1.55 )
+  .texture(
+    'voronoi', 
+    { 
+      wrap:true, 
+      scale:10, 
+      mode:2 
+    }
+)
+ 
+bg = Plane( Vec3(0,0,1), .5 ).material('white glow')
+ 
+march( 
+  zigzag, dots, noise, 
+  truchet, stripes, cellular, 
+  checkers, voronoi, bg
+)
+.render()` 
+
+},{}],25:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -13037,7 +13124,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports =`Material.default = Material.grey
 
 m = march(
@@ -13066,7 +13153,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -13090,6 +13177,7 @@ const demos = {
   //['alien portal #2']: require( './demos/portal2.js' ),
   ['twist deformation']: require( './demos/twist.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
+  ['textures catalog']: require( './demos/textures.js' ),
 }
 
 const tutorials = {
@@ -13199,12 +13287,12 @@ window.onload = function() {
   const toggleToolbar = function() {
     if( hidden === false ) {
       document.querySelector('select').style.display = 'none'
-      document.querySelector('button').style.display = 'none'
-      document.querySelector('img').style.display = 'none'
+      document.querySelector('#help').style.display = 'none'
+      document.querySelector('#source').style.display = 'none'
     }else{
-      document.querySelector('select').style.display = 'block'
-      document.querySelector('button').style.display = 'block'
-      document.querySelector('img').style.display = 'block'
+      document.querySelector('select').style.display = 'inline-block'
+      document.querySelector('#help').style.display = 'inline-block'
+      document.querySelector('#source').style.display = 'inline-block'
     }
   }
 
@@ -13432,4 +13520,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/constructors.js":13,"./demos/csg.js":14,"./demos/geometries.js":15,"./demos/intro.js":16,"./demos/julia.js":17,"./demos/lighting.js":18,"./demos/livecoding.js":19,"./demos/mandelbulb.js":20,"./demos/procedural_textures.js":21,"./demos/snare.js":22,"./demos/superformula.js":23,"./demos/tutorial_1.js":24,"./demos/twist.js":25,"codemirror":8}]},{},[26]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/constructors.js":13,"./demos/csg.js":14,"./demos/geometries.js":15,"./demos/intro.js":16,"./demos/julia.js":17,"./demos/lighting.js":18,"./demos/livecoding.js":19,"./demos/mandelbulb.js":20,"./demos/procedural_textures.js":21,"./demos/snare.js":22,"./demos/superformula.js":23,"./demos/textures.js":24,"./demos/tutorial_1.js":25,"./demos/twist.js":26,"codemirror":8}]},{},[27]);

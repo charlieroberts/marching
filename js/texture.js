@@ -37,6 +37,7 @@ const __Textures = function( SDF ) {
       let decl = `
       vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
         vec3 tex;
+        vec2 pos2;
         switch( id ) {\n`
 
       Textures.__textureBodies.length = 0
@@ -58,7 +59,7 @@ const __Textures = function( SDF ) {
 
         decl +=`
           case ${i}:
-            ${mode === '2d' ? `     vec2 pos2 = getUVCubic( pos, vec3(0.));\n` : ''} 
+            ${mode === '2d' ? `     pos2 = getUVCubic( pos );\n` : ''} 
             tex = ${functionName}( ${mode === '2d' ?'pos2':'pos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
             break;\n`            
 

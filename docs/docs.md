@@ -77,12 +77,62 @@ The render method renders its scene to the screen or to a vertex-based geometry.
 Adds shadows to the scene.
 
 **diffuseness** &nbsp; *int* &nbsp; Default = 8. A term used as an exponent to determine the diffuseness of shadows that are used. Higher numbers result in harder shadows. Providing a value of `0` when `Marching.lighting.mode='directional'` will remove shadows from the scene, which can be useful in scenarios where shadows would do not properly render due to errors in signed distance functions. 
+
+# Prototypes
+
+Operation
+----
+All volumes, combinators, and domain modifiers use the `Operation` prototype, which provides the ability to transform each operation in various ways.
+
+#### Methods ####
+
+### translate ###
+Move the operation on each axis.
+
+**x** &nbsp; *float* &nbsp; Movement on the x-axis.  
+**y** &nbsp; *float* &nbsp; Movement on the y-axis.  
+**z** &nbsp; *float* &nbsp; Movement on the z-axis.  
+
+### rotate ###
+Rotate the operation along a defined axis.
+
+**angle** &nbsp; *float* &nbsp; The rotation angle in degrees.  
+**x** &nbsp; *float* &nbsp; The x-axis for the rotation angle.  
+**y** &nbsp; *float* &nbsp; The y-axis for the rotation angle.  
+**z** &nbsp; *float* &nbsp; The z-axis for the rotation angle.  
+
+### scale ###
+Scale the operation. Because non-uniform scaling can cause irregularities in some signed distance functions, a single value controls uniform scaling on all three axes.
+
+**amount** &nbsp; *float* &nbsp; A scale to assign to the operation.
+
+Volume
+----
+
+*prototype*: [Operation](#prototypes-operation)
+
+Volumes are the rendered, 3D geometries used in marching.js. They inherit tranlate, rotate, and scale methods from the Operation prototype, and add two additional methods controling texture and material.
+
+### material ###
+Assign a material to the volume.
+
+**material** &nbsp; *Material* or *presetName* &nbsp; The `Material` object to assign to the volume, controlling how its surface interacts with light. If you pass a string to this method marching.js will assume it's the name of a material preset to apply.
+
+### texture ###
+Assign a texture to the volume.
+
+**texture** &nbsp; *textureName* &nbsp; This argument determines which procedural texture is assigned to the volume.
+**properties** &nbsp; *object* &nbsp; This set of key value pairs can be used to control texture properties. 
+
 # Geometries 
+
 
 These are the core geometric primitives available in marching.js, and the starting points for creating the signed distance functions used for rendering by marching.js. Most constructors for primitives begin with properties that are unique to each geometry, and then end with optional `center` and `material` properties. 
 
 Box
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 #### Constructor/Properties ####
 **size** &nbsp; *[Vec3](#other-vec3)* &nbsp; The size of the box on the x,y, and z axes. Defaults to 1,1,1 (cube).  
@@ -92,6 +142,8 @@ Box
 
 Capsule
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 #### Constructor/Properties ####
 **start** &nbsp; *[Vec3](#other-vec3)* &nbsp; The starting coordinates (x,y,z) of the capsule.  
@@ -103,6 +155,8 @@ Capsule
 Cone
 ----
 
+*prototype*: [Volume](#prototypes-volume)
+
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; Dimensions of the cone.   
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.   
@@ -110,6 +164,8 @@ Cone
 
 Cylinder
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the cylinder (radius, length). 
@@ -119,13 +175,45 @@ Cylinder
 HexPrism
 ----
 
+*prototype*: [Volume](#prototypes-volume)
+
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec2](#other-vec2)* &nbsp; Dimensions of the prism (radius, length). 
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
 **material** &nbsp; *[Material](#other-material)* &nbsp; The material used to render the geometry.  
 
+Julia
+----
+
+*prototype*: [Volume](#prototypes-volume)
+
+A three-dimensional rendering of the Julia set of a quaternion function.
+
+#### Constructor/Properties ####
+**fold** &nbsp; *float* &nbsp; A coefficient for the equation. 
+
+Mandelbulb
+----
+
+*prototype*: [Volume](#prototypes-volume)
+
+#### Constructor/Properties ####
+**fold** &nbsp; *float* &nbsp; A coefficient that affects variouus exponents in the Mandulbulb equation. Higher values yield the appearance of greater recursion / complexity.
+ 
+Mandelbox
+----
+
+*prototype*: [Volume](#prototypes-volume)
+
+#### Constructor/Properties ####
+**fold** &nbsp; *float* &nbsp; A coefficient that controls the amount of spherical folding in the mandelbox.  
+**scale** &nbsp; *float* &nbsp; A coefficient that controls the scaling in the mandelbox equation.  
+**iterations** &nbsp; *float* &nbsp; default 5. The number of times the mandelbox equation is run per frame. This number greatly influences the complexity of the final output, but higher values are computationally expensive. 
+
 Octahedron
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 #### Constructor/Properties ####
 **size** &nbsp; *float* &nbsp; The size of the octahedron (think spherical radius). 
@@ -134,6 +222,8 @@ Octahedron
 
 Plane
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 A flat plane that extends infinitely perpendicular to its normal.
 
@@ -144,6 +234,8 @@ A flat plane that extends infinitely perpendicular to its normal.
 
 Quad
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 A four-sided shape, with vertices determined by giving on offset from the center position of the geometry.
 
@@ -158,6 +250,8 @@ A four-sided shape, with vertices determined by giving on offset from the center
 RoundBox
 ----
 
+*prototype*: [Volume](#prototypes-volume)
+
 A box with rounded corners.
 
 #### Constructor/Properties ####
@@ -169,6 +263,8 @@ A box with rounded corners.
 Sphere
 ----
 
+*prototype*: [Volume](#prototypes-volume)
+
 #### Constructor/Properties ####
 **radius** &nbsp; *float* &nbsp; The radius of the sphere.  
 **center** &nbsp; *[Vec3](#other-vec3)* &nbsp; The center position of the geometry. Defaults to 0,0,0.  
@@ -176,6 +272,8 @@ Sphere
 
 Torus
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 By default, this geometry lies flat along the z-plane; you need to rotate it with a [Rotation](#domain-operations-rotation) to see the ring, or move the camera position on the y-axis.
 
@@ -187,6 +285,8 @@ By default, this geometry lies flat along the z-plane; you need to rotate it wit
 Torus88
 ----
 
+*prototype*: [Volume](#prototypes-volume)
+
 A "squared" torus that is not tubular; the second member of the `radii` property effectively determines height. By default, this geometry lies flat along the z-plane; you need to rotate it with a [Rotation](#domain-operations-rotation) to see the ring, or move the camera position on the y-axis.
 
 #### Constructor/Properties ####
@@ -197,6 +297,8 @@ A "squared" torus that is not tubular; the second member of the `radii` property
 Torus82
 ----
 
+*prototype*: [Volume](#prototypes-volume)
+
 A circular torus that is not tubular; the second member of the `radii` property effectively determines height. By default, this geometry lies flat along the z-plane; you need to rotate it with a [Rotation](#domain-operations-rotation) to see the ring, or move the camera position on the y-axis.
 
 #### Constructor/Properties ####
@@ -206,6 +308,8 @@ A circular torus that is not tubular; the second member of the `radii` property 
 
 Triangle
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 A three-sided shape, with vertices determined by giving on offset from the center position of the geometry.
 
@@ -218,6 +322,8 @@ A three-sided shape, with vertices determined by giving on offset from the cente
 
 TriPrism
 ----
+
+*prototype*: [Volume](#prototypes-volume)
 
 #### Constructor/Properties ####
 **dimensions** &nbsp; *[Vec3](#other-vec3)* &nbsp; The radius and depth of the prism.   
@@ -232,6 +338,9 @@ Combinators are used to combine multiple signed distance fields together to crea
 
 ChamferDifference
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a rounded, yet discretely identifiable, border at the point where one geometry is subtracted from another..  
 
 #### Constructor ####
@@ -241,6 +350,9 @@ This combinator creates a rounded, yet discretely identifiable, border at the po
 
 ChamferIntersection
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a rounded, yet discretely identifiable, border around the shared surfaces of two SDFs. 
 
 #### Constructor ####
@@ -250,6 +362,9 @@ This combinator creates a rounded, yet discretely identifiable, border around th
 
 ChamferUnion
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a rounded, yet discretely identifiable, border at the intersection between two SDFs.  
 
 #### Constructor ####
@@ -259,6 +374,9 @@ This combinator creates a rounded, yet discretely identifiable, border at the in
 
 Difference
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator subtracts one signed distance field from the other and returns the result. 
 
 #### Constructor ####
@@ -267,6 +385,9 @@ This combinator subtracts one signed distance field from the other and returns t
 
 Engrave
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This takes the intersection of two SDFs and includes a lowered, angled, border between them.
 
 #### Constructor ####
@@ -276,6 +397,9 @@ This takes the intersection of two SDFs and includes a lowered, angled, border b
 
 Groove
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This takes the intersection of two SDFs and includes a lowered, non-angled, border between them.
 
 #### Constructor ####
@@ -285,6 +409,9 @@ This takes the intersection of two SDFs and includes a lowered, non-angled, bord
 
 Intersection
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a SDF containing the shared area of two SDF inputs. 
 
 #### Constructor ####
@@ -293,6 +420,9 @@ This combinator creates a SDF containing the shared area of two SDF inputs.
 
 Pipe
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This takes the intersection of two SDFs and *only* includes the border in the form of a cylindrical pipe. 
 
 #### Constructor ####
@@ -302,6 +432,9 @@ This takes the intersection of two SDFs and *only* includes the border in the fo
 
 RoundDifference
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly rounded border where one geometry is subtracted from another.  
 
 #### Constructor ####
@@ -311,6 +444,9 @@ This combinator creates a smoothly rounded border where one geometry is subtract
 
 RoundIntersection
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly rounded border around the intersection of two sdfs. 
 
 #### Constructor ####
@@ -320,6 +456,9 @@ This combinator creates a smoothly rounded border around the intersection of two
 
 RoundUnion
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly rounded border at the intersection between two SDFs. It is similar to [SmoothUnion](#distance-operations-smoothunion) but generates results that are more optimal mathematically in many situations.
 
 #### Constructor ####
@@ -329,6 +468,9 @@ This combinator creates a smoothly rounded border at the intersection between tw
 
 Switch
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator alternates between two SDFs based on the value of its `c` property. When `c` is below .5, the first SDF is displayed, when above, the second one is displayed. One nice effect is to assign FFT analysis results to the `c` property, so that when the audio exceeds a certain threshold a different geometry is displayed.
 
 #### Constructor ####
@@ -353,6 +495,9 @@ onframe = t => s.c = t/2 % 1
 
 SmoothUnion
 ---
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly transition between two SDFs. 
 
 #### Constructor ####
@@ -372,6 +517,9 @@ march(
 ```
 SmoothUnion2
 ---
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly transition between an unlimited number of SDFs. The last parameter passed to the constructor will determine the amount of smoothing used.
 
 #### Constructor ####
@@ -402,6 +550,9 @@ callbacks.push( time => r.angle = time )
 
 StairsDifference
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly rounded border where one geometry is subtracted from another.  
 
 #### Constructor ####
@@ -412,6 +563,9 @@ This combinator creates a smoothly rounded border where one geometry is subtract
 
 StairsIntersection
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly rounded border around the intersection of two sdfs. 
 
 #### Constructor ####
@@ -421,6 +575,9 @@ This combinator creates a smoothly rounded border around the intersection of two
 
 StairsUnion
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator creates a smoothly rounded border at the intersection between two SDFs. It is similar to [SmoothUnion](#distance-operations-smoothunion) but generates results that are more optimal mathematically in many situations.
 
 #### Constructor ####
@@ -430,6 +587,9 @@ This combinator creates a smoothly rounded border at the intersection between tw
 
 Tongue
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This takes the intersection of two SDFs and includes a raised, non-angled, border between them.
 
 #### Constructor ####
@@ -439,6 +599,9 @@ This takes the intersection of two SDFs and includes a raised, non-angled, borde
 
 Union
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This combinator combines two signed distance functions using hard edges. 
 
 #### Constructor ####
@@ -447,6 +610,9 @@ This combinator combines two signed distance functions using hard edges.
 
 Union2
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 Combine an arbitrary number of SDFs. 
 
 #### Constructor ####
@@ -484,6 +650,9 @@ Each of these effects is designed to operate on a distance field, which is typic
 
 PolarRepeat
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This operation repeats a distance field in a circle. 
 
 #### Constructor ####
@@ -493,6 +662,9 @@ This operation repeats a distance field in a circle.
 
 Repeat
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This operation repeats a distance field infinitely across 3D space at a specified rate.
 
 #### Constructor ####
@@ -501,7 +673,7 @@ This operation repeats a distance field infinitely across 3D space at a specifie
 
 Rotation
 ----
-This operation rotates an SDF along a provided axis.
+This operation rotates an SDF along a provided axis. \*\***Deprecated**\*\*, instead use the `.rotate` method of the [Operator](#prototypes-operator) protoype to rotate operations.
 
 #### Constructor ####
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.   
@@ -510,7 +682,7 @@ This operation rotates an SDF along a provided axis.
  
 Scale
 ----
-This operation scales a distance field along three axes. 
+This operation scales a distance field along three axes. \*\***Deprecated**\*\*, instead use the `.rotate` method of the [Operator](#prototypes-operator) protoype to scale operations.
 
 #### Constructor ####
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.   
@@ -518,7 +690,7 @@ This operation scales a distance field along three axes.
 
 Translate
 ----
-This operation moves the position of a distance field along three axes. 
+This operation moves the position of a distance field along three axes. \*\***Deprecated**\*\*, instead use the `.rotate` method of the [Operator](#prototypes-operator) protoype to translate operations.
 
 #### Constructor ####
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be repeated.   
@@ -526,6 +698,9 @@ This operation moves the position of a distance field along three axes.
 
 Bend
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This operation bends a distance field.
 
 #### Constructor ####
@@ -534,6 +709,9 @@ This operation bends a distance field.
 
 Twist
 ----
+
+*prototype*: [Operation](#prototypes-operation)
+
 This operation twists a distance field.
 
 #### Constructor ####
@@ -610,7 +788,6 @@ The `FFT` object is a singleton that analyzes an incoming audio stream for the m
 **mid** &nbsp; *float* &nbsp; Read-only, float. The mid frequency content of the analyzed audio (150--1400 Hz).  
 **high** &nbsp; *float* &nbsp; Read-only, float. The high frequency content of the analyzed audio (1400 Hz and higher).  
 **windowSize** &nbsp; *int* &nbsp; int, default 4096. The number of samples analyzed each time the FFT runs. This number must be a power of two.  
-
 **start** &nbsp; This method only needs to be called once per page load; calling it additional times will have no affect. The method starts the FFT analysis
 
 Vec2

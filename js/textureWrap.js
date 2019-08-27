@@ -12,7 +12,7 @@ module.exports = `
       vec2 uv = ((absp.x>=absp.y)&&(absp.x>=absp.z)) 
         ? (0.5*p.zy)/(p.x) 
         : ((absp.y>=absp.z)&&(absp.y>=absp.x)) ? (0.5*p.xz)/(p.y) : (-0.5*p.xy)/(p.z);
-        
+
       //We still need to determine which side our uv cordinates are on so
       //that the texture orients the right way. Note that there's some 
       // redundancy there, which I'll fix at some stage. For now, it works, so I'm not touching it. :)

@@ -52,7 +52,10 @@ const __Textures = function( SDF ) {
           pushedWrap = true
         }
 
-        Textures.__textureBodies.push( mode === '3d' ? t.glsl : t.glsl2d )
+        const glsl = mode === '3d' ? t.glsl : t.glsl2d 
+        if( Textures.__textureBodies.indexOf( glsl ) === -1 ) { 
+          Textures.__textureBodies.push( glsl )
+        }
 
         const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
         const functionName = mode === '2d' ? t.name + '2d' : t.name 

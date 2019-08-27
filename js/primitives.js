@@ -196,7 +196,7 @@ const createPrimitives = function( SDF ) {
     Primitives[ name ].prototype = SceneNode()
 
     // create codegen string
-    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null ) {
+    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null, shouldApplyTransform=true ) {
       let shaderCode = desc.glslify.indexOf('#') > -1 ? desc.glslify.slice(18) : desc.glslify
       if( SDF.requiredGeometries.indexOf( shaderCode ) === - 1 ) {
         SDF.requiredGeometries.push( shaderCode )
@@ -212,7 +212,7 @@ const createPrimitives = function( SDF ) {
       const id = this.__sdfID
       const s = this.transform.emit_scale()
       
-      let pointString = `( ${pname} * ${this.transform.emit()} ).xyz`
+      let pointString = shouldApplyTransform === true ? `( ${pname} * ${this.transform.emit()} ).xyz` : pname
       if( this.__repeat !== undefined && shouldRepeat === true ) {
         return this.__repeat.emit( pname )// + pointString
       }else if(this.__polarRepeat !== undefined && shouldRepeat === true) {

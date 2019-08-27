@@ -2,6 +2,7 @@ const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
 const Transform = require( './transform.js' )
+const glslops = require( './distanceOperationsGLSL.js' )
 
 const ops = { 
   Union( a,b,c,d,e ) { return `opU( ${a}, ${b}, ${c}, ${d}, ${e} )` },
@@ -24,7 +25,7 @@ const ops = {
   Groove( a,b,c,d,e,f,g ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
   Tongue( a,b,c,d,e,f,g ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
   Onion( a,b ) { return `opOnion( ${a}, ${b} )` },
-  Switch( a,b,c ) { return `( ${c} < .5 ? ${a} : ${b} )` }
+  Switch( a,b,c,d,e,f ) { return `opSwitch( ${a}, ${b}, ${c} )` }
 }
 
 const emit_float = function( a ) {
@@ -34,7 +35,14 @@ const emit_float = function( a ) {
 		return a
 }
 
-const DistanceOps = {}
+const DistanceOps = {
+  __glsl:[],
+  __getGLSL() {
+    return this.__glsl.join('\n')
+  },
+  __clear() { this.__glsl.length = 0 }
+}
+
 
 for( let name in ops ) {
 
@@ -106,6 +114,34 @@ for( let name in ops ) {
   DistanceOps[ name ].prototype = SceneNode()
 
   DistanceOps[ name ].prototype.emit = function ( pname='p' ) {
+    const glslobj = glslops[ name ]
+    
+    // some definitions are a single string, and not split into
+    // separate float and opOut functions
+    if( typeof glslobj === 'string' ) {
+      if( DistanceOps.__glsl.indexOf( glslobj ) === -1 ) {
+        DistanceOps.__glsl.push( glslobj )
+      }
+    }else{
+      // some distance operations are dependent on other ones...
+      // if this one has dependencies add them.
+      // dependencies must be added before adding other functions
+      // so that they're above them in the final GLSL code.
+      if( glslobj.dependencies !== undefined ) {
+        for( let dname of glslobj.dependencies ) {
+          const d = glslops[ dname ]
+          if( DistanceOps.__glsl.indexOf( d.float ) === -1 ) {
+            DistanceOps.__glsl.push( d.float )
+          }
+        }
+      }  
+      if( DistanceOps.__glsl.indexOf( glslobj.float ) === -1 ) {
+        DistanceOps.__glsl.push( glslobj.float )
+      }
+      if( DistanceOps.__glsl.indexOf( glslobj.opOut ) === -1 ) {
+        DistanceOps.__glsl.push( glslobj.opOut )
+      }
+    }
 
     const tname = `transformDO${this.id}`
     const prequel = `        vec4 ${tname} = ${pname} * ${this.transform.emit()};\n`
@@ -181,25 +217,25 @@ for( let name in ops ) {
   }
 }
 
-DistanceOps.Union2 = function( ...args ) {
-  const u = args.reduce( (state,next) => DistanceOps.Union( state, next ) )
+//DistanceOps.Union2 = function( ...args ) {
+//  const u = args.reduce( (state,next) => DistanceOps.Union( state, next ) )
 
-  return u
-}
+//  return u
+//}
 
-DistanceOps.SmoothUnion2 = function( ...args ) {
-  // accepts unlimited arguments, but the last one could be a blending coefficient
-  let blend = .8, u
+//DistanceOps.SmoothUnion2 = function( ...args ) {
+//  // accepts unlimited arguments, but the last one could be a blending coefficient
+//  let blend = .8, u
 
-  if( typeof args[ args.length - 1 ] === 'number' ) {
-    blend = args.pop()
-    u = args.reduce( (state,next) => DistanceOps.SmoothUnion( state, next, blend ) )
-  }else{
-    u = args.reduce( (state,next) => DistanceOps.SmoothUnion( state, next ) )
-  }
+//  if( typeof args[ args.length - 1 ] === 'number' ) {
+//    blend = args.pop()
+//    u = args.reduce( (state,next) => DistanceOps.SmoothUnion( state, next, blend ) )
+//  }else{
+//    u = args.reduce( (state,next) => DistanceOps.SmoothUnion( state, next ) )
+//  }
 
-  return u
-}
+//  return u
+//}
 
 //DistanceOps.RoundUnion2 = function( ...args ) {
 //  // accepts unlimited arguments, but the last one could be a blending coefficient
@@ -215,53 +251,53 @@ DistanceOps.SmoothUnion2 = function( ...args ) {
 //  return u
 //}
 
-ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
-        return mix( d2, -d1, h ) + k*h*(1.0-h); 
-      }
-      vec2 opSmoothSubtraction( vec2 d1, vec2 d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2.x+d1.x)/k, 0.0, 1.0 );
-        return vec2( mix( d2.x, -d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) );
-      }
-`
+//ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
+//        float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+//        return mix( d2, -d1, h ) + k*h*(1.0-h); 
+//      }
+//      vec2 opSmoothSubtraction( vec2 d1, vec2 d2, float k ) {
+//        float h = clamp( 0.5 - 0.5*(d2.x+d1.x)/k, 0.0, 1.0 );
+//        return vec2( mix( d2.x, -d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) );
+//      }
+//`
 
-ops.SmoothIntersection.code = `      float opSmoothIntersection( float d1, float d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
-        return mix( d2, d1, h ) + k*h*(1.0-h); 
-      }
-      vec2  opSmoothIntersection( vec2 d1, vec2 d2, float k ) {
-        float h = clamp( 0.5 - 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
-        return vec2( mix( d2.x, d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) ); 
-      }
-`      
+//ops.SmoothIntersection.code = `      float opSmoothIntersection( float d1, float d2, float k ) {
+//        float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+//        return mix( d2, d1, h ) + k*h*(1.0-h); 
+//      }
+//      vec2  opSmoothIntersection( vec2 d1, vec2 d2, float k ) {
+//        float h = clamp( 0.5 - 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
+//        return vec2( mix( d2.x, d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) ); 
+//      }
+//`      
 
-ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
-        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );
-        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );
+//ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
+//        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );
+//        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );
 
 
-        // material blending... i am proud.
-        float starty = clamp( (b.x - a.x) / k, 0., 1. );
-        float hy = 1. - (a.y + ( b.y - a.y ) * starty); 
+//        // material blending... i am proud.
+//        float starty = clamp( (b.x - a.x) / k, 0., 1. );
+//        float hy = 1. - (a.y + ( b.y - a.y ) * starty); 
 
-        return vec2( hx, hy ); 
-      }
-      float smin(float a, float b, float k) {
-        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-        return mix(b, a, h) - k * h * (1.0 - h);
-      }
-      //float opS( float d1, float d2 ) { return max(d1,-d2); }
-      //vec2  opS( vec2 d1, vec2 d2 ) {
-      //  return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
-      //}
+//        return vec2( hx, hy ); 
+//      }
+//      float smin(float a, float b, float k) {
+//        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+//        return mix(b, a, h) - k * h * (1.0 - h);
+//      }
+//      //float opS( float d1, float d2 ) { return max(d1,-d2); }
+//      //vec2  opS( vec2 d1, vec2 d2 ) {
+//      //  return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
+//      //}
 
-      float opSmoothUnion( float a, float b, float k) {
-        return smin( a, b, k );
-      }
+//      float opSmoothUnion( float a, float b, float k) {
+//        return smin( a, b, k );
+//      }
 
-      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {
-        return smin( a, b, k);
-      }
-`
+//      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {
+//        return smin( a, b, k);
+//      }
+//`
 module.exports = DistanceOps
 

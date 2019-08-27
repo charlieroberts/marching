@@ -33,7 +33,7 @@ const textures = {
     name:'noise',
     glsl:glsl`          
         #pragma glslify: snoise = require('glsl-noise/simplex/3d')
-        vec3 noise( vec3 pos, vec3 normal, float scale ) {
+        vec3 noise( vec3 pos, vec3 normal, float scale, float time ) {
           float n = snoise( pos*scale );
           return vec3( n );
         }`,
@@ -92,13 +92,32 @@ const textures = {
   dots: {
     name:'dots',
     glsl:`          
-        vec3 dots( vec3 pos, vec3 nor, float count, vec3 color ) {
+        vec3 dots( vec3 pos, vec3 nor, float count, float radius, vec3 color ) {
           vec3 tex;
-          tex = vec3( color - smoothstep(0.3, 0.32, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
+          tex = vec3( color - smoothstep( radius, radius+.02, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
           return tex;
         }` ,
+    glsl2d:`
+      vec2 tile(vec2 _st, float _zoom){
+        _st *= _zoom;
+        return fract(_st);
+      }
+
+      float circle(vec2 _st, float _radius){
+        vec2 pos = vec2(0.5)-_st;
+        _radius *= 0.75;
+        return 1.-smoothstep(_radius-(_radius*0.05),_radius+(_radius*0.05),dot(pos,pos)*3.14);
+      }
+    
+      vec3 dots2d( vec2 _st, vec3 nor, float scale, float radius, vec3 color ) {
+        vec2 st = tile(_st,scale);
+        vec3 fin = vec3(circle(st, radius)) * color;
+        return fin;
+      }
+    `,
     parameters: [
       { name:'scale', type:'float', default:5 },
+      { name:'radius', type:'float', default:.3 },
       { name:'color', type:'vec3', default:[1,1,1] }
     ],
   },

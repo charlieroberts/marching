@@ -119,10 +119,10 @@ Assign a material to the volume.
 **material** &nbsp; *Material* or *presetName* &nbsp; The `Material` object to assign to the volume, controlling how its surface interacts with light. If you pass a string to this method marching.js will assume it's the name of a material preset to apply.
 
 ### texture ###
-Assign a texture to the volume.
+Assign a [Texture](#other-texture) to the volume.
 
-**texture** &nbsp; *textureName* &nbsp; This argument determines which procedural texture is assigned to the volume.
-**properties** &nbsp; *object* &nbsp; This set of key value pairs can be used to control texture properties. 
+**texture** &nbsp; *textureName* &nbsp; This argument determines which procedural texture is assigned to the volume.  
+**properties** &nbsp; *object* &nbsp; This set of key value pairs can be used to initialize texture properties. 
 
 # Geometries 
 
@@ -617,6 +617,15 @@ At each step of the ray we use the current position of the ray to determine if a
 
 Each of these effects is designed to operate on a distance field, which is typically the first argument passed to constructors; this could also be multiple geometries joined by a union operator, for example. Subsequent constructor parameters / properties determine the nature of the effect being applied.
 
+Bump
+----
+This operation moves a distance field by an amount determined by sampling a texture (commonly known as bump mapping).
+
+#### Constructor ####
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.  
+**texture** &nbsp; *[Texture](#other-texture)* &nbsp; A texture that is sampled to determine the amount of displacement. 
+**size** &nbsp; *float* &nbsp; A scalar to adjust the strength of the bump effect. Negative values will flip the direction of the bumps. 
+
 PolarRepeat
 ----
 
@@ -786,3 +795,12 @@ Light
 **color** &nbsp; *[Vec3](#other-vec3)* &nbsp; The amount of red, green, and blue light emitted.  
 **attenuation** &nbsp; *[Vec3](#other-vec3)* &nbsp; A coefficient determining the attenutation of the light as a geometry gets further away from it.
 
+Texture
+----
+Textures are typically made by calling the `.texture()` method of a marching.js primitive. However, they can also be created as standalone objects, whichis useful when you want to use the same texture for multiple primitives, or when you want to use it for both texturing and [Bump](#positioning-bump) mapping.
+
+
+#### Constructor ####
+**presetName** &nbsp; *string* &nbsp; The name of a procedural texture to use. Current possibilities include `cellular`, `checkers`, `dots`, `noise`, `truchet`, `stripes`, and `zigzag`; see the "textures catalog" demo to get an idea what these look like. You can also define your own texture presets; there is a tutorial on how to do this in the marching.js playground.   
+  
+**properties** &nbsp; *object* &nbsp; A set of key/value pairs to intialize texture properties with. These vary according to the texture preset you're using; more documentation on this is forthcoming. 

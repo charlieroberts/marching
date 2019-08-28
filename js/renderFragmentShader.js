@@ -75,7 +75,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         for (int i = 0; i < ${steps} ; i++) {
           if (latest < precis || dist > maxd) break;
 
-          result = scene(rayOrigin + rayDir * dist);
+          result = scene(rayOrigin + rayDir * dist );
 
           latest = result.x;
           type   = result.y;
@@ -200,7 +200,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
 ${lighting}
 
-      opOut scene(vec3 _p) {
+      opOut scene(vec3 _p ) {
         vec4 p = vec4( _p, 1. );
 ${preface}
         return ${scene};

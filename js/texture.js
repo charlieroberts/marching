@@ -189,10 +189,14 @@ const __Textures = function( SDF ) {
       //let str = `uniform sampler2D textures[${this.textures.length}];\n\n` //= Texture[${this.textures.length}](`
       let decl = ''
 
+      const memo = []
       this.textures.forEach( (tex,i) => {
-        for( let param of tex.parameters ) {
-          if( param.name !== 'material' )
-            decl += tex.__target[ param.name ].emit_decl()
+        if( memo.indexOf( tex ) === -1 ) {
+          for( let param of tex.parameters ) {
+            if( param.name !== 'material' )
+              decl += tex.__target[ param.name ].emit_decl()
+          }
+          memo.push( tex )
         }
       })
 

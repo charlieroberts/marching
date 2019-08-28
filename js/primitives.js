@@ -26,6 +26,8 @@ const createPrimitives = function( SDF ) {
   const Primitives = { 
     descriptions,
 
+    textureMemo: [],
+
     emit_geometries() {
       const head = Array.isArray( SDF.__scene.__prerender ) ? SDF.__scene.__prerender[0] : SDF.__scene.__prerender
       const geos = Primitives.crawlNode( head, [] )
@@ -181,6 +183,9 @@ const createPrimitives = function( SDF ) {
         if( typeof tex === 'string' ) {
           p.texture = p.texture.bind( p )
           p.__textureObj = p.tex = SDF.Texture( tex,props,p.texture )
+          p.__textureID = p.__textureObj.id
+        }else{
+          p.__textureObj = p.tex = Object.assign( tex, props )
           p.__textureID = p.__textureObj.id
         }
       }

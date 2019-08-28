@@ -1,6 +1,7 @@
 const SceneNode = require( './sceneNode.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
+const Transform = require( './transform.js' )
 
 const ops = { 
   Displace( __name ) {
@@ -14,7 +15,7 @@ const ops = {
     displaceString += `sin( ${this.amount.emit()}.z * ${name}.z );\n`
 
     const output = {
-      out: `vec2((d1${this.id} + d2${this.id}*${this.scale.emit()})*.5, ${sdf.out}.y)`, 
+      out: `vec2((d1${this.id} + d2${this.id}*${this.size.emit()})*.5, ${sdf.out}.y)`, 
       preface: sdf.preface + sdfStr + displaceString 
     }
 
@@ -52,6 +53,24 @@ const ops = {
 
     return { preface, out:sdf.out }
   },
+  Bump( __name ) {
+    let name = __name === undefined ? 'p' : __name
+    const sdf = this.sdf.emit( 'p'+this.id );
+    const tex = this.amount.emit( name )
+
+    Marching.textures.addTexture( this.amount.value )
+
+    const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+
+    let preface=`         vec3 tex${this.id} = abs(getTexture( 0, ${pointString}, vec3(0.), mat4(0.) ) );
+          vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id} * ${this.size.emit()}, 1.);\n`
+
+    if( typeof sdf.preface === 'string' ) {
+      preface += sdf.preface
+    }
+
+    return { preface, out:sdf.out }
+  },
 
 }
 
@@ -69,6 +88,7 @@ for( let name in ops ) {
     op.amount = b
     op.emit = __op
     op.name = name
+    op.transform = Transform()
 
     const defaultValues = [.5,.5,.5]
 
@@ -80,35 +100,43 @@ for( let name in ops ) {
       b.type = 'vec3'
     }
     
-    let __var =  param_wrap( 
-      b, 
-      vec3_var_gen( ...defaultValues ) 
-    )
+    if( name !== 'Bumpz' ) {
+      let __var =  param_wrap( 
+        b, 
+        vec3_var_gen( ...defaultValues ) 
+      )
 
-    // for assigning entire new vectors to property
-    Object.defineProperty( op, 'amount', {
-      get() { return __var },
-      set(v) {
-        if( typeof v === 'object' ) {
-          __var.set( v )
-        }else{
-          __var.value.x = v
-          __var.value.y = v
-          __var.value.z = v
-          __var.value.w = v
-          __var.dirty = true
+      // for assigning entire new vectors to property
+      Object.defineProperty( op, 'amount', {
+        get() { return __var },
+        set(v) {
+          if( typeof v === 'object' ) {
+            __var.set( v )
+          }else{
+            __var.value.x = v
+            __var.value.y = v
+            __var.value.z = v
+            __var.value.w = v
+            __var.dirty = true
+          }
         }
-      }
-    })
+      })
 
-    op.params = [{ name:'amount' }]
+      op.params = [{ name:'amount' }]
+    }else{
+      op.params = []
+      op.emit_decl = function() {}
+      op.emit = function() {}
+      op.update_data= function() {}
+      op.upload_location = function() {}
+    }
 
-    if( name === 'Displace' ) {
+    if( name === 'Displace' || name === 'Bump' ) {
       let __var2 =  param_wrap( 
         c, 
         float_var_gen( .03 ) 
       )
-      Object.defineProperty( op, 'scale', {
+      Object.defineProperty( op, 'size', {
         get() { return __var2 },
         set(v) {
           __var2.set( v )
@@ -116,7 +144,7 @@ for( let name in ops ) {
         }
       })
 
-      op.params.push({ name:'scale' })
+      op.params.push({ name:'size' })
     }
     op.__desc = { parameters:op.params }
     return op
@@ -125,22 +153,25 @@ for( let name in ops ) {
   DistanceOps[ name ].prototype = SceneNode()
 
   DistanceOps[name].prototype.emit_decl = function () {
-    let str =  this.sdf.emit_decl() + this.amount.emit_decl()
-    if( this.name === 'Displace' ) str += this.scale.emit_decl()  
+    let str =  this.sdf.emit_decl() + (this.name !== 'Bump' ? this.amount.emit_decl() : '')
+    str += this.transform.emit_decl()
+    if( this.name === 'Displace' || this.name === 'Bump' ) str += this.size.emit_decl()  
 
     return str
   };
 
   DistanceOps[name].prototype.update_location = function(gl, program) {
     this.sdf.update_location( gl, program )
-    this.amount.update_location( gl, program )
-    if( this.name === 'Displace' ) this.scale.update_location( gl, program ) 
+    if( this.name !== 'Bump' ) this.amount.update_location( gl, program )
+    if( this.name === 'Displace' || this.name === 'Bump') this.size.update_location( gl, program ) 
+    this.transform.update_location( gl, program )
   }
 
   DistanceOps[name].prototype.upload_data = function(gl) {
     this.sdf.upload_data( gl )
-    this.amount.upload_data( gl )
-    if( this.name === 'Displace' ) this.scale.upload_data( gl )
+    if( this.name !== 'Bump' ) this.amount.upload_data( gl )
+    if( this.name === 'Displace' || this.name === 'Bump') this.size.upload_data( gl )
+    this.transform.upload_data( gl )
   }
 }
 

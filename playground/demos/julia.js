@@ -1,10 +1,18 @@
-module.exports=`Material.default = Material.grey
+module.exports=`mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0,.25,1) )
+tex  = Texture(  'cellular', { strength:.15, scale:20 })  
  
 march(
-  Julia( 1.5 ),
-  Plane( Vec3(0,1,0), .75 )
+  b = Bump( 
+    j = Julia(1.5)
+      .material( mat1 )
+      .texture( tex ),
+    tex,
+    -.05
+  )
 )
-.light( Light( Vec3(0,3,3), Vec3(1) ) )
-.fog( .25, Vec3(0,0,0) )
+.light( 
+  Light( Vec3(5,5,8), Vec3(1), .025 ) 
+)
+.fog( 1, Vec3(0) )
 .render()
-.camera( 0,0,2.25 )`
+.camera(0,0,1.75)`

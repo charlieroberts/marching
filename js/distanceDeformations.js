@@ -62,8 +62,11 @@ const ops = {
 
     const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
 
-    let preface=`         vec3 tex${this.id} = abs(getTexture( 0, ${pointString}, vec3(0.), mat4(0.) ) );
-          vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id} * ${this.size.emit()}, 1.);\n`
+    let preface=`        vec3 tex${this.id} = getTexture( 0, ${pointString}, vec3(0.), mat4(0.) ) * ${this.size.emit()};
+        vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id}, 1.);\n`
+
+    sdf.preface += `\n        
+        ${sdf.out}.x -= min(tex${this.id}.x, min(tex${this.id}.y, tex${this.id}.z));\n` 
 
     if( typeof sdf.preface === 'string' ) {
       preface += sdf.preface

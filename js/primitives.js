@@ -77,6 +77,7 @@ const createPrimitives = function( SDF ) {
       p.params = params
       p.transform = Transform()
       p.type = 'geometry'
+      p.name = name
 
       p.__material = null
       p.__textureID  = 500000

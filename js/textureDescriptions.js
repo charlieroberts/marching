@@ -33,20 +33,21 @@ const textures = {
     name:'noise',
     glsl:glsl`          
         #pragma glslify: snoise = require('glsl-noise/simplex/3d')
-        vec3 noise( vec3 pos, vec3 normal, float scale, float time ) {
+        vec3 noise( vec3 pos, vec3 normal, float scale, float strength, float time ) {
           float n = snoise( pos*scale );
-          return vec3( n );
+          return vec3( n ) * strength;
         }`,
     glsl2d:glsl`    
         #pragma glslify: snoise = require('glsl-noise/simplex/3d')
-        vec3 noise2d( vec2 st, vec3 nor, float scale, float time ) {
+        vec3 noise2d( vec2 st, vec3 nor, float scale, float strength, float time ) {
           float col = snoise( vec3( st, time ) * scale );
 
-          return vec3(col);
+          return vec3(col) * strength;
         }
 ` ,
     parameters: [
       { name:'scale', type:'float', default:2 },
+      { name:'strength', type:'float', default:.1 },
       { name:'time', type:'float', default:1 }
     ],
   },

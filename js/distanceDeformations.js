@@ -59,10 +59,9 @@ const ops = {
   Bump( __name ) {
     let name = __name === undefined ? 'p' : __name
     const sdf = this.sdf.emit( 'p'+this.id );
-    const tex = this.texture.emit( name )
-    console.log( 'tex emit:', tex )
+    const tex = this.amount.emit( name )
 
-    Marching.textures.addTexture( this.texture )
+    Marching.textures.addTexture( this.amount.value )
 
     const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
 
@@ -106,7 +105,7 @@ for( let name in ops ) {
       b.type = 'vec3'
     }
     
-    if( name !== 'Bump' ) {
+    if( name !== 'Bumpz' ) {
       let __var =  param_wrap( 
         b, 
         vec3_var_gen( ...defaultValues ) 
@@ -130,7 +129,6 @@ for( let name in ops ) {
 
       op.params = [{ name:'amount' }]
     }else{
-      op.texture = b
       op.params = []
       op.emit_decl = function() {}
       op.emit = function() {}

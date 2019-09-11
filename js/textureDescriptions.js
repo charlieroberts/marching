@@ -4,11 +4,26 @@ const textures = {
   image: {
     name:'image',
     glsl2d:`
-      vec3 image2d( vec2 uv, vec3 normal ) {
-        return texture( textures[ 0 ], uv ).xyz;
+      vec3 image2d( vec2 uv, vec3 normal, float scale, float strength ) {
+        return texture( textures[ 0 ], uv*scale ).xyz * strength;
       }
     `,
-    parameters:[]
+    parameters:[
+      { name:'scale', type:'float', default:1 },
+      { name:'strength', type:'float', default:1 },   
+    ]
+  },
+  canvas: {
+    name:'canvas',
+    glsl2d:`
+      vec3 canvas2d( vec2 uv, vec3 normal, float scale, float strength ) {
+        return texture( textures[ 0 ], uv*scale ).xyz * strength;
+      }
+    `,
+    parameters:[
+      { name:'scale', type:'float', default:1 },
+      { name:'strength', type:'float', default:1 },   
+    ]
   },
   checkers: {
     name:'checkers',
@@ -239,9 +254,14 @@ const textures = {
       return vec3(sqrt(res), abs(id));
     }
 
-    vec3 voronoi( vec3 pos, vec3 nor, float scale, float res ) {
+    vec3 voronoi( vec3 pos, vec3 nor, float scale, float res, float time, float mode ) {
       vec3 v = voronoi_3d( pos * scale, res );
-      return vec3( v.x );
+      vec3 fin;
+      if( mode == 0. ) fin = vec3(v.x);
+      if( mode == 1. ) fin = vec3(v.y);
+      if( mode == 2. ) fin = vec3(v.y - v.x); 
+
+      return fin;
     }
 `,
     glsl2d:glsl`    

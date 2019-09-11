@@ -44,7 +44,7 @@ const __Textures = function( SDF ) {
 
       let funcdefs = ''
       this.textures.forEach( (t,i) => {
-        const mode = '2d' //t.wrap !== true && t.glsl !== undefined ? '3d' : '2d'
+        const mode = t.mode !== '2d' && t.glsl !== undefined ? '3d' : '2d'
 
         // add texture wrap function if needed
         if( mode === '2d' && pushedWrap === false ) {
@@ -114,7 +114,7 @@ const __Textures = function( SDF ) {
       if( Textures.__types[ presetName ] === undefined ) {
         console.log( `the texture type '${presetName}' does not exist.` )
       }
-      const tex = Object.assign( { wrap:false }, Textures.__types[ presetName ], props )
+      const tex = Object.assign( { mode:'3d' }, Textures.__types[ presetName ], props )
 
       if( target === null ) target = tex
       tex.__target = target
@@ -177,13 +177,23 @@ const __Textures = function( SDF ) {
             }
             tex.pixels = pixels
             tex.gltexture = createTexture( SDF.gl, pixels )
-            tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : tex.wrap
+            tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : props.wrap
           })
         }else{
           tex.image = null
           console.error('You must specify a filename when using the iamge preset.')
         }
+      }else if( presetName === 'canvas' ) {
+        tex.image = props.canvas
+        tex.gltexture = createTexture( SDF.gl, tex.image )
+        tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : props.wrap
       }
+
+
+      Object.defineProperty( tex, 'wrap', {
+        get() { return this.gltexture.wrap },
+        set(v){ this.gltexture.wrap = v }
+      })
 
       tex.name = presetName
 
@@ -193,9 +203,8 @@ const __Textures = function( SDF ) {
     dirty( tex ) {},
    
     emit_decl() {
-      if( this.textures.length === 0 ) return ``//uniform sampler2D textures[1];` 
+      if( this.textures.length === 0 ) return '' 
 
-      //let str = `uniform sampler2D textures[${this.textures.length}];\n\n` //= Texture[${this.textures.length}](`
       let decl = ''
 
       const memo = []
@@ -208,7 +217,7 @@ const __Textures = function( SDF ) {
           }
           memo.push( tex )
         }
-        if( tex.name === 'image' ) {
+        if( tex.name === 'image' || tex.name === 'canvas' ) {
           imageCount++
         }
       })
@@ -228,7 +237,7 @@ const __Textures = function( SDF ) {
                 tex.__target[ param.name ].update_location( gl,program )
             }
           }
-          if( tex.name === 'image' ) {
+          if( tex.name === 'image' || tex.name === 'canvas' ) {
             tex.loc = gl.getUniformLocation( program, `textures[${tex.id}]` )
             tex.gltexture.bind( i )
           }
@@ -255,7 +264,7 @@ const __Textures = function( SDF ) {
             if( param.type !== 'obj' && param.name !== 'material' )
               tex.__target[ param.name ].upload_data( gl )
           }
-          if( tex.name === 'image' ) {
+          if( tex.name === 'image' || tex.name === 'canvas' ) {
             gl.uniform1i( tex.loc, i )
           }
         })
@@ -267,6 +276,12 @@ const __Textures = function( SDF ) {
   Textures.texture.create = function( props ) {
     Textures.__types[ props.name ] = props
   }
+
+  Object.defineProperties( Textures.texture, {
+    'repeat': { get() { return Marching.gl.REPEAT } },
+    'mirror': { get() { return Marching.gl.MIRRORED_REPEAT } },
+    'clamp': { get() { return Marching.gl.CLAMP_TO_EDGE } },
+  })
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
 

@@ -318,7 +318,6 @@ module.exports = {
   Torus:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1] },
-      { name:'material', type:'mat', default:null }
     ],
 
     primitiveString( pName ) { 

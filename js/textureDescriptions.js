@@ -1,6 +1,15 @@
 const glsl = require( 'glslify' )
 
 const textures = {
+  image: {
+    name:'image',
+    glsl2d:`
+      vec3 image2d( vec2 uv, vec3 normal ) {
+        return texture( textures[ 0 ], uv ).xyz;
+      }
+    `,
+    parameters:[]
+  },
   checkers: {
     name:'checkers',
     glsl:`          

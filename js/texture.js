@@ -44,7 +44,7 @@ const __Textures = function( SDF ) {
 
       let funcdefs = ''
       this.textures.forEach( (t,i) => {
-        const mode = t.wrap !== true && t.glsl !== undefined ? '3d' : '2d'
+        const mode = '2d' //t.wrap !== true && t.glsl !== undefined ? '3d' : '2d'
 
         // add texture wrap function if needed
         if( mode === '2d' && pushedWrap === false ) {
@@ -168,15 +168,24 @@ const __Textures = function( SDF ) {
         }
       }
 
-      //tex.image = getPixels( filenameOrPreset, (err,pixels) => {
-      //  if( err !== null ) {
-      //    console.error( err )
-      //    return
-      //  }
-      //  tex.pixels = pixels
-      //  tex.gltexture = createTexture( SDF.gl, pixels )
-      //  tex.gltexture.wrap = tex.wrap
-      //})
+      if( presetName === 'image' ) {
+        if( props.filename !== undefined ) {
+          tex.image = getPixels( props.filename, (err,pixels) => {
+            if( err !== null ) {
+              console.error( err )
+              return
+            }
+            tex.pixels = pixels
+            tex.gltexture = createTexture( SDF.gl, pixels )
+            tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : tex.wrap
+          })
+        }else{
+          tex.image = null
+          console.error('You must specify a filename when using the iamge preset.')
+        }
+      }
+
+      tex.name = presetName
 
       return tex 
     },
@@ -190,6 +199,7 @@ const __Textures = function( SDF ) {
       let decl = ''
 
       const memo = []
+      let imageCount = 0;
       this.textures.forEach( (tex,i) => {
         if( memo.indexOf( tex ) === -1 ) {
           for( let param of tex.parameters ) {
@@ -198,8 +208,14 @@ const __Textures = function( SDF ) {
           }
           memo.push( tex )
         }
+        if( tex.name === 'image' ) {
+          imageCount++
+        }
       })
 
+      if( imageCount > 0 ) {
+        decl += `\n      uniform sampler2D textures[${imageCount}];\n`
+      }
       return decl
     },
     
@@ -211,6 +227,10 @@ const __Textures = function( SDF ) {
               if( param.name !== 'material' ) 
                 tex.__target[ param.name ].update_location( gl,program )
             }
+          }
+          if( tex.name === 'image' ) {
+            tex.loc = gl.getUniformLocation( program, `textures[${tex.id}]` )
+            tex.gltexture.bind( i )
           }
         })
       }
@@ -234,6 +254,9 @@ const __Textures = function( SDF ) {
           for( let param of tex.parameters ) {
             if( param.type !== 'obj' && param.name !== 'material' )
               tex.__target[ param.name ].upload_data( gl )
+          }
+          if( tex.name === 'image' ) {
+            gl.uniform1i( tex.loc, i )
           }
         })
       }

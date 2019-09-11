@@ -89,15 +89,6 @@ const createPrimitives = function( SDF ) {
         if( param.name === 'color' ) {
           p.color = args[ count ] === undefined ? param.default : args[ count++ ]
           continue
-        }else if( param.name === 'material' ) {
-          //p.material = args[ count++ ] 
-          //p.material = SDF.materials.addMaterial( p.material )
-          //if( SDF.materials.materials.indexOf( p.material ) === -1 ) {
-          //  console.log( 'pushing material' )
-          //  p.material.id = MaterialID.alloc()
-          //  SDF.materials.materials.push( p.material )
-          //}
-          continue
         }
         if( param.type === 'obj' ) {
           let __value = args[ count++ ]
@@ -163,31 +154,22 @@ const createPrimitives = function( SDF ) {
         }
       }
 
-      //let mat = p.material
-      //Object.defineProperty( p, 'material', {
-      //  configurable:true,
-      //  get() { return mat },
-      //  set(v) {
-      //    mat = SDF.materials.addMaterial( v )
-      //  }
-      //})
-      // id used for sdf code
       p.id = VarAlloc.alloc()
 
       p.__desc = desc
-      p.__setMaterial = mat => {
+      p.__setMaterial = function(mat) {
         if( typeof mat === 'string' ) mat = SDF.Material[ mat ]
-        p.__material = p.mat = SDF.materials.addMaterial( mat )
+        this.__material = this.mat = SDF.materials.addMaterial( mat )
       }
 
-      p.__setTexture = (tex,props) => {
+      p.__setTexture = function(tex,props) {
         if( typeof tex === 'string' ) {
-          p.texture = p.texture.bind( p )
-          p.__textureObj = p.tex = SDF.Texture( tex,props,p.texture )
-          p.__textureID = p.__textureObj.id
+          this.texture = p.texture.bind( this )
+          this.__textureObj = this.tex = SDF.Texture( tex,props,this.texture )
+          this.__textureID = this.__textureObj.id
         }else{
-          p.__textureObj = p.tex = Object.assign( tex, props )
-          p.__textureID = p.__textureObj.id
+          this.__textureObj = this.tex = Object.assign( tex, props )
+          this.__textureID = this.__textureObj.id
         }
       }
 
@@ -200,7 +182,8 @@ const createPrimitives = function( SDF ) {
 
     // define prototype to use
     Primitives[ name ].prototype = SceneNode()
-
+    Primitives[ name ].prototype.type = 'geometry'
+    
     // create codegen string
     Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null, shouldApplyTransform=true ) {
       let shaderCode = desc.glslify.indexOf('#') > -1 ? desc.glslify.slice(18) : desc.glslify

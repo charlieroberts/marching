@@ -53,12 +53,16 @@ const ops = {
 
     return { preface, out:sdf.out }
   },
+  
+  // XXX todo: something like https://www.shadertoy.com/view/ldSGzR
+  // https://www.dropbox.com/s/l1yl164jb3rhomq/mm_sfgrad_bump.pdf?dl=0
   Bump( __name ) {
     let name = __name === undefined ? 'p' : __name
     const sdf = this.sdf.emit( 'p'+this.id );
-    const tex = this.amount.emit( name )
+    const tex = this.texture.emit( name )
+    console.log( 'tex emit:', tex )
 
-    Marching.textures.addTexture( this.amount.value )
+    Marching.textures.addTexture( this.texture )
 
     const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
 
@@ -74,7 +78,6 @@ const ops = {
 
     return { preface, out:sdf.out }
   },
-
 }
 
 const DistanceOps = {}
@@ -103,7 +106,7 @@ for( let name in ops ) {
       b.type = 'vec3'
     }
     
-    if( name !== 'Bumpz' ) {
+    if( name !== 'Bump' ) {
       let __var =  param_wrap( 
         b, 
         vec3_var_gen( ...defaultValues ) 
@@ -127,6 +130,7 @@ for( let name in ops ) {
 
       op.params = [{ name:'amount' }]
     }else{
+      op.texture = b
       op.params = []
       op.emit_decl = function() {}
       op.emit = function() {}

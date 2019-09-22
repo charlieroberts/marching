@@ -52,7 +52,8 @@ const descriptions = {
       //const s = this.transform.emit_scale()
 
       let preface =`
-        vec4 ${pName} = vec4( mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }, 1. );\n`
+        vec4 ${pName} = vec4( (mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }) * ${this.transform.emit_scale()}, 1. );\n`
+
 
       const sdf = this.sdf.emit( pName, false, this.transform.emit() )
 
@@ -76,6 +77,7 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
+  // DEPRECATED
   Rotation: {
     parameters: [
       { name:'axis', type:'vec3', default:Vec3(1) },
@@ -132,6 +134,7 @@ const descriptions = {
     }
     `
   },
+  // DEPRECATED
   Translate:{
     parameters: [ { name:'amount', type:'vec3', default:Vec3(0) } ],
     emit( name='p' ) {
@@ -148,6 +151,7 @@ const descriptions = {
       return { out, preface }
     }
   },
+  // DEPRECATED
   Scale:{
     parameters: [{ name:'amount', type:'float', default:1 } ],
     emit( name='p' ) {

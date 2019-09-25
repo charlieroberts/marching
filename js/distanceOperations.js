@@ -82,6 +82,21 @@ for( let name in ops ) {
       }
     }
 
+    op.__setTexture = function(tex,props) {
+      if( typeof tex === 'string' ) {
+        this.texture = op.texture.bind( this )
+        this.__textureObj = this.tex = Marching.Texture( tex,props,this.texture )
+        this.__textureID = this.__textureObj.id
+      }else{
+        this.__textureObj = this.tex = Object.assign( tex, props )
+        this.__textureID = this.__textureObj.id
+      }
+    }
+    op.__setMaterial = function(mat) {
+      if( typeof mat === 'string' ) mat = Marching.Material[ mat ]
+      this.__material = this.mat = Marching.materials.addMaterial( mat )
+    }
+
     op.matId = MaterialID.alloc()
 
     op.params = [{name:'c'},{ name:'d'}]
@@ -112,6 +127,21 @@ for( let name in ops ) {
   }
 
   DistanceOps[ name ].prototype = SceneNode()
+
+  DistanceOps[ name ].prototype.texture = function( ...args ) {
+    this.__setTexture( ...args )
+    this.a.texture( this.__textureObj )
+    this.b.texture( this.__textureObj )
+
+    return this
+  }
+  DistanceOps[ name ].prototype.material = function( ...args ) {
+    this.__setMaterial( ...args )
+    this.a.material( this.__material )
+    this.b.material( this.__material )
+
+    return this
+  }
 
   DistanceOps[ name ].prototype.emit = function ( pname='p' ) {
     const glslobj = glslops[ name ]

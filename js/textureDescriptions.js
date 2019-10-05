@@ -32,9 +32,9 @@ const textures = {
           vec3 tex;
           pos  = pos * size;
           if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
-            tex = color1;//vec3(.5);
+            tex = color1;
           }else{
-            tex = color2;//vec3(0.);
+            tex = color2;
           }
 
           return tex;
@@ -56,9 +56,9 @@ const textures = {
   noise: {
     name:'noise',
     glsl:glsl`          
-        #pragma glslify: snoise = require('glsl-noise/simplex/3d')
+        #pragma glslify: snoise = require('glsl-noise/simplex/4d')
         vec3 noise( vec3 pos, vec3 normal, float scale, float strength, float time ) {
-          float n = snoise( pos*scale );
+          float n = snoise( vec4(pos*scale, time) );
           return vec3( n ) * strength;
         }`,
     glsl2d:glsl`    
@@ -202,7 +202,7 @@ const textures = {
     parameters: [
       { name:'scale', type:'float', default:1 },
       { name:'jitter', type:'float', default:1 },
-      { name:'mode',  type:'float', default: 0 },
+      { name:'type',  type:'float', default: 0 },
       { name:'strength', type:'float', default:2 },
       { name:'time', type:'float', default:1 }
     ],     

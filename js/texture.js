@@ -35,9 +35,16 @@ const __Textures = function( SDF ) {
       let pushedWrap = false
 
       let decl = `
-      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
+      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform, vec3 rpt ) {
         vec3 tex;
         vec2 pos2;
+        vec3 tpos = pos;
+        if( length(rpt) != 0. ) {
+          tpos = mod( pos, rpt ) - .5 * rpt;
+        }
+        tpos = (inverse(transform)*vec4(tpos,1.)).xyz;
+        
+
         switch( id ) {\n`
 
       Textures.__textureBodies.length = 0
@@ -62,8 +69,8 @@ const __Textures = function( SDF ) {
 
         decl +=`
           case ${i}:
-            ${mode === '2d' ? `     pos2 = getUVCubic( pos );\n` : ''} 
-            tex = ${functionName}( ${mode === '2d' ?'pos2':'pos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
+            ${mode === '2d' ? `     pos2 = getUVCubic( tpos );\n` : ''} 
+            tex = ${functionName}( ${mode === '2d' ?'pos2':'tpos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
             break;\n`            
 
       })
@@ -184,9 +191,21 @@ const __Textures = function( SDF ) {
           console.error('You must specify a filename when using the iamge preset.')
         }
       }else if( presetName === 'canvas' ) {
-        tex.image = props.canvas
+        if( props.canvas === undefined ) {
+          tex.canvas = tex.image = document.createElement('canvas')
+          tex.ctx    = tex.canvas.getContext('2d')
+        }else{
+          tex.image = props.canvas
+        }
+
+        tex.update = function() {
+          tex.gltexture.setPixels( tex.image )
+        }
+
         tex.gltexture = createTexture( SDF.gl, tex.image )
         tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : props.wrap
+
+        tex.update()
       }
 
 
@@ -219,6 +238,11 @@ const __Textures = function( SDF ) {
         }
         if( tex.name === 'image' || tex.name === 'canvas' ) {
           imageCount++
+
+          // for some reason can't immediately call update... 
+          // have to wait for some type of dom initialization?
+          // so call here
+          if( tex.update ) tex.update()
         }
       })
 

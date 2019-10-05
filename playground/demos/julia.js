@@ -7,7 +7,7 @@ march(
       .material( mat1 )
       .texture( tex ),
     tex,
-    -.05
+    .05
   )
 )
 .light( 

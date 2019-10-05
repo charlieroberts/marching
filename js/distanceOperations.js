@@ -4,26 +4,54 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_ge
 const Transform = require( './transform.js' )
 const glslops = require( './distanceOperationsGLSL.js' )
 
+const opslen = { 
+  Union:5,
+  SmoothUnion:6,
+  Intersection:5,
+  SmoothIntersection:6,
+  Difference:5,
+  SmoothDifference:6,
+  StairsUnion:7,
+  StairsIntersection:7,
+  StairsDifference:7,
+  RoundUnion:6,
+  RoundDifference:6,
+  RoundIntersection:6,
+  ChamferUnion:6,
+  ChamferDifference:6,
+  ChamferIntersection:6,
+  Pipe:6,
+  Engrave:6,
+  Groove:7,
+  Tongue:7,
+  
+  // these two do not currently have support for transforms or repeats...
+  Onion:2,
+  Switch:2
+}
+
 const ops = { 
-  Union( a,b,c,d,e ) { return `opU( ${a}, ${b}, ${c}, ${d}, ${e} )` },
-  SmoothUnion(  a,b,c,d,e,f) { return `opSmoothUnion( ${a}, ${b}, ${c}, ${d}, ${e}, ${f} )` },
-  Intersection( a,b,c,d,e ) { return `opI( ${a}, ${b}, ${c}, ${d}, ${e} )` },
-  SmoothIntersection( a,b,c,d,e,f ) { return `opSmoothIntersection( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },  
-  Difference( a,b,c,d,e ) { return `opS( ${a}, ${b}, ${c}, ${d}, ${e} )` },  
-  SmoothDifference( a,b,c,d,e,f ) { return `opSmoothSubtraction( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },  
-  StairsUnion(  a,b,c,d,e,f,g ) { return `fOpUnionStairs( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
-  StairsIntersection( a,b,c,d,e,f,g ) { return `fOpIntersectionStairs( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
-  StairsDifference( a,b,c,d,e,f,g ) { return `fOpSubstractionStairs( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
-  RoundUnion( a,b,c,d,e,f ) { return `fOpUnionRound( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
-  RoundDifference( a,b,c,d,e,f ) { return `fOpDifferenceRound( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
-  RoundIntersection( a,b,c,d,e,f ) { return `fOpIntersectionRound( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
-  ChamferUnion( a,b,c,d,e,f ) { return `fOpUnionChamfer( ${a}, ${b}, ${c}, ${d}, ${e}, ${f} )` },
-  ChamferDifference( a,b,c,d,e,f ) { return `fOpDifferenceChamfer( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
-  ChamferIntersection( a,b,c,d,e,f ) { return `fOpIntersectionChamfer( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
-  Pipe( a,b,c,d,e,f ) { return `fOpPipe( ${a}, ${b}, ${c}, ${d}, ${e}, ${f})` },
-  Engrave( a,b,c,d,e,f ) { return `fOpEngrave( ${a}, ${b}, ${c}, ${d}, ${e}, ${f} )` },
-  Groove( a,b,c,d,e,f,g ) { return `fOpGroove( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
-  Tongue( a,b,c,d,e,f,g ) { return `fOpTongue( ${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g} )` },
+  Union( ...args ) { return `opU( ${args.join(',')} )` },
+  SmoothUnion( ...args  ) { return `opSmoothUnion( ${args.join(',')} )` },
+  Intersection( ...args ) { return `opI( ${args.join(',')} )` },
+  SmoothIntersection( ...args ) { return `opSmoothIntersection( ${args.join(',')} )` },  
+  Difference( ...args ) { return `opS( ${args.join(',')} )` },  
+  SmoothDifference( ...args ) { return `opSmoothSubtraction( ${args.join(',')} )` },  
+  StairsUnion(  ...args ) { return `fOpUnionStairs( ${args.join(',')} )`  },
+  StairsIntersection( ...args ) { return `fOpIntersectionStairs( ${args.join(',')} )` },
+  StairsDifference( ...args ) { return `fOpSubstractionStairs( ${args.join(',')} )` },
+  RoundUnion( ...args ) { return `fOpUnionRound( ${args.join(',')} )` },
+  RoundDifference( ...args ) { return `fOpDifferenceRound( ${args.join(',')} )` },
+  RoundIntersection( ...args ) { return `fOpIntersectionRound( ${args.join(',')} )` },
+  ChamferUnion( ...args ) { return `fOpUnionChamfer( ${args.join(',')} )` },
+  ChamferDifference( ...args ) { return `fOpDifferenceChamfer( ${args.join(',')} )` },
+  ChamferIntersection( ...args ) { return `fOpIntersectionChamfer( ${args.join(',')} )` },
+  Pipe( ...args ) { return `fOpPipe( ${args.join(',')} )` },
+  Engrave( ...args ) { return `fOpEngrave( ${args.join(',')} )` },
+  Groove( ...args ) { return `fOpGroove( ${args.join(',')} )` },
+  Tongue( ...args ) { return `fOpTongue( ${args.join(',')} )` },
+  
+  // these two do not currently have support for transforms or repeats...
   Onion( a,b ) { return `opOnion( ${a}, ${b} )` },
   Switch( a,b,c,d,e,f ) { return `opSwitch( ${a}, ${b}, ${c} )` }
 }
@@ -55,13 +83,13 @@ for( let name in ops ) {
     const op = Object.create( DistanceOps[ name ].prototype )
     op.a = a
     op.b = b
-    op.transform = Transform()
+    op.transform = Transform( false )
     op.id = VarAlloc.alloc()
     op.type = 'domain_op'
 
     let __c = param_wrap( c, float_var_gen(.3) )
 
-    op.__len = ops[ name ].length
+    op.__len = opslen[ name ]
     if( op.__len > 5 ) {
       Object.defineProperty( op, 'c', {
         get() { return __c },
@@ -143,7 +171,7 @@ for( let name in ops ) {
     return this
   }
 
-  DistanceOps[ name ].prototype.emit = function ( pname='p' ) {
+  DistanceOps[ name ].prototype.emit = function ( pname='p', shouldRepeat=true, transform = null, shouldApplyTransform=true, repeat=null ){
     const glslobj = glslops[ name ]
     
     // some definitions are a single string, and not split into
@@ -178,37 +206,45 @@ for( let name in ops ) {
     
     // up to seven arguments... sdfa, sdfb, arg1 | sdfa.transform, arg2 | sdfb.transform, op.transform etc.
     // first two are fixed, rest are variable
-    const emitterA = this.a.emit( tname )
-    const emitterB = this.b.emit( tname )
-    const emitterC = this.c !== undefined ? this.c.emit() : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
-    const emitterD = this.d !== undefined 
+    let emitters = []
+    const a = this.a.emit( tname, false, this.transform, true, repeat ), 
+          b = this.b.emit( tname, false, this.transform, true, repeat ) 
+
+    emitters[0] = a.out
+    emitters[1] = b.out
+    emitters[2] = this.c !== undefined ? this.c.emit() : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
+    emitters[3] = this.d !== undefined 
       ? this.d.emit() 
       : this.__len === 5 
         ? this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit() 
         : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
 
-    const emitterE = this.__len <= 5 
+    emitters[4] = this.__len <= 5 
       ? this.transform.emit() 
       : this.__len === 6 
         ? this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit()
         : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
 
-    const emitterF = this.__len <= 5 
+    emitters[5] = this.__len <= 5 
       ? null 
       : this.__len === 6 
         ? this.transform.emit() 
         : this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit()
  
-    const emitterG = this.__len <= 6 ? null : this.transform.emit()
-    
+    emitters[6] = this.__len <= 6 ? null : this.transform.emit()
+
+    emitters = emitters.filter( e => e !== null )
+
+    emitters.push( repeat===null ? 'vec3(0.)' : repeat ) 
+
     const body = `
-        opOut do${this.id} = ${op( emitterA.out, emitterB.out, emitterC, emitterD, emitterE, emitterF, emitterG )};
+        opOut do${this.id} = ${op( ...emitters )};
         do${this.id}.x *= ${this.transform.emit()}_scale;
     `
 
     const output = {
       out: 'do'+this.id,
-      preface: prequel + (emitterA.preface || '') + (emitterB.preface || '') + body
+      preface: prequel + (a.preface || '') + (b.preface || '') + body
     }
 
     return output

@@ -40,6 +40,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float x;
         float y;
         mat4  transform;
+        vec3  repeat;
       };
 
       uniform float time;
@@ -70,7 +71,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         float dist   = +0.0;
         float type   = -1.0;
         opOut result;
-        opOut res = opOut( -1., -1., mat4(1.) );
+        opOut res = opOut( -1., -1., mat4(1.), vec3(0.) );
 
         for (int i = 0; i < ${steps} ; i++) {
           if (latest < precis || dist > maxd) break;
@@ -225,7 +226,7 @@ ${preface}
           vec3 pos = ro + rd * t.x;
           vec3 nor = calcNormal( pos );
 
-          color = lighting( pos, nor, ro, rd, t.y, t.transform ); 
+          color = lighting( pos, nor, ro, rd, t.y, t.transform, t.repeat ); 
         }
 
         ${postprocessing}

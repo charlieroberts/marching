@@ -185,7 +185,7 @@ const createPrimitives = function( SDF ) {
     Primitives[ name ].prototype.type = 'geometry'
     
     // create codegen string
-    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null, shouldApplyTransform=true ) {
+    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null, shouldApplyTransform=true, repeat=null ) {
       let shaderCode = desc.glslify.indexOf('#') > -1 ? desc.glslify.slice(18) : desc.glslify
       if( SDF.requiredGeometries.indexOf( shaderCode ) === - 1 ) {
         SDF.requiredGeometries.push( shaderCode )
@@ -199,7 +199,9 @@ const createPrimitives = function( SDF ) {
 
       //const id = SDF.materials.__materials.indexOf( this.__material )
       const id = this.__sdfID
-      const s = this.transform.emit_scale()
+      let   s  = this.transform.emit_scale()
+      //if( transform !== null ) console.log( transform.emit_scale(), s )
+      if( transform !== null ) s = `${s} * ${transform.emit_scale() }`
       
       let pointString = shouldApplyTransform === true ? `( ${pname} * ${this.transform.emit()} ).xyz` : pname
       if( this.__repeat !== undefined && shouldRepeat === true ) {
@@ -207,9 +209,9 @@ const createPrimitives = function( SDF ) {
       }else if(this.__polarRepeat !== undefined && shouldRepeat === true) {
         return this.__polarRepeat.emit( pname )
       }else {
-        const transformString = transform === null ? this.transform.emit() : `${transform} * ${this.transform.emit()}`
+        const transformString = transform === null ? this.transform.emit() : `${this.transform.emit()} * ${transform.emit()}`
         const primitive = `
-        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${transformString});
+        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${transformString}, ${repeat===null?'vec3(0.)':repeat});
       `
         SDF.memo[ this.id ] = name + this.id
 

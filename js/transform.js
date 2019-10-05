@@ -2,11 +2,12 @@ const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const Matrix = require( './external/matrix.js' )
 
-const MatrixWrap = function () {
+const MatrixWrap = function ( shouldInvert = true ) {
   const m = Object.create( MatrixWrap.prototype )
   m.dirty = true
   m.translation = {}
   m.scale = {}
+  m.shouldInvert = shouldInvert
   m.rotation = {
     axis: {}
   }
@@ -173,9 +174,12 @@ MatrixWrap.prototype = {
     this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
     this.__data = this.__data.multiply( Matrix.scale( this.scale, this.scale, this.scale ) )
 
-    const inverse = Matrix.inverse( this.__data )
-    gl.uniformMatrix4fv( this.loc, false, inverse.m )
-    
+    if( this.shouldInvert === true ) {
+      const inverse = Matrix.inverse( this.__data )
+      gl.uniformMatrix4fv( this.loc, false, inverse.m )
+    }else{
+      gl.uniformMatrix4fv( this.loc, false, this.__data.m )
+    }
     //gl.uniform3f(this.loc_scale, this.scale.x, this.scale.y, this.scale.z )
     
     // scaling must be sent as separate uniform to avoid sdf over estimation 

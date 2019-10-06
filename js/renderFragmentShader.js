@@ -2,7 +2,7 @@ const glsl = require( 'glslify' )
 
 module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops ) {
     const fs_source = glsl`     #version 300 es
-      precision highp float;
+      precision mediump float;
 
       float PI = 3.141592653589793;
 

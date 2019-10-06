@@ -5,7 +5,7 @@ const Transform = require( './transform.js' )
 const glslops = require( './distanceOperationsGLSL.js' )
 
 const opslen = { 
-  Union:5,
+  Union:2,
   SmoothUnion:6,
   Intersection:5,
   SmoothIntersection:6,
@@ -171,7 +171,7 @@ for( let name in ops ) {
     return this
   }
 
-  DistanceOps[ name ].prototype.emit = function ( pname='p', shouldRepeat=true, transform = null, shouldApplyTransform=true, repeat=null ){
+  const pushString = function( name ) {
     const glslobj = glslops[ name ]
     
     // some definitions are a single string, and not split into
@@ -196,55 +196,36 @@ for( let name in ops ) {
       if( DistanceOps.__glsl.indexOf( glslobj.float ) === -1 ) {
         DistanceOps.__glsl.push( glslobj.float )
       }
-      if( DistanceOps.__glsl.indexOf( glslobj.opOut ) === -1 ) {
-        DistanceOps.__glsl.push( glslobj.opOut )
+      if( DistanceOps.__glsl.indexOf( glslobj.vec2) === -1 ) {
+        DistanceOps.__glsl.push( glslobj.vec2 )
       }
     }
+  }
 
-    const tname = `transformDO${this.id}`
-    const prequel = `        vec4 ${tname} = ${pname} * ${this.transform.emit()};\n`
-    
-    // up to seven arguments... sdfa, sdfb, arg1 | sdfa.transform, arg2 | sdfb.transform, op.transform etc.
-    // first two are fixed, rest are variable
+  DistanceOps[ name ].prototype.emit = function ( pname='p', transform = null ){
+    pushString( name )
+
+    this.transform.internal()
+    if( transform !== null ) this.transform.apply( transform, false )
+
+    // first two args are fixed, rest are variable
     let emitters = []
-    const a = this.a.emit( tname, false, this.transform, true, repeat ), 
-          b = this.b.emit( tname, false, this.transform, true, repeat ) 
+    const a = this.a.emit( pname, this.transform ), 
+          b = this.b.emit( pname, this.transform ) 
 
     emitters[0] = a.out
     emitters[1] = b.out
-    emitters[2] = this.c !== undefined ? this.c.emit() : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
-    emitters[3] = this.d !== undefined 
-      ? this.d.emit() 
-      : this.__len === 5 
-        ? this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit() 
-        : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
-
-    emitters[4] = this.__len <= 5 
-      ? this.transform.emit() 
-      : this.__len === 6 
-        ? this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit()
-        : this.a.type === 'domain_op' ? 'do'+this.a.id+'.transform': this.a.transform.emit()
-
-    emitters[5] = this.__len <= 5 
-      ? null 
-      : this.__len === 6 
-        ? this.transform.emit() 
-        : this.b.type === 'domain_op' ? 'do'+this.b.id+'.transform': this.b.transform.emit()
- 
-    emitters[6] = this.__len <= 6 ? null : this.transform.emit()
-
-    emitters = emitters.filter( e => e !== null )
-
-    emitters.push( repeat===null ? 'vec3(0.)' : repeat ) 
-
+    if( this.__len > 2 ) emitters.push( this.c.emit() )
+    if( this.__len > 3 ) emitters.push( this.d.emit() )
+    
     const body = `
-        opOut do${this.id} = ${op( ...emitters )};
+        vec2 do${this.id} = ${op( ...emitters )};
         do${this.id}.x *= ${this.transform.emit()}_scale;
     `
 
     const output = {
       out: 'do'+this.id,
-      preface: prequel + (a.preface || '') + (b.preface || '') + body
+      preface: (a.preface || '') + (b.preface || '') + body
     }
 
     return output
@@ -275,6 +256,8 @@ for( let name in ops ) {
 
   DistanceOps[name].prototype.upload_data = function(gl) {
     this.transform.upload_data( gl )
+    this.a.transform.apply( this.transform )
+    this.b.transform.apply( this.transform )
     this.a.upload_data( gl )
     this.b.upload_data( gl )
     if( this.c !== undefined ) this.c.upload_data( gl )
@@ -283,87 +266,4 @@ for( let name in ops ) {
   }
 }
 
-//DistanceOps.Union2 = function( ...args ) {
-//  const u = args.reduce( (state,next) => DistanceOps.Union( state, next ) )
-
-//  return u
-//}
-
-//DistanceOps.SmoothUnion2 = function( ...args ) {
-//  // accepts unlimited arguments, but the last one could be a blending coefficient
-//  let blend = .8, u
-
-//  if( typeof args[ args.length - 1 ] === 'number' ) {
-//    blend = args.pop()
-//    u = args.reduce( (state,next) => DistanceOps.SmoothUnion( state, next, blend ) )
-//  }else{
-//    u = args.reduce( (state,next) => DistanceOps.SmoothUnion( state, next ) )
-//  }
-
-//  return u
-//}
-
-//DistanceOps.RoundUnion2 = function( ...args ) {
-//  // accepts unlimited arguments, but the last one could be a blending coefficient
-//  let blend = .25, u
-
-//  if( typeof args[ args.length - 1 ] === 'number' ) {
-//    blend = args.pop()
-//    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next, blend ) )
-//  }else{
-//    u = args.reduce( (state,next) => DistanceOps.RoundUnion( state, next ) )
-//  }
-
-//  return u
-//}
-
-//ops.SmoothDifference.code = `      float opSmoothSubtraction( float d1, float d2, float k ) {
-//        float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
-//        return mix( d2, -d1, h ) + k*h*(1.0-h); 
-//      }
-//      vec2 opSmoothSubtraction( vec2 d1, vec2 d2, float k ) {
-//        float h = clamp( 0.5 - 0.5*(d2.x+d1.x)/k, 0.0, 1.0 );
-//        return vec2( mix( d2.x, -d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) );
-//      }
-//`
-
-//ops.SmoothIntersection.code = `      float opSmoothIntersection( float d1, float d2, float k ) {
-//        float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
-//        return mix( d2, d1, h ) + k*h*(1.0-h); 
-//      }
-//      vec2  opSmoothIntersection( vec2 d1, vec2 d2, float k ) {
-//        float h = clamp( 0.5 - 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
-//        return vec2( mix( d2.x, d1.x, h ) + k*h*(1.0-h), mix( d2.y, d1.y, h ) ); 
-//      }
-//`      
-
-//ops.SmoothUnion.code = `      vec2 smin( vec2 a, vec2 b, float k) {
-//        float startx = clamp( 0.5 + 0.5 * ( b.x - a.x ) / k, 0.0, 1.0 );
-//        float hx = mix( b.x, a.x, startx ) - k * startx * ( 1.0 - startx );
-
-
-//        // material blending... i am proud.
-//        float starty = clamp( (b.x - a.x) / k, 0., 1. );
-//        float hy = 1. - (a.y + ( b.y - a.y ) * starty); 
-
-//        return vec2( hx, hy ); 
-//      }
-//      float smin(float a, float b, float k) {
-//        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-//        return mix(b, a, h) - k * h * (1.0 - h);
-//      }
-//      //float opS( float d1, float d2 ) { return max(d1,-d2); }
-//      //vec2  opS( vec2 d1, vec2 d2 ) {
-//      //  return d1.x >= -d2.x ? vec2( d1.x, d1.y ) : vec2(-d2.x, d2.y);
-//      //}
-
-//      float opSmoothUnion( float a, float b, float k) {
-//        return smin( a, b, k );
-//      }
-
-//      vec2 opSmoothUnion( vec2 a, vec2 b, float k) {
-//        return smin( a, b, k);
-//      }
-//`
 module.exports = DistanceOps
-

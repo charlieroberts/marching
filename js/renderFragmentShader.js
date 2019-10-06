@@ -36,13 +36,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         int textureID;
       };
 
-      struct opOut {
-        float x;
-        float y;
-        mat4  transform;
-        vec3  repeat;
-      };
-
       uniform float time;
       uniform vec2 resolution;
       uniform vec3 camera_pos;
@@ -61,17 +54,16 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       /* GEOMETRIES */
       ${geometries}
 
-      opOut scene(vec3 p);
+      vec2 scene(vec3 p);
 
-      
       // Adapted from from https://www.shadertoy.com/view/ldfSWs
 
-      opOut calcRayIntersection( vec3 rayOrigin, vec3 rayDir, float maxd, float precis ) {
+      vec2 calcRayIntersection( vec3 rayOrigin, vec3 rayDir, float maxd, float precis ) {
         float latest = precis * 2.0;
         float dist   = +0.0;
         float type   = -1.0;
-        opOut result;
-        opOut res = opOut( -1., -1., mat4(1.), vec3(0.) );
+        vec2 result;
+        vec2 res = vec2(-50000., -1.);;
 
         for (int i = 0; i < ${steps} ; i++) {
           if (latest < precis || dist > maxd) break;
@@ -79,19 +71,18 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
           result = scene(rayOrigin + rayDir * dist );
 
           latest = result.x;
-          type   = result.y;
           dist  += latest;
         }
 
         if( dist < maxd ) {
-          result.x= dist;
+          result.x = dist;
           res = result;
         }
 
         return res;
       }
 
-      opOut calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {
+      vec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {
         return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);
       }
 
@@ -201,7 +192,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
 ${lighting}
 
-      opOut scene(vec3 _p ) {
+      vec2 scene(vec3 _p ) {
         vec4 p = vec4( _p, 1. );
 ${preface}
         return ${scene};
@@ -220,13 +211,13 @@ ${preface}
 
         orbitCamera( camera_rot, ro.y, ro.z, resolution, ro, rd );
         
-        opOut t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
+        vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
  
         if( t.x > -0.5 ) {
           vec3 pos = ro + rd * t.x;
           vec3 nor = calcNormal( pos );
 
-          color = lighting( pos, nor, ro, rd, t.y, t.transform, t.repeat ); 
+          color = lighting( pos, nor, ro, rd, t.y ); 
         }
 
         ${postprocessing}

@@ -35,14 +35,14 @@ const __Textures = function( SDF ) {
       let pushedWrap = false
 
       let decl = `
-      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform, vec3 rpt ) {
+      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
         vec3 tex;
         vec2 pos2;
         vec3 tpos = pos;
-        if( length(rpt) != 0. ) {
+        /*if( length(rpt) != 0. ) {
           tpos = mod( pos, rpt ) - .5 * rpt;
-        }
-        tpos = (inverse(transform)*vec4(tpos,1.)).xyz;
+        }*/
+        tpos = (transform*vec4(tpos,1.)).xyz;
         
 
         switch( id ) {\n`

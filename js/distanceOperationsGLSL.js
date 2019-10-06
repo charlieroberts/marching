@@ -5,14 +5,14 @@ module.exports = {
         return min(d1,d2);
       }
       `,
-    opOut:`
-      opOut opU( opOut d1, opOut d2, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o;
+    vec2:`
+      vec2 opU( vec2 d1, vec2 d2 ) {
+        vec2 o;
 
         if( d1.x < d2.x ) {
-          o = opOut( d1.x, d1.y, t1 * top, rpt );
+          o = d1;
         }else{
-          o = opOut( d2.x, d2.y, t2 * top, rpt );
+          o = d2; 
         }
 
         return o;
@@ -25,14 +25,14 @@ module.exports = {
         return max(d1,d2);
       }
       `,
-    opOut:`
-      opOut opI( opOut d1, opOut d2, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o;
+    vec2:`
+      vec2 opI( vec2 d1, vec2 d2, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o;
 
         if( d1.x > d2.x ) {
-          o = opOut( d1.x, d1.y, t1 * top, rpt );
+          o = vec2( d1.x, d1.y, t1 * top, rpt );
         }else{
-          o = opOut( d2.x, d2.y, t2 * top, rpt );
+          o = vec2( d2.x, d2.y, t2 * top, rpt );
         }
 
         return o;
@@ -44,14 +44,14 @@ module.exports = {
     float:`
       float opS( float d1, float d2 ) { return max(d1,-d2); }
       `,
-    opOut:`
-      opOut opS( opOut d1, opOut d2, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o;
+    vec2:`
+      vec2 opS( vec2 d1, vec2 d2, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o;
 
         if( d1.x >= -d2.x ) {
-          o = opOut( d1.x, d1.y, t1 * top, rpt );
+          o = vec2( d1.x, d1.y, t1 * top, rpt );
         }else{
-          o = opOut( -d2.x, d2.y, t2 * top, rpt );
+          o = vec2( -d2.x, d2.y, t2 * top, rpt );
         }
 
         return o;
@@ -66,9 +66,9 @@ module.exports = {
         float u = b-r;
         return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2. * s)) - s)));
       }`,
-    opOut:`
-      opOut fOpUnionStairs( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut(-1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpUnionStairs( vec2 d1, vec2 d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2(-1., -1., mat4(1.), rpt );
 
         if( d1.x <= d2.x ) {
           o.y = d1.y; 
@@ -92,9 +92,9 @@ module.exports = {
         return -fOpUnionStairs(-a, -b, r, n);
       }
       `,
-    opOut:`
-      opOut fOpIntersectionStairs( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpIntersectionStairs( vec2 d1, vec2 d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = -fOpUnionStairs( -d1.x, -d2.x, r, n );
 
         if( -d1.x <= -d2.x ) {
@@ -115,9 +115,9 @@ module.exports = {
       float fOpSubstractionStairs(float a, float b, float r, float n) {
         return -fOpUnionStairs(-a, b, r, n);
       }`,
-    opOut:`
-      opOut fOpSubstractionStairs( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpSubstractionStairs( vec2 d1, vec2 d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = -fOpUnionStairs( -d1.x, d2.x, r, n );
 
         if( -d1.x <= d2.x ) {
@@ -140,9 +140,9 @@ module.exports = {
         return max(r, min (a, b)) - length(u);
       }`,
 
-    opOut:`
-      opOut fOpUnionRound( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpUnionRound( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpUnionRound( d1.x, d2.x, r );
 
         if( d1.x <= d2.x ) {
@@ -163,9 +163,9 @@ module.exports = {
         vec2 u = max(vec2(r + a,r + b), vec2(0));
         return min(-r, max (a, b)) + length(u);
       }`,
-    opOut:`
-      opOut fOpIntersectionRound( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpIntersectionRound( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpIntersectionRound( d1.x, d2.x, r );
 
         if( d1.x >= d2.x ) {
@@ -187,9 +187,9 @@ module.exports = {
       float fOpDifferenceRound (float a, float b, float r) {
         return fOpIntersectionRound(a, -b, r);
       }`,
-    opOut:`
-      opOut fOpDifferenceRound( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpDifferenceRound( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpDifferenceRound( d1.x, d2.x, r );
 
         if( d1.x >= -d2.x ) {
@@ -209,9 +209,9 @@ module.exports = {
       float fOpUnionChamfer(float a, float b, float r) {
         return min(min(a, b), (a - r + b)*sqrt(0.5));
       }`,
-    opOut:`
-      opOut fOpUnionChamfer( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpUnionChamfer( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpUnionChamfer( d1.x, d2.x, r );
 
         if( d1.x <= d2.x ) {
@@ -231,9 +231,9 @@ module.exports = {
       float fOpIntersectionChamfer(float a, float b, float r) {
         return max(max(a, b), (a + r + b)*sqrt(0.5));
       }`,
-    opOut:`
-      opOut fOpIntersectionChamfer( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt  ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpIntersectionChamfer( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt  ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpIntersectionChamfer( d1.x, d2.x, r );
 
         if( d1.x >= d2.x ) {
@@ -255,9 +255,9 @@ module.exports = {
       float fOpDifferenceChamfer (float a, float b, float r) {
         return fOpIntersectionChamfer(a, -b, r);
       }`,
-    opOut:`
-      opOut fOpDifferenceChamfer( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+    vec2:`
+      vec2 fOpDifferenceChamfer( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpDifferenceChamfer( d1.x, d2.x, r );
 
         if( d1.x >= -d2.x ) {
@@ -276,8 +276,8 @@ module.exports = {
       float fOpPipe(float a, float b, float r) {
         return length(vec2(a, b)) - r;
       }
-      opOut fOpPipe( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt  ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+      vec2 fOpPipe( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt  ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpPipe( d1.x, d2.x, r );
 
         o.y = d1.y;
@@ -291,8 +291,8 @@ module.exports = {
       float fOpEngrave(float a, float b, float r) {
         return max(a, (a + r - abs(b))*sqrt(0.5));
       }
-      opOut fOpEngrave( opOut d1, opOut d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+      vec2 fOpEngrave( vec2 d1, vec2 d2, float r, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpEngrave( d1.x, d2.x, r );
 
         o.y = d1.y;
@@ -305,8 +305,8 @@ module.exports = {
       float fOpGroove(float a, float b, float ra, float rb) {
         return max(a, min(a + ra, rb - abs(b)));
       }
-      opOut fOpGroove( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+      vec2 fOpGroove( vec2 d1, vec2 d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpGroove( d1.x, d2.x, r, n );
 
         o.y = d1.y;
@@ -320,8 +320,8 @@ module.exports = {
       float fOpTongue(float a, float b, float ra, float rb) {
         return min(a, max(a - ra, abs(b) - rb));
       }
-      opOut fOpTongue( opOut d1, opOut d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
-        opOut o = opOut( -1., -1., mat4(1.), rpt );
+      vec2 fOpTongue( vec2 d1, vec2 d2, float r, float n, mat4 t1, mat4 t2, mat4 top, vec3 rpt ) {
+        vec2 o = vec2( -1., -1., mat4(1.), rpt );
         o.x = fOpTongue( d1.x, d2.x, r, n );
 
         o.y = d1.y;
@@ -357,7 +357,7 @@ module.exports = {
       `,
 
   Switch:`
-      opOut opSwitch( opOut a, opOut b, float c ) {
+      vec2 opSwitch( vec2 a, vec2 b, float c ) {
         if( c < .5 ) {
           return a;
         }else{

@@ -210,7 +210,7 @@ const Lights = function( SDF ) {
     `
       let func = `
 
-    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float sdfID, mat4 transform, vec3 rpt ) {
+    vec3 lighting( vec3 surfacePosition, vec3 normal, vec3 rayOrigin, vec3 rayDirection, float sdfID ) {
       ${sdfs}
       SDF sdf = sdfs[ int( sdfID ) ];
 
@@ -221,7 +221,7 @@ const Lights = function( SDF ) {
 
       ${lights}
  
-      vec3 tex = getTexture( int(sdf.textureID), surfacePosition, normal, transform, rpt );
+      vec3 tex = getTexture( int(sdf.textureID), surfacePosition, normal, sdf.transform );
 
       vec3 clr;
       switch( mat.mode ) {

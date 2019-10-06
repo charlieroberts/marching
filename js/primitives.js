@@ -76,6 +76,7 @@ const createPrimitives = function( SDF ) {
       const p = Object.create( Primitives[ name ].prototype )
       p.params = params
       p.transform = Transform()
+      p.transform.shouldInvert = true
       p.type = 'geometry'
       p.name = name
 
@@ -185,38 +186,30 @@ const createPrimitives = function( SDF ) {
     Primitives[ name ].prototype.type = 'geometry'
     
     // create codegen string
-    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null, shouldApplyTransform=true, repeat=null ) {
-      let shaderCode = desc.glslify.indexOf('#') > -1 ? desc.glslify.slice(18) : desc.glslify
+    Primitives[ name ].prototype.emit = function ( __name, transform = null ) {
+      if( SDF.memo[ this.id ] !== undefined ) return { preface:'', out:name+this.matId }
+      
+      const shaderCode = desc.glslify.indexOf('#') > -1 
+        ? desc.glslify.slice(18) 
+        : desc.glslify
+
       if( SDF.requiredGeometries.indexOf( shaderCode ) === - 1 ) {
         SDF.requiredGeometries.push( shaderCode )
       } 
 
-      if( SDF.memo[ this.id ] !== undefined ) {
-        return { preface:'', out:name+this.matId }
-      }
+      if( transform !== null ) this.transform.apply( transform, false )
 
-      const pname = __name === undefined || __name === null ? 'p' : __name
-
-      //const id = SDF.materials.__materials.indexOf( this.__material )
-      const id = this.__sdfID
-      let   s  = this.transform.emit_scale()
-      //if( transform !== null ) console.log( transform.emit_scale(), s )
-      if( transform !== null ) s = `${s} * ${transform.emit_scale() }`
+      const pname = typeof name !== 'string' ? 'p' : __name,
+            id = this.__sdfID,
+            s = this.transform.emit_scale(),
+            tstring = `( ${this.transform.emit()} * p ).xyz`
       
-      let pointString = shouldApplyTransform === true ? `( ${pname} * ${this.transform.emit()} ).xyz` : pname
-      if( this.__repeat !== undefined && shouldRepeat === true ) {
-        return this.__repeat.emit( pname )// + pointString
-      }else if(this.__polarRepeat !== undefined && shouldRepeat === true) {
-        return this.__polarRepeat.emit( pname )
-      }else {
-        const transformString = transform === null ? this.transform.emit() : `${this.transform.emit()} * ${transform.emit()}`
-        const primitive = `
-        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${transformString}, ${repeat===null?'vec3(0.)':repeat});
+      const primitive = `
+        vec2 ${name}${this.id} = vec2( ${desc.primitiveString.call( this, tstring )} * ${s}, ${id}.);
       `
-        SDF.memo[ this.id ] = name + this.id
+      SDF.memo[ this.id ] = name + this.id
 
-        return { preface:primitive, out:name+this.id  }
-      }
+      return { preface:primitive, out:name+this.id  }
     }
     
     // declare any uniform variables

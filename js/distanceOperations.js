@@ -6,24 +6,21 @@ const glslops = require( './distanceOperationsGLSL.js' )
 
 const opslen = { 
   Union:2,
-  SmoothUnion:6,
-  Intersection:5,
-  SmoothIntersection:6,
-  Difference:5,
-  SmoothDifference:6,
-  StairsUnion:7,
-  StairsIntersection:7,
-  StairsDifference:7,
-  RoundUnion:6,
-  RoundDifference:6,
-  RoundIntersection:6,
-  ChamferUnion:6,
-  ChamferDifference:6,
-  ChamferIntersection:6,
-  Pipe:6,
-  Engrave:6,
-  Groove:7,
-  Tongue:7,
+  Intersection:2,
+  Difference:2,
+  StairsUnion:4,
+  StairsIntersection:4,
+  StairsDifference:4,
+  RoundUnion:3,
+  RoundDifference:3,
+  RoundIntersection:3,
+  ChamferUnion:3,
+  ChamferDifference:3,
+  ChamferIntersection:3,
+  Pipe:3,
+  Engrave:3,
+  Groove:4,
+  Tongue:4,
   
   // these two do not currently have support for transforms or repeats...
   Onion:2,
@@ -90,7 +87,7 @@ for( let name in ops ) {
     let __c = param_wrap( c, float_var_gen(.3) )
 
     op.__len = opslen[ name ]
-    if( op.__len > 5 ) {
+    if( op.__len > 2 ) {
       Object.defineProperty( op, 'c', {
         get() { return __c },
         set(v) {
@@ -98,7 +95,7 @@ for( let name in ops ) {
         }
       })
       
-      if( op.__len > 6 ) {
+      if( op.__len > 3 ) {
         let __d = param_wrap( d, float_var_gen(4) )
 
         Object.defineProperty( op, 'd', {
@@ -124,6 +121,35 @@ for( let name in ops ) {
       if( typeof mat === 'string' ) mat = Marching.Material[ mat ]
       this.__material = this.mat = Marching.materials.addMaterial( mat )
     }
+    op.__setBump = function(tex,props) {
+      //this.bump = p.bump.bind( this )
+      const b = this.bump = this.__bumpObj = Marching.Bump( this, tex, props )
+      this.bump.texture = this.bump.amount.value
+      this.__bumpID = this.__bumpObj.id
+      this.rotate = this.bump.rotate
+      this.translate = this.bump.translate
+      this.scale = this.bump.scale
+      Object.defineProperty( this.bump, 'strength', {
+        get() { return b.size },
+        set(v){ b.size = v }
+      })
+    }
+    Object.assign( op, {
+      renderingBump : false,
+      emittingDecl  : false,
+      uploading     : false,
+      updating      : false
+    })
+
+    let repeat = null
+    Object.defineProperty( op, 'repeat', {
+      get() { return repeat },
+      set(v){ 
+        repeat = v
+        this.a.repeat = v
+        this.b.repeat = v
+      }
+    })
 
     op.matId = MaterialID.alloc()
 
@@ -203,10 +229,14 @@ for( let name in ops ) {
   }
 
   DistanceOps[ name ].prototype.emit = function ( pname='p', transform = null ){
+    if( this.__bumpObj !== undefined && this.renderingBump === false) {
+      this.renderingBump = true
+      return this.__bumpObj.emit( pname, transform )
+    }
     pushString( name )
 
-    this.transform.internal()
     if( transform !== null ) this.transform.apply( transform, false )
+    this.transform.internal()
 
     // first two args are fixed, rest are variable
     let emitters = []
@@ -228,10 +258,15 @@ for( let name in ops ) {
       preface: (a.preface || '') + (b.preface || '') + body
     }
 
+    this.renderingBump = false
     return output
   }
 
   DistanceOps[name].prototype.emit_decl = function () {
+    if( this.__bumpObj !== undefined && this.emittingDecl === false) {
+      this.emittingDecl = true
+      return this.__bumpObj.emit_decl() 
+    }
     let str =  this.transform.emit_decl() + this.a.emit_decl() + this.b.emit_decl()
     if( this.c !== undefined ) str += this.c.emit_decl()
     if( this.d !== undefined ) str += this.d.emit_decl()
@@ -243,18 +278,29 @@ for( let name in ops ) {
       }
     }
 
+    this.emittingDecl = false
     return str
   };
 
   DistanceOps[name].prototype.update_location = function(gl, program) {
+    if( this.__bumpObj !== undefined && this.updating === false) {
+      this.updating = true
+      return this.__bumpObj.update_location( gl, program )
+    }
     this.a.update_location( gl, program )
     this.transform.update_location( gl, program )
     this.b.update_location( gl, program )
     if( this.c !== undefined ) this.c.update_location( gl, program )
     if( this.d !== undefined ) this.d.update_location( gl, program )
+
+    this.updating = false
   }
 
   DistanceOps[name].prototype.upload_data = function(gl) {
+    if( this.__bumpObj !== undefined && this.uploading  === false ) {
+      this.uploading = true
+      return this.__bumpObj.upload_data( gl )
+    }
     this.transform.upload_data( gl )
     this.a.transform.apply( this.transform )
     this.b.transform.apply( this.transform )
@@ -262,6 +308,7 @@ for( let name in ops ) {
     this.b.upload_data( gl )
     if( this.c !== undefined ) this.c.upload_data( gl )
     if( this.d !== undefined ) this.d.upload_data( gl )
+    this.uploading = false
     
   }
 }

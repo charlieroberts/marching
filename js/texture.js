@@ -35,18 +35,12 @@ const __Textures = function( SDF ) {
       let pushedWrap = false
 
       let decl = `
-      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
+      vec3 getTexture( int id, vec3 pos ) {
         vec3 tex;
         vec2 pos2;
-        vec3 tpos = pos;
-        /*if( length(rpt) != 0. ) {
-          tpos = mod( pos, rpt ) - .5 * rpt;
-        }*/
-        tpos = (transform*vec4(tpos,1.)).xyz;
-        
 
         switch( id ) {\n`
-
+      
       Textures.__textureBodies.length = 0
 
       let funcdefs = ''
@@ -69,8 +63,8 @@ const __Textures = function( SDF ) {
 
         decl +=`
           case ${i}:
-            ${mode === '2d' ? `     pos2 = getUVCubic( tpos );\n` : ''} 
-            tex = ${functionName}( ${mode === '2d' ?'pos2':'tpos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
+            ${mode === '2d' ? `     pos2 = getUVCubic( pos );\n` : ''} 
+            tex = ${functionName}( ${mode === '2d' ?'pos2':'pos'} ${ args.length > 0 ? ',' + args.join(',') : ''} );
             break;\n`            
 
       })
@@ -82,8 +76,23 @@ const __Textures = function( SDF ) {
         }
 
         return tex;
-      }\n`
+      }
 
+      vec3 getTexture( int id, vec3 pos, vec3 nor, SDF sdf ) {
+        vec3 tex;
+        vec2 pos2;
+        vec3 tpos = pos;
+        if( length(sdf.repeat) != 0. ) {
+          tpos = mod( (vec4(pos,1.) * sdf.repeatTransform).xyz, sdf.repeat) - .5 * sdf.repeat;
+          tpos = (sdf.transform*vec4(tpos,1.)).xyz;
+        }else{
+          tpos = (sdf.transform*vec4(tpos,1.)).xyz;
+        }
+
+        return getTexture( id, tpos );
+      }
+      `
+     
       return { glsldefs: Textures.__textureBodies.join( '\n' ), mainfunc:decl }
     },
 

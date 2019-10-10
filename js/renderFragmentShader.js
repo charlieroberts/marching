@@ -34,6 +34,8 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         int materialID;
         mat4 transform;
         int textureID;
+        vec3 repeat;
+        mat4 repeatTransform;
       };
 
       uniform float time;
@@ -176,7 +178,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       /* ******************************************************* */
 
       // added k value to glsl-sdf-ops/soft-shadow
-      float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){
+      float softshadow2( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){
         float res = 1.0;
         float t = mint;
 
@@ -188,6 +190,24 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         }
 
         return clamp( res, 0.0, 1.0 );
+      }
+
+      //http://www.iquilezles.org/www/articles/rmshadows/rmshadows.htm
+      float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float k ) {
+        float res = 1.0;
+        float ph = 1e20;
+        for( float t=mint; t<maxt; )
+        {
+          float h = scene(ro + rd*t).x;
+          if( h<0.001 )
+            return 0.0;
+          float y = h*h/(2.0*ph);
+          float d = sqrt(h*h-y*y);
+          res = min( res, k*d/max(0.0,t-y) );
+          ph = h;
+          t += h;
+        }
+        return res;
       }
 
 ${lighting}
@@ -222,7 +242,7 @@ ${preface}
 
         ${postprocessing}
         
-        col = vec4( color, 1.0 );
+        col = clamp( vec4( color, 1.0 ), 0., 1. );
       }`
 
     return fs_source

@@ -69,6 +69,11 @@ SceneNode.prototype = {
   texture( tex,props ) {
     this.__setTexture( tex,props )
     return this
+  },
+
+  bump( tex,strength ) {
+    this.__setBump( tex,strength )
+    return this
   }
 }
 

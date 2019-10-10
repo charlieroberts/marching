@@ -45,18 +45,20 @@ const descriptions = {
   },
   Repetition: {
     parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
-    emit( name='p' ) {
+    emit( name='p', transform=null ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
+
+      this.transform.internal()
+      if( transform !== null ) this.transform.apply( transform, false )
+
       const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+      //const pointString = `${name}.xyz`
 
       let preface =`
-        vec4 ${pName} = vec4( (mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }) * ${this.transform.emit_scale()}, 1. );\n`
+        vec4 ${pName} = vec4( (mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }) * ${this.transform.emit_scale()}, 1.);\n`
 
-
-      // XXX should .scale() affect *both* distance and scaling of sdfs? Would be cool effect, even
-      // if inconsistent...
-      const sdf = this.sdf.emit( pName, false, this.transform, true, this.__target.distance.emit() )
+      const sdf = this.sdf.emit( pName )//, this.transform, 1, this.__target.distance )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 
@@ -301,6 +303,7 @@ const getDomainOps = function( SDF ) {
       }
       op.__desc = opDesc
 
+      op.sdf.repeat = op
       return op
     }
 
@@ -344,8 +347,9 @@ const getDomainOps = function( SDF ) {
     }
     ops[ key ].prototype.upload_data = function( gl, shouldUploadSDF=true ) {
       for( let param of this.parameters ) this.__target[ param.name ].upload_data( gl )
-      if( shouldUploadSDF ) this.sdf.upload_data( gl )
       this.transform.upload_data( gl )
+      this.sdf.transform.apply( this.transform )
+      if( shouldUploadSDF ) this.sdf.upload_data( gl )
     }
   }
   

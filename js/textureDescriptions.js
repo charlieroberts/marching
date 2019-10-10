@@ -4,7 +4,7 @@ const textures = {
   image: {
     name:'image',
     glsl2d:`
-      vec3 image2d( vec2 uv, vec3 normal, float scale, float strength ) {
+      vec3 image2d( vec2 uv, float scale, float strength ) {
         return texture( textures[ 0 ], uv*scale ).xyz * strength;
       }
     `,
@@ -16,7 +16,7 @@ const textures = {
   canvas: {
     name:'canvas',
     glsl2d:`
-      vec3 canvas2d( vec2 uv, vec3 normal, float scale, float strength ) {
+      vec3 canvas2d( vec2 uv, float scale, float strength ) {
         return texture( textures[ 0 ], uv*scale ).xyz * strength;
       }
     `,
@@ -28,7 +28,7 @@ const textures = {
   checkers: {
     name:'checkers',
     glsl:`          
-        vec3 checkers( vec3 pos, vec3 normal, float size, vec3 color1, vec3 color2 ) {
+        vec3 checkers( vec3 pos, float size, vec3 color1, vec3 color2 ) {
           vec3 tex;
           pos  = pos * size;
           if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
@@ -40,7 +40,7 @@ const textures = {
           return tex;
         }`,
     glsl2d:`
-        vec3 checkers2d( vec2 uv, vec3 normal, float size, vec3 color1, vec3 color2 ) {
+        vec3 checkers2d( vec2 uv, float size, vec3 color1, vec3 color2 ) {
           float fmodResult = mod(floor(size * uv.x) + floor(size * uv.y), 2.0);
           float fin = max(sign(fmodResult), 0.0); 
 
@@ -48,7 +48,7 @@ const textures = {
         }
     `,
     parameters: [
-      { name:'scale', type:'float', default:5 },
+      { name:'scale',  type:'float', default:5 },
       { name:'color1', type:'vec3', default:[1,1,1] },
       { name:'color2', type:'vec3', default:[0,0,0] }
     ],
@@ -57,13 +57,13 @@ const textures = {
     name:'noise',
     glsl:glsl`          
         #pragma glslify: snoise = require('glsl-noise/simplex/4d')
-        vec3 noise( vec3 pos, vec3 normal, float scale, float strength, float time ) {
+        vec3 noise( vec3 pos, float scale, float strength, float time ) {
           float n = snoise( vec4(pos*scale, time) );
           return vec3( n ) * strength;
         }`,
     glsl2d:glsl`    
         #pragma glslify: snoise = require('glsl-noise/simplex/3d')
-        vec3 noise2d( vec2 st, vec3 nor, float scale, float strength, float time ) {
+        vec3 noise2d( vec2 st, float scale, float strength, float time ) {
           float col = snoise( vec3( st, time ) * scale );
 
           return vec3(col) * strength;
@@ -97,7 +97,7 @@ const textures = {
             return _st;
         }
 
-        vec3 truchet2d( vec2 st, vec3 nor, float scale, vec3 color ) {
+        vec3 truchet2d( vec2 st, float scale, vec3 color ) {
             st = st * scale;
             vec2 ipos = floor(st);  // integer
             vec2 fpos = fract(st);  // fraction
@@ -117,7 +117,7 @@ const textures = {
   dots: {
     name:'dots',
     glsl:`          
-        vec3 dots( vec3 pos, vec3 nor, float count, float radius, vec3 color ) {
+        vec3 dots( vec3 pos, float count, float radius, vec3 color ) {
           vec3 tex;
           tex = vec3( color - smoothstep( radius, radius+.02, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
           return tex;
@@ -134,7 +134,7 @@ const textures = {
         return 1.-smoothstep(_radius-(_radius*0.05),_radius+(_radius*0.05),dot(pos,pos)*3.14);
       }
     
-      vec3 dots2d( vec2 _st, vec3 nor, float scale, float radius, vec3 color ) {
+      vec3 dots2d( vec2 _st, float scale, float radius, vec3 color ) {
         vec2 st = tile(_st,scale);
         vec3 fin = vec3(circle(st, radius)) * color;
         return fin;
@@ -149,7 +149,7 @@ const textures = {
   stripes: {
     name:'stripes',
     glsl:`          
-        vec3 stripes( vec3 pos, vec3 nor, float scale, vec3 color ) {
+        vec3 stripes( vec3 pos, float scale, vec3 color ) {
           vec3 tex;
           tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
           return tex;
@@ -164,7 +164,7 @@ const textures = {
     glsl:glsl`
         #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
-        vec3 cellular( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength, float time ) {
+        vec3 cellular( vec3 pos, float scale, float jitter, float mode, float strength, float time ) {
           vec2 w = worley3D( pos * scale + time, jitter, false );
           vec3 o;
           if( mode == 0. ) {
@@ -181,7 +181,7 @@ const textures = {
     glsl2d:glsl`
         #pragma glslify: worley3D = require(glsl-worley/worley3D.glsl)
 
-        vec3 cellular( vec3 pos, vec3 nor, float scale, float jitter, float mode, float strength ) {
+        vec3 cellular( vec3 pos, float scale, float jitter, float mode, float strength ) {
           vec2 w = worley3D( pos, jitter, false );
           vec3 o;
           if( mode == 0. ) {
@@ -195,7 +195,7 @@ const textures = {
           return o * strength;
         }
 
-        vec3 cellular2d( vec2 st, vec3 nor, float scale, float jitter, float mode, float strength, float time ) {
+        vec3 cellular2d( vec2 st, float scale, float jitter, float mode, float strength, float time ) {
           return cellular( vec3(st * scale, time), nor, scale, jitter, mode, strength );
         }
     `,
@@ -254,7 +254,7 @@ const textures = {
       return vec3(sqrt(res), abs(id));
     }
 
-    vec3 voronoi( vec3 pos, vec3 nor, float scale, float res, float time, float mode ) {
+    vec3 voronoi( vec3 pos, float scale, float res, float time, float mode ) {
       vec3 v = voronoi_3d( pos * scale, res );
       vec3 fin;
       if( mode == 0. ) fin = vec3(v.x);
@@ -301,7 +301,7 @@ const textures = {
       return vec3(sqrt(res), abs(id));
     }
 
-    vec3 voronoi2d( vec2 st, vec3 nor, float scale, float res, float time, float mode ) {
+    vec3 voronoi2d( vec2 st, float scale, float res, float time, float mode ) {
       vec3 v = voronoi_3d( vec3(st* scale, time), res );
       vec3 fin;
       if( mode == 0. ) fin = vec3(v.x);
@@ -330,7 +330,7 @@ const textures = {
          return smoothstep( _pct-_antia, _pct, _st.y);
        }
 
-       vec3 zigzag2d( vec2 st, vec3 nor, float scale, float time ) {
+       vec3 zigzag2d( vec2 st, float scale, float time ) {
          st = mirrorTile(st*vec2(1.,2.),scale);
          float x = st.x*2.;
          float a = floor(1.+sin(x*3.14));

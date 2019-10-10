@@ -64,15 +64,14 @@ const ops = {
     const bumpString =  `        vec4 transformBump${this.id} = ${name} * ${this.transform.emit()};\n`
     const tex = this.amount.emit( name )
 
-    console.log( this.amount )
     const pointString = `(transformBump${this.id} * ${this.sdf.transform.emit()}).xyz `
 
-    const sdf = this.sdf.emit( `transformBump${this.id}`, true, this.transform ) 
+    const sdf = this.sdf.emit( `transformBump${this.id}`, this.transform ) 
 
     Marching.textures.addTexture( this.amount.value )
 
-    let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString}, vec3(0.), mat4(0.) ) * ${this.size.emit()};
-        ${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z ) / 3. + ${sdf.out}.x;\n`
+    let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString} ) * ${this.size.emit()};
+        ${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z ) / 3. * .5 + ${sdf.out}.x;\n`
         //vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id}, 1.);\n`
 
     //sdf.preface += `\n        

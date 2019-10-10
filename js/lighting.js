@@ -221,7 +221,7 @@ const Lights = function( SDF ) {
 
       ${lights}
  
-      vec3 tex = getTexture( int(sdf.textureID), surfacePosition, normal, sdf.transform );
+      vec3 tex = getTexture( int(sdf.textureID), surfacePosition, normal, sdf );
 
       vec3 clr;
       switch( mat.mode ) {
@@ -272,7 +272,7 @@ const Lights = function( SDF ) {
           brdf += 0.70 * bac * vec3( 0.25 );
           brdf += 0.40 * (fre * light.color);
 
-          return brdf;;
+          return brdf;
         }
         `
 

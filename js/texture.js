@@ -84,9 +84,9 @@ const __Textures = function( SDF ) {
         vec3 tpos = pos;
         if( length(sdf.repeat) != 0. ) {
           tpos = mod( (vec4(pos,1.) * sdf.repeatTransform).xyz, sdf.repeat) - .5 * sdf.repeat;
-          tpos = (sdf.transform*vec4(tpos,1.)).xyz;
+          tpos = ( vec4(tpos, 1.) * sdf.transform).xyz;
         }else{
-          tpos = (sdf.transform*vec4(tpos,1.)).xyz;
+          tpos = (vec4(tpos,1.) * sdf.transform).xyz;
         }
 
         return getTexture( id, tpos );

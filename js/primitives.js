@@ -225,15 +225,15 @@ const createPrimitives = function( SDF ) {
         SDF.requiredGeometries.push( shaderCode )
       } 
 
-      //this.transform.internal()
-      //if( transform !== null ) this.transform.apply( transform, false )
+      if( transform !== null ) this.transform.apply( transform, false )
+      //this.transform.invert( true )
+      this.transform.internal()
 
       const pname = typeof __name !== 'string' ? 'p' : __name,
             id = this.__sdfID,
             s = this.transform.emit_scale(),
-            tstring = `( ${this.transform.emit()} * ${pname} ).xyz`
+            tstring = `( ${pname} * ${this.transform.emit()} ).xyz`
       
-      console.log( tstring )
       const primitive = `
         vec2 ${name}${this.id} = vec2( ${desc.primitiveString.call( this, tstring )} * ${s}, ${id}.);
       `

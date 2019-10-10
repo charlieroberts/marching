@@ -236,7 +236,7 @@ for( let name in ops ) {
     pushString( name )
 
     if( transform !== null ) this.transform.apply( transform, false )
-    this.transform.internal()
+    //this.transform.internal()
 
     // first two args are fixed, rest are variable
     let emitters = []
@@ -301,6 +301,7 @@ for( let name in ops ) {
       this.uploading = true
       return this.__bumpObj.upload_data( gl )
     }
+    this.transform.internal()
     this.transform.upload_data( gl )
     this.a.transform.apply( this.transform )
     this.b.transform.apply( this.transform )

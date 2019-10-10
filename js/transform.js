@@ -129,6 +129,7 @@ const MatrixWrap = function ( shouldInvert = false ) {
 
   m.__id   = VarAlloc.alloc()  
   m.__dirty = function() {}
+  m.__data = Matrix.identity()
   m.varName = 'transform' + m.__id
 
   return m
@@ -157,7 +158,6 @@ MatrixWrap.prototype = {
 	upload_data(gl) {
 		if( !this.dirty ) return
 		
-    //debugger
     this.internal()
 
     if( this.shouldInvert === true ) {
@@ -175,13 +175,13 @@ MatrixWrap.prototype = {
   },
 
   internal() {
-    this.__data = Matrix.identity() 
-    //console.log( this.translation.x, this.translation.y, this.translation.z )
-    this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) )
+    this.__data = Matrix.identity()
+    if( this.parent !== null ) this.__data = this.__data.multiply( this.parent.__data )
+
+    this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) ) 
     this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
     this.__data = this.__data.multiply( Matrix.scale( this.scale, this.scale, this.scale ) )
 
-    if( this.parent !== null ) this.__data = this.__data.multiply( this.parent.__data )
   },
 
   invert( shouldInvert = true) {

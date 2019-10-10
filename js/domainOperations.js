@@ -49,8 +49,8 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
-      this.transform.internal()
       if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.internal()
 
       const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
       //const pointString = `${name}.xyz`
@@ -58,7 +58,7 @@ const descriptions = {
       let preface =`
         vec4 ${pName} = vec4( (mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }) * ${this.transform.emit_scale()}, 1.);\n`
 
-      const sdf = this.sdf.emit( pName )//, this.transform, 1, this.__target.distance )
+      const sdf = this.sdf.emit( pName, this.transform, 1, this.__target.distance )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 

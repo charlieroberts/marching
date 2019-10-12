@@ -21,11 +21,11 @@ execute. alt+enter (option+enter on
 a mac) executes a block of code.   
 ctrl+shift+g toggles hiding         
 the gui/code. try the other demos  
-using the menu in the upper left    
+using the menu in the upper right 
 corner. when you're ready to start 
 coding go through the tutorials     
 found in the same menu. Click on   
-the ? button for a reference.       
+the help link for a reference.       
                                    
 For a nice intro on ray marching and
 signed distance functions,which are

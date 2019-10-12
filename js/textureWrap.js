@@ -24,3 +24,20 @@ module.exports = `
       return (uv+0.5);
     }
     `
+/*
+module.exports = `vec3 t3(sampler2D tex, vec3 p, vec3 n)
+{
+  mat3 R = mat3(vec3(cos(T),sin(T),0),vec3(-sin(T),cos(T),0),vec3(0,0,-1));
+  p *= R/8.0;
+  n *= R;
+  #ifdef Smooth
+  return  (texture(tex,p.xy).rgb*n.z*n.z
+    +texture(tex,p.zy).rgb*n.x*n.x
+    +texture(tex,p.xz).rgb*n.y*n.y);
+  #else
+    return (texture(tex,p.xy).rgb
+      +texture(tex,p.zy).rgb
+      +texture(tex,p.xz).rgb)/3.0;
+    #endif
+    }`
+    */

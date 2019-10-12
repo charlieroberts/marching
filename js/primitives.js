@@ -45,12 +45,14 @@ const createPrimitives = function( SDF ) {
       let decl = `SDF sdfs[${length}] = SDF[${length}](\n`
       geos.forEach( (geo, i) => {
         const textureID = geo.__textureObj === undefined ? 50000 : geo.__textureObj.id
-        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${textureID} )`
+        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${textureID}, ${geo.repeat !== null ? geo.repeat.distance.emit() : 'vec3(0.)'}, ${geo.repeat !== null ? geo.repeat.transform.emit() : `mat4(1.)`} )`
         if( i < geos.length - 1 ) decl += ','
         decl += '\n'
       })
 
       decl += `      );\n`
+
+      this.geometries = geos
 
       return decl
     },
@@ -76,8 +78,10 @@ const createPrimitives = function( SDF ) {
       const p = Object.create( Primitives[ name ].prototype )
       p.params = params
       p.transform = Transform()
+      p.transform.shouldInvert = true
       p.type = 'geometry'
       p.name = name
+      p.repeat = null//Var( vars.vec3( 0 ), null, 'vec3' )
 
       p.__material = null
       p.__textureID  = 500000
@@ -172,6 +176,25 @@ const createPrimitives = function( SDF ) {
           this.__textureID = this.__textureObj.id
         }
       }
+      p.__setBump = function(tex,props) {
+        //this.bump = p.bump.bind( this )
+        const b = this.bump = this.__bumpObj = SDF.Bump( this, tex, props )
+        this.bump.texture = this.bump.amount.value
+        this.__bumpID = this.__bumpObj.id
+        this.rotate = this.bump.rotate
+        this.translate = this.bump.translate
+        this.scale = this.bump.scale
+        Object.defineProperty( this.bump, 'strength', {
+          get() { return b.size },
+          set(v){ b.size = v }
+        })
+      }
+      Object.assign( p, {
+        renderingBump : false,
+        emittingDecl  : false,
+        uploading     : false,
+        updating      : false
+      })
 
       if( p.__material === null ) p.__setMaterial()
 
@@ -185,40 +208,47 @@ const createPrimitives = function( SDF ) {
     Primitives[ name ].prototype.type = 'geometry'
     
     // create codegen string
-    Primitives[ name ].prototype.emit = function ( __name, shouldRepeat=true, transform = null, shouldApplyTransform=true ) {
-      let shaderCode = desc.glslify.indexOf('#') > -1 ? desc.glslify.slice(18) : desc.glslify
+
+
+    Primitives[ name ].prototype.emit = function ( __name, transform = null, offsetMode=0, offset=null ) {
+      if( SDF.memo[ this.id ] !== undefined ) return { preface:'', out:name+this.matId }
+      if( this.__bumpObj !== undefined && this.renderingBump === false) {
+        this.renderingBump = true
+        return this.__bumpObj.emit( __name, transform )
+      }
+      
+      const shaderCode = desc.glslify.indexOf('#') > -1 
+        ? desc.glslify.slice(18) 
+        : desc.glslify
+
       if( SDF.requiredGeometries.indexOf( shaderCode ) === - 1 ) {
         SDF.requiredGeometries.push( shaderCode )
       } 
 
-      if( SDF.memo[ this.id ] !== undefined ) {
-        return { preface:'', out:name+this.matId }
-      }
+      if( transform !== null ) this.transform.apply( transform, false )
+      //this.transform.invert( true )
+      this.transform.internal()
 
-      const pname = __name === undefined || __name === null ? 'p' : __name
-
-      //const id = SDF.materials.__materials.indexOf( this.__material )
-      const id = this.__sdfID
-      const s = this.transform.emit_scale()
+      const pname = typeof __name !== 'string' ? 'p' : __name,
+            id = this.__sdfID,
+            s = this.transform.emit_scale(),
+            tstring = `( ${pname} * ${this.transform.emit()} ).xyz`
       
-      let pointString = shouldApplyTransform === true ? `( ${pname} * ${this.transform.emit()} ).xyz` : pname
-      if( this.__repeat !== undefined && shouldRepeat === true ) {
-        return this.__repeat.emit( pname )// + pointString
-      }else if(this.__polarRepeat !== undefined && shouldRepeat === true) {
-        return this.__polarRepeat.emit( pname )
-      }else {
-        const transformString = transform === null ? this.transform.emit() : `${transform} * ${this.transform.emit()}`
-        const primitive = `
-        opOut ${name}${this.id} = opOut( ${desc.primitiveString.call( this,  pointString )} * ${s}, ${id}., ${transformString});
+      const primitive = `
+        vec2 ${name}${this.id} = vec2( ${desc.primitiveString.call( this, tstring )} * ${s}, ${id}.);
       `
-        SDF.memo[ this.id ] = name + this.id
+      SDF.memo[ this.id ] = name + this.id
 
-        return { preface:primitive, out:name+this.id  }
-      }
+      this.renderingBump = false
+      return { preface:primitive, out:name+this.id  }
     }
     
     // declare any uniform variables
     Primitives[ name ].prototype.emit_decl = function() {
+      if( this.__bumpObj !== undefined && this.emittingDecl === false) {
+        this.emittingDecl = true
+        return this.__bumpObj.emit_decl() 
+      }
       let decl = ''
       decl += this.transform.emit_decl()
 
@@ -231,10 +261,16 @@ const createPrimitives = function( SDF ) {
           decl += this[ param.name ].emit_decl( )
       }
 
+      this.emittingDecl = false
       return decl
     }
 
     Primitives[ name ].prototype.update_location = function( gl, program ) {
+      if( this.__bumpObj !== undefined && this.updating === false) {
+        this.updating = true
+        return this.__bumpObj.update_location( gl, program )
+      }
+
       for( let param of params ) {
         if( param.type !== 'obj' ) {
           if( param.name !== 'material' ) 
@@ -245,9 +281,14 @@ const createPrimitives = function( SDF ) {
       if( this.__repeat !== undefined ) this.__repeat.update_location( gl, program, false )
       if( this.__polarRepeat !== undefined ) this.__polarRepeat.update_location( gl, program, false )
       this.transform.update_location( gl, program )
+      this.updating = false
     }
 
     Primitives[ name ].prototype.upload_data = function( gl ) {
+      if( this.__bumpObj !== undefined && this.uploading  === false ) {
+        this.uploading = true
+        return this.__bumpObj.upload_data( gl )
+      }
       for( let param of params ) {
         if( param.type !== 'obj' && param.name !== 'material' )
           this[ param.name ].upload_data( gl )
@@ -255,6 +296,7 @@ const createPrimitives = function( SDF ) {
 
       if( this.__polarRepeat !== undefined ) this.__polarRepeat.upload_data( gl, false )
       this.transform.upload_data( gl )
+      this.uploading = false
     }
     
     return Primitives[ name ]

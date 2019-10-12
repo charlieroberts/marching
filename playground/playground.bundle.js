@@ -11804,7 +11804,9 @@ m = march(
       25,
       2
     ),
-    Plane( Vec3(0,.5,0) ).material( mat1 ),
+    Plane( Vec3(0,.5,0) )
+      .material( mat1 )
+      .texture('noise', { strength:.15, scale:20 }),
     .25
   )
 )
@@ -12191,7 +12193,6 @@ capsule = Capsule( v3( 0, -.55, 0), v3(0,.4,0), .25 )
   .move( 2.5,-1.5, 0 )
   .material( mat1 )
  
- 
 mat = Material( 'phong', v3(0), v3(.1), v3(.25) )
 // Plane: Vec3 normal, float distance
 plane = Plane( v3(0,0,1), 1).material( mat )
@@ -12203,7 +12204,7 @@ march(
   plane
 )
 .light( 
-  Light( Vec3(0,0,5), Vec3(1), .2 )
+  Light( Vec3(2,0,5), Vec3(1), .2 )
 ) 
 .render()
 .camera( 0,0, 6 )`
@@ -12232,11 +12233,11 @@ execute. alt+enter (option+enter on
 a mac) executes a block of code.   
 ctrl+shift+g toggles hiding         
 the gui/code. try the other demos  
-using the menu in the upper left    
+using the menu in the upper right 
 corner. when you're ready to start 
 coding go through the tutorials     
 found in the same menu. Click on   
-the ? button for a reference.       
+the help link for a reference.       
                                    
 For a nice intro on ray marching and
 signed distance functions,which are
@@ -12258,20 +12259,18 @@ module.exports=`mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0,
 tex  = Texture(  'cellular', { strength:.15, scale:20 })  
  
 march(
-  b = Bump( 
-    j = Julia(1.5)
-      .material( mat1 )
-      .texture( tex ),
-    tex,
-    -.05
-  )
+  Julia(1.5)
+    .material( mat1 )
+    .texture( tex )
+    .bump( tex, .05 )
 )
 .light( 
   Light( Vec3(5,5,8), Vec3(1), .025 ) 
 )
 .fog( 1, Vec3(0) )
 .render()
-.camera(0,0,1.75)`
+.camera(0,0,1.75)
+`
 
 },{}],18:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
@@ -12677,8 +12676,7 @@ tutorial. You give your texture a name,
 define a set of parameters you would
 like to expose for control, and then
 write a snippet of GLSL that generates
-a color based on the current pixel position,
-the normal of that pixel on the geometry,
+a color based on the current pixel position
 and the values of the various parameters
 you defined.
 
@@ -12713,7 +12711,7 @@ def = {
   // RGB color in a vec3, and must be named the same
   // as our definition's 'name' property.
   glsl:\`          
-    vec3 dots2( vec3 pos, vec3 nor, float count, vec3 color ) {
+    vec3 dots2( vec3 pos, float count, vec3 color ) {
       vec3 tex;
       tex = vec3( color - smoothstep(0.3, 0.32, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
       return tex;
@@ -12748,7 +12746,7 @@ def =  {
     { name:'spread', type:'float', default:.02 },    
     { name:'color', type:'vec3', default:[1,1,1] }
   ],
-  glsl:\`vec3 dots2( vec3 pos, vec3 nor, float scale, float radius, float spread, vec3 color ) {
+  glsl:\`vec3 dots2( vec3 pos, float scale, float radius, float spread, vec3 color ) {
     vec3 tex;
     tex = vec3( color - smoothstep(radius, radius+spread, length(fract(pos*(round(scale/2.)+.5)) -.5 )) );
     return tex;
@@ -12862,6 +12860,43 @@ onframe = time => {
 // thanks to https://github.com/Softwave/glsl-superformula`
 
 },{}],24:[function(require,module,exports){
+module.exports =`// In this demo the important point 
+// to note is that transformations can be applied to
+// most functions, not just geometries. Here, a
+// rotation is applied to a Union while translation
+// is applied to the domain created by Repeat().
+//
+// Note that the quality argument in the call to
+// .render() is set quite low; if you have
+// a nice graphics card try raising this
+// value to obtain prettier results.
+ 
+march(
+  rpt = Repeat(
+    union = Union2(
+      cyl = Cylinder(Vec2(1,1.5))
+        .texture('dots', {scale:2}),
+      cyl2 = Cylinder(Vec2(.95,1.5))
+        .rotate(90,0,0,1)    
+        .texture('stripes', {scale:1}),
+      cyl3 = Cylinder(Vec2(.95,1.5))
+        .rotate(90,1,0,0)
+        .texture('checkers', {scale:5})
+    )
+    .scale(.15),
+    .75
+  )
+)
+.background( Vec3( .85,.85,.8 ) )
+.fog( .5, Vec3( .85,.85,.8 ) )
+.render( 2,true )
+
+onframe = time => {
+  union.rotate( time*65,1,.5,.5 )
+  rpt.translate( 0,0,time/3 )
+}`
+
+},{}],25:[function(require,module,exports){
 module.exports = `zigzag = Box(.5)
   .move( -2,1.25 )
   .texture(
@@ -12951,7 +12986,7 @@ march(
 )
 .render()` 
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -13132,7 +13167,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports =`Material.default = Material.grey
 
 m = march(
@@ -13161,7 +13196,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -13176,6 +13211,7 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 
 const demos = {
   introduction: require( './demos/intro.js' ),
+  ['textured transformations']: require('./demos/texture_transforms.js'),
   ['the superformula']: require('./demos/superformula.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
@@ -13528,4 +13564,4 @@ window.onload = function() {
   eval( demos.introduction )
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/constructors.js":13,"./demos/csg.js":14,"./demos/geometries.js":15,"./demos/intro.js":16,"./demos/julia.js":17,"./demos/lighting.js":18,"./demos/livecoding.js":19,"./demos/mandelbulb.js":20,"./demos/procedural_textures.js":21,"./demos/snare.js":22,"./demos/superformula.js":23,"./demos/textures.js":24,"./demos/tutorial_1.js":25,"./demos/twist.js":26,"codemirror":8}]},{},[27]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":11,"./demos/audio.js":12,"./demos/constructors.js":13,"./demos/csg.js":14,"./demos/geometries.js":15,"./demos/intro.js":16,"./demos/julia.js":17,"./demos/lighting.js":18,"./demos/livecoding.js":19,"./demos/mandelbulb.js":20,"./demos/procedural_textures.js":21,"./demos/snare.js":22,"./demos/superformula.js":23,"./demos/texture_transforms.js":24,"./demos/textures.js":25,"./demos/tutorial_1.js":26,"./demos/twist.js":27,"codemirror":8}]},{},[28]);

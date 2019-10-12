@@ -4,6 +4,7 @@ const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_ge
 const Transform = require( './transform.js' )
 
 const ops = { 
+  // this needs to create an opOut, not return a vec2
   Displace( __name ) {
     let name = __name === undefined ? 'p' : __name
     const sdf = this.sdf.emit( name );
@@ -13,9 +14,10 @@ const ops = {
     let displaceString = `float d2${this.id} = sin( ${this.amount.emit()}.x * ${name}.x ) * `  
     displaceString += `sin( ${this.amount.emit()}.y * ${name}.y ) * `
     displaceString += `sin( ${this.amount.emit()}.z * ${name}.z );\n`
+    displaceString += `${sdf.out}.x = (d1${this.id} + d2${this.id}*${this.size.emit()})*.5;\n`
 
     const output = {
-      out: `vec2((d1${this.id} + d2${this.id}*${this.size.emit()})*.5, ${sdf.out}.y)`, 
+      out: `${sdf.out}`, 
       preface: sdf.preface + sdfStr + displaceString 
     }
 
@@ -26,10 +28,10 @@ const ops = {
     let name = __name === undefined ? 'p' : __name
     const sdf = this.sdf.emit( 'q'+this.id );
 
-    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
-        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
+    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.x );
+        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.x );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
-        vec4  q${this.id} = vec4( m${this.id} * ${name}.xz, ${name}.y, 1. );\n`
+        vec4  q${this.id} = vec4( m${this.id} * ${name}.xy, ${name}.z, 1. );\n`
 
     if( typeof sdf.preface === 'string' ) {
       preface += sdf.preface
@@ -58,22 +60,28 @@ const ops = {
   // https://www.dropbox.com/s/l1yl164jb3rhomq/mm_sfgrad_bump.pdf?dl=0
   Bump( __name ) {
     let name = __name === undefined ? 'p' : __name
-    const sdf = this.sdf.emit( 'p'+this.id );
+
+    const bumpString =  `        vec4 transformBump${this.id} = ${name} * ${this.transform.emit()};\n`
     const tex = this.amount.emit( name )
+
+    const pointString = `(transformBump${this.id} * ${this.sdf.transform.emit()}).xyz `
+
+    const sdf = this.sdf.emit( `transformBump${this.id}`, this.transform ) 
 
     Marching.textures.addTexture( this.amount.value )
 
-    const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+    let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString} ) * ${this.size.emit()};
+        ${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z ) / 3. * .5 + ${sdf.out}.x;\n`
+        //vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id}, 1.);\n`
 
-    let preface=`        vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString}, vec3(0.), mat4(0.) ) * ${this.size.emit()};
-        vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id}, 1.);\n`
-
-    sdf.preface += `\n        
-        ${sdf.out}.x -= min(tex${this.id}.x, min(tex${this.id}.y, tex${this.id}.z));\n` 
+    //sdf.preface += `\n        
+    //    ${sdf.out}.x -= min(tex${this.id}.x, min(tex${this.id}.y, tex${this.id}.z));\n` 
 
     if( typeof sdf.preface === 'string' ) {
-      preface += sdf.preface
+      preface = sdf.preface + preface
     }
+
+    preface =  bumpString + preface
 
     return { preface, out:sdf.out }
   },

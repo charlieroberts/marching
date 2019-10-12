@@ -64,7 +64,7 @@ const __Materials = function( SDF ) {
       if( typeof __fresnel === 'number' ) __fresnel = Vec3( __fresnel )
       const fresnel = param_wrap( __fresnel, vec3_var_gen(0,1,2) )
 
-      const mat = { shininess, mode, texture:__texture }
+      const mat = { shininess, mode, texture:__texture, type:'material' }
 
       Object.defineProperty( mat, 'ambient', {
         get() { return ambient },
@@ -218,6 +218,7 @@ const __Materials = function( SDF ) {
 
     'white glow' : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,200,5) ),
     glue    : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
+    inverse : Materials.material( 'phong', 1, .5, 1, 16, Vec3(1,.5,-2) ),
 
     normal  : Materials.material( 'normal' ),
     noise   : Materials.material( 'noise',  Vec3( .15 ), Vec3(1,0,0), Vec3(1), 8, Vec3( 0, 1, .5 ))

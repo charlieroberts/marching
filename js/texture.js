@@ -35,11 +35,12 @@ const __Textures = function( SDF ) {
       let pushedWrap = false
 
       let decl = `
-      vec3 getTexture( int id, vec3 pos, vec3 nor, mat4 transform ) {
+      vec3 getTexture( int id, vec3 pos ) {
         vec3 tex;
         vec2 pos2;
-        switch( id ) {\n`
 
+        switch( id ) {\n`
+      
       Textures.__textureBodies.length = 0
 
       let funcdefs = ''
@@ -63,7 +64,7 @@ const __Textures = function( SDF ) {
         decl +=`
           case ${i}:
             ${mode === '2d' ? `     pos2 = getUVCubic( pos );\n` : ''} 
-            tex = ${functionName}( ${mode === '2d' ?'pos2':'pos'}, nor${ args.length > 0 ? ',' + args.join(',') : ''} );
+            tex = ${functionName}( ${mode === '2d' ?'pos2':'pos'} ${ args.length > 0 ? ',' + args.join(',') : ''} );
             break;\n`            
 
       })
@@ -75,8 +76,23 @@ const __Textures = function( SDF ) {
         }
 
         return tex;
-      }\n`
+      }
 
+      vec3 getTexture( int id, vec3 pos, vec3 nor, SDF sdf ) {
+        vec3 tex;
+        vec2 pos2;
+        vec3 tpos = pos;
+        if( length(sdf.repeat) != 0. ) {
+          tpos = mod( (vec4(pos,1.) * sdf.repeatTransform).xyz, sdf.repeat) - .5 * sdf.repeat;
+          tpos = ( vec4(tpos, 1.) * sdf.transform).xyz;
+        }else{
+          tpos = (vec4(tpos,1.) * sdf.transform).xyz;
+        }
+
+        return getTexture( id, tpos );
+      }
+      `
+     
       return { glsldefs: Textures.__textureBodies.join( '\n' ), mainfunc:decl }
     },
 
@@ -184,9 +200,21 @@ const __Textures = function( SDF ) {
           console.error('You must specify a filename when using the iamge preset.')
         }
       }else if( presetName === 'canvas' ) {
-        tex.image = props.canvas
+        if( props.canvas === undefined ) {
+          tex.canvas = tex.image = document.createElement('canvas')
+          tex.ctx    = tex.canvas.getContext('2d')
+        }else{
+          tex.image = props.canvas
+        }
+
+        tex.update = function() {
+          tex.gltexture.setPixels( tex.image )
+        }
+
         tex.gltexture = createTexture( SDF.gl, tex.image )
         tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : props.wrap
+
+        tex.update()
       }
 
 
@@ -219,6 +247,11 @@ const __Textures = function( SDF ) {
         }
         if( tex.name === 'image' || tex.name === 'canvas' ) {
           imageCount++
+
+          // for some reason can't immediately call update... 
+          // have to wait for some type of dom initialization?
+          // so call here
+          if( tex.update ) tex.update()
         }
       })
 

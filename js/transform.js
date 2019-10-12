@@ -2,14 +2,16 @@ const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const Matrix = require( './external/matrix.js' )
 
-const MatrixWrap = function () {
+const MatrixWrap = function ( shouldInvert = false ) {
   const m = Object.create( MatrixWrap.prototype )
   m.dirty = true
   m.translation = {}
   m.scale = {}
+  m.shouldInvert = shouldInvert
   m.rotation = {
     axis: {}
   }
+  m.parent = null
 
   let tx = 0, ty = 0, tz = 0
   Object.defineProperties( m.translation, {
@@ -126,8 +128,8 @@ const MatrixWrap = function () {
   })
 
   m.__id   = VarAlloc.alloc()  
-  m.__data = Matrix.identity()
   m.__dirty = function() {}
+  m.__data = Matrix.identity()
   m.varName = 'transform' + m.__id
 
   return m
@@ -149,10 +151,6 @@ MatrixWrap.prototype = {
   },
 
 	update_location(gl, program) {
-    //if( this.value.isGen ) {
-    //  this.value.update_location( gl, program )
-    //  return
-    //}
 		this.loc = gl.getUniformLocation( program, this.varName )
 		this.loc_scale = gl.getUniformLocation( program, this.varName+'_scale' )
 	},	
@@ -160,29 +158,41 @@ MatrixWrap.prototype = {
 	upload_data(gl) {
 		if( !this.dirty ) return
 		
-    //if( this.value.isGen ) {
-    //  this.value.upload_data( gl  )
-    //  this.dirty = false
-    //  return
-    //}
-    
+    this.internal()
 
+    if( this.shouldInvert === true ) {
+      const inverse = Matrix.inverse( this.__data )
+      gl.uniformMatrix4fv( this.loc, false, inverse.m )
+    }else{
+      gl.uniformMatrix4fv( this.loc, false, this.__data.m )
+    }
+    //gl.uniform3f(this.loc_scale, this.scale.x, this.scale.y, this.scale.z )
+    
+    // scaling must be sent as separate uniform to avoid sdf over-estimation 
+    gl.uniform1f(this.loc_scale, this.scale )
+
+		this.dirty = false
+  },
+
+  internal() {
     this.__data = Matrix.identity()
+    if( this.parent !== null ) this.__data = this.parent.__data
 
     this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) ) 
     this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
     this.__data = this.__data.multiply( Matrix.scale( this.scale, this.scale, this.scale ) )
 
-    const inverse = Matrix.inverse( this.__data )
-    gl.uniformMatrix4fv( this.loc, false, inverse.m )
-    
-    //gl.uniform3f(this.loc_scale, this.scale.x, this.scale.y, this.scale.z )
-    
-    // scaling must be sent as separate uniform to avoid sdf over estimation 
-    gl.uniform1f(this.loc_scale, this.scale )
+  },
 
-		this.dirty = false
-	}
+  invert( shouldInvert = true) {
+    this.shouldInvert = shouldInvert
+    this.dirty = true
+  },
+
+  apply( transform = null, shouldInvert = false ) {
+    this.parent = transform
+    this.dirty = true
+  } 
 
 }
 

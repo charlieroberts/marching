@@ -12,6 +12,7 @@ require( '../node_modules/mousetrap/mousetrap.min.js' )
 
 const demos = {
   introduction: require( './demos/intro.js' ),
+  ['textured transformations']: require('./demos/texture_transforms.js'),
   ['the superformula']: require('./demos/superformula.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),

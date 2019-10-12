@@ -176,7 +176,7 @@ MatrixWrap.prototype = {
 
   internal() {
     this.__data = Matrix.identity()
-    if( this.parent !== null ) this.__data = this.__data.multiply( this.parent.__data )
+    if( this.parent !== null ) this.__data = this.parent.__data
 
     this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) ) 
     this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )

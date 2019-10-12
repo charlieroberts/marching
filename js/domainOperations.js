@@ -26,17 +26,22 @@ const descriptions = {
   PolarRepetition: {
     parameters:[ 
       { name:'count', type:'float', default:5 },
-      { name:'distance', type:'float', default:.25 },
+      { name:'distance', type:'vec3', default:Vec3(.25) },
+
     ],
-    emit( name='p' ) {
+    emit( name='p', transform=null) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
-      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
+
+      if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.invert()
+
       let preface =`
           vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.__target.count.emit() } ), 1. ); 
-          ${pName} -= vec4(${this.__target.distance.emit()},0.,0.,0.);\n`
+          ${pName} -= vec4(${this.__target.distance.emit()}.x,0.,0.,0.);\n`
 
-      const sdf = this.sdf.emit( pName, false, this.transform.emit() )
+      const sdf = this.sdf.emit( pName )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface
 
@@ -50,37 +55,22 @@ const descriptions = {
       const pName = 'p' + pId
 
       if( transform !== null ) this.transform.apply( transform, false )
-      this.transform.internal()
-
+      
+      this.transform.invert()
+     
       const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
-      //const pointString = `${name}.xyz`
 
       let preface =`
-        vec4 ${pName} = vec4( (mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit() }) * ${this.transform.emit_scale()}, 1.);\n`
+        vec4 ${pName} = vec4( (mod( ${pointString}, ${this.__target.distance.emit()} ) - .5 * ${this.__target.distance.emit()}) * ${this.transform.emit_scale()}, 1.);\n`
 
-      const sdf = this.sdf.emit( pName, this.transform, 1, this.__target.distance )
-
-      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
-
-      return { out:sdf.out, preface }
-    }
-  },
-
-  SmoothRepetition: {
-    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
-    emit( name='p' ) {
-      const pId = this.sdf.matId
-      const pName = 'p' + pId
-
-      let preface =`        vec3 ${pName} = mod( ${name}, ${this.distance.emit()} ) - .5 * ${this.distance.emit() };\n`
-
-      const sdf = this.sdf.emit( pName )
+      const sdf = this.sdf.emit( pName )//, this.transform )//, 1, this.__target.distance )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 
       return { out:sdf.out, preface }
     }
   },
+
   // DEPRECATED
   Rotation: {
     parameters: [
@@ -348,7 +338,6 @@ const getDomainOps = function( SDF ) {
     ops[ key ].prototype.upload_data = function( gl, shouldUploadSDF=true ) {
       for( let param of this.parameters ) this.__target[ param.name ].upload_data( gl )
       this.transform.upload_data( gl )
-      this.sdf.transform.apply( this.transform )
       if( shouldUploadSDF ) this.sdf.upload_data( gl )
     }
   }

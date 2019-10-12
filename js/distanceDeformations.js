@@ -28,10 +28,10 @@ const ops = {
     let name = __name === undefined ? 'p' : __name
     const sdf = this.sdf.emit( 'q'+this.id );
 
-    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
-        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
+    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.x );
+        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.x );
         mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
-        vec4  q${this.id} = vec4( m${this.id} * ${name}.xz, ${name}.y, 1. );\n`
+        vec4  q${this.id} = vec4( m${this.id} * ${name}.xy, ${name}.z, 1. );\n`
 
     if( typeof sdf.preface === 'string' ) {
       preface += sdf.preface

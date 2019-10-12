@@ -12887,10 +12887,9 @@ march(
     .75
   )
 )
-.background( Vec3( .85,.85,.8 ) )
-.fog( .5, Vec3( .85,.85,.8 ) )
+.fog( .5, Vec3( 0 ) )
 .render( 2,true )
-
+  
 onframe = time => {
   union.rotate( time*65,1,.5,.5 )
   rpt.translate( 0,0,time/3 )

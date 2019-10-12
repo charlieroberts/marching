@@ -65,7 +65,6 @@ capsule = Capsule( v3( 0, -.55, 0), v3(0,.4,0), .25 )
   .move( 2.5,-1.5, 0 )
   .material( mat1 )
  
- 
 mat = Material( 'phong', v3(0), v3(.1), v3(.25) )
 // Plane: Vec3 normal, float distance
 plane = Plane( v3(0,0,1), 1).material( mat )
@@ -77,7 +76,7 @@ march(
   plane
 )
 .light( 
-  Light( Vec3(0,0,5), Vec3(1), .2 )
+  Light( Vec3(2,0,5), Vec3(1), .2 )
 ) 
 .render()
 .camera( 0,0, 6 )`

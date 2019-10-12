@@ -11,7 +11,9 @@ m = march(
       25,
       2
     ),
-    Plane( Vec3(0,.5,0) ).material( mat1 ),
+    Plane( Vec3(0,.5,0) )
+      .material( mat1 )
+      .texture('noise', { strength:.15, scale:20 }),
     .25
   )
 )

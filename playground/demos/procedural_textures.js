@@ -6,8 +6,7 @@ tutorial. You give your texture a name,
 define a set of parameters you would
 like to expose for control, and then
 write a snippet of GLSL that generates
-a color based on the current pixel position,
-the normal of that pixel on the geometry,
+a color based on the current pixel position
 and the values of the various parameters
 you defined.
 
@@ -42,7 +41,7 @@ def = {
   // RGB color in a vec3, and must be named the same
   // as our definition's 'name' property.
   glsl:\`          
-    vec3 dots2( vec3 pos, vec3 nor, float count, vec3 color ) {
+    vec3 dots2( vec3 pos, float count, vec3 color ) {
       vec3 tex;
       tex = vec3( color - smoothstep(0.3, 0.32, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
       return tex;
@@ -77,7 +76,7 @@ def =  {
     { name:'spread', type:'float', default:.02 },    
     { name:'color', type:'vec3', default:[1,1,1] }
   ],
-  glsl:\`vec3 dots2( vec3 pos, vec3 nor, float scale, float radius, float spread, vec3 color ) {
+  glsl:\`vec3 dots2( vec3 pos, float scale, float radius, float spread, vec3 color ) {
     vec3 tex;
     tex = vec3( color - smoothstep(radius, radius+spread, length(fract(pos*(round(scale/2.)+.5)) -.5 )) );
     return tex;

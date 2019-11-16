@@ -48,6 +48,33 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
+  // shouldn't be using a uniform for this!!!!!
+  Mirror: {
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
+    extra:[{ name:'dims', type:'local', default:'xyz' }],
+
+    emit( name='p', transform=null ) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.invert()
+     
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+
+      let preface =`
+        vec4 ${pName} = vec4( ( ${pointString} / ${this.transform.emit_scale()} ) * ${this.transform.emit_scale()}, 1.);\n
+        ${pName}.${this.dims} = abs( ${pName}.${this.dims} );\n`
+
+      this.sdf.repeat = null
+      const sdf = this.sdf.emit( pName )//, this.transform )//, 1, this.__target.distance )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
+
   Repetition: {
     parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p', transform=null ) {
@@ -70,7 +97,7 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
-
+  
   // DEPRECATED
   Rotation: {
     parameters: [
@@ -181,7 +208,7 @@ const getDomainOps = function( SDF ) {
 
       let count = 0
       for( let prop of opDesc.parameters ) {
-        op.parameters.push({ name:prop.name})
+        op.parameters.push({ name:prop.name })
 
         let arg = args[ count ]
         let __var
@@ -272,9 +299,14 @@ const getDomainOps = function( SDF ) {
               }
             })
             break;
-        }
-
+          }
         count++
+      }
+      
+      if( opDesc.extra !== undefined ) {
+        for( let extra of opDesc.extra ) {
+          op[ extra.name ] = args[ count - 1 ] || extra.default
+        }
       }
 
       op.__setTexture = function(tex,props) {
@@ -293,7 +325,7 @@ const getDomainOps = function( SDF ) {
       }
       op.__desc = opDesc
 
-      op.sdf.repeat = op
+      if( key !== 'Mirror' ) op.sdf.repeat = op
       return op
     }
 
@@ -343,6 +375,7 @@ const getDomainOps = function( SDF ) {
   }
   
   ops.Repeat = ops.Repetition
+  ops.RepeatScale = ops.RepetitionShrink
   ops.PolarRepeat = ops.PolarRepetition
 
   return ops

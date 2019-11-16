@@ -70,10 +70,11 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         for (int i = 0; i < ${steps} ; i++) {
           if (latest < precis || dist > maxd) break;
 
-          result = scene(rayOrigin + rayDir * dist );
+          result = scene(rayOrigin + rayDir * dist);
 
           latest = result.x;
           dist  += latest;
+          //if (dist > maxd ) dist = dist-maxd+.001;
         }
 
         if( dist < maxd ) {

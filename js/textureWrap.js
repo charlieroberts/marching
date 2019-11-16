@@ -23,6 +23,23 @@ module.exports = `
       // Mapping the uv range from [-0.5, 0.5] to [0.0, 1.0].
       return (uv+0.5);
     }
+    vec4 triplanar(vec3 n, vec4 texx, vec4 texy, vec4 texz, bool adjust3d, bool rescale) {
+      //if (doflipz) n.z = -n.z;
+      if (rescale) {
+        texx = 2.0*texx - 1.0;
+        texy = 2.0*texy - 1.0;
+        texz = 2.0*texz - 1.0;
+      }
+      if (adjust3d) {
+        texx.x *= sign(n.x);
+        texy.y *= sign(n.y);
+        texz.z *= sign(n.z);
+      }
+      //if (justtexy) return texy;
+      vec3 weights = abs(n);
+      //if (doweightcorrection) weights /= dot(weights,vec3(1)); // Keep spherical!
+        return mat4(texx,texy,texz,vec4(0))*vec4(weights,0);
+    } 
     `
 /*
 module.exports = `vec3 t3(sampler2D tex, vec3 p, vec3 n)

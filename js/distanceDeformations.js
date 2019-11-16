@@ -55,7 +55,35 @@ const ops = {
 
     return { preface, out:sdf.out }
   },
-  
+  __Bump( __name ) {
+    let name = __name === undefined ? 'p' : __name
+
+    const bumpString =  `        vec4 transformBump${this.id} = ${name} * ${this.transform.emit()};\n`
+    const tex = this.amount.emit( name )
+
+    const pointString = `(transformBump${this.id} * ${this.sdf.transform.emit()})`
+
+    const sdf = this.sdf.emit( pointString, this.transform, `tex${this.id}` ) 
+
+    Marching.textures.addTexture( this.amount.value )
+
+    let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString}.xyz ) * ${this.size.emit()};\n
+        //vec4 displaceBump${this.id} = vec4((${pointString} - tex${this.id}), 1.);
+    `
+        //${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z ) / 3. * .5 + ${sdf.out}.x;\n`
+        //vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id}, 1.);\n`
+
+    //sdf.preface += `\n        
+    //    ${sdf.out}.x -= min(tex${this.id}.x, min(tex${this.id}.y, tex${this.id}.z));\n` 
+
+    if( typeof sdf.preface === 'string' ) {
+      preface = preface + sdf.preface
+    }
+
+    preface =  bumpString + preface
+
+    return { preface, out:sdf.out }
+  },
   // XXX todo: something like https://www.shadertoy.com/view/ldSGzR
   // https://www.dropbox.com/s/l1yl164jb3rhomq/mm_sfgrad_bump.pdf?dl=0
   Bump( __name ) {
@@ -64,24 +92,20 @@ const ops = {
     const bumpString =  `        vec4 transformBump${this.id} = ${name} * ${this.transform.emit()};\n`
     const tex = this.amount.emit( name )
 
-    const pointString = `(transformBump${this.id} * ${this.sdf.transform.emit()}).xyz `
+    const pointString = `(transformBump${this.id} * ${this.sdf.transform.emit()}).xyz`
 
     const sdf = this.sdf.emit( `transformBump${this.id}`, this.transform ) 
 
     Marching.textures.addTexture( this.amount.value )
 
-    let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString} ) * ${this.size.emit()};
-        ${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z ) / 3. * .5 + ${sdf.out}.x;\n`
-        //vec4 ${'p'+this.id} = vec4(${pointString} + tex${this.id}, 1.);\n`
-
-    //sdf.preface += `\n        
-    //    ${sdf.out}.x -= min(tex${this.id}.x, min(tex${this.id}.y, tex${this.id}.z));\n` 
+    let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString}) * ${this.size.emit()};
+        ${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z)/3. + ${sdf.out}.x;\n`
 
     if( typeof sdf.preface === 'string' ) {
       preface = sdf.preface + preface
     }
 
-    preface =  bumpString + preface
+    preface = bumpString + preface
 
     return { preface, out:sdf.out }
   },

@@ -25,12 +25,12 @@ for( let i = 0; i < count; i++ ) {
   ))
 }
  
-lightSpheres = PolarRepeat( Sphere(.2, Vec3(0,4,0), mat5 ), 25, radius )
+lightSpheres = PolarRepeat( Sphere(.2 ).material( mat5 ), 25, radius ).translate( 4,0,0 )
  
 column = Difference(
-  Cylinder( Vec2(.1,2.5), null, mat1 ),
+  Cylinder( Vec2(.1,2.5) ).material( mat1 ),
   Repeat(
-    Box( Vec3(.1), null, mat6 ),
+    Box( Vec3(.1) ).material( mat6 ),
     Vec3(0,1,0)
   ),
   .1
@@ -40,45 +40,38 @@ columns = PolarRepeat( column, 12, .85 )
 candelabra = Union2(
   StairsIntersection(
     PolarRepeat(
-      Rotation(
-        PolarRepeat(
-          t = Torus88( Vec2(.75,.1), null, mat1 ),
-          15,
-          3.75
-        ),
-        Vec3( 1,0,0 ),
-        Math.PI / 2
-      ),
+      PolarRepeat(
+        t = Torus88( Vec2(.75,.1) ).material( mat1 ), 
+        15,
+        3.75
+      ).rotate( 180,1,0,0 ),
       count,
       2
     ),
-    Plane( Vec3(0,-.25,0), null, mat1 ),
+    Plane( Vec3(0,-.25,0) ).material( mat1 ),
     .1
   ),
   lightSpheres,
-  Sphere( .25, Vec3(0,3.5,0), mat5 ),
-  Sphere( .25, Vec3(0,-1,0), mat5 )
-)
+  Sphere( .25, Vec3(0,3.5,0) ).material( mat5 ),
+  Sphere( .25, Vec3(0,-1,0) ).material( mat5 )
+).translate( 0,-1,0)
  
 roomRadius = 8.5
 m = march(
   Union2(
     RoundUnion(
-      Translate(
-        candelabra,
-        Vec3(0,-1,0)
-      ),
-      Plane( Vec3( 0,-1,0 ), 2.5, mat3 ),
+      candelabra,
+      Plane( Vec3( 0,-1,0 ), 2.5 ).material( mat3 ),
       .5
     ),
     columns,
- 	
+     
     Difference(
-      o2 = Onion(
-        Cylinder( Vec2( roomRadius, 2.5 ), Vec3(0,.45,0), mat7 ),
+      Onion(
+        Cylinder( Vec2( roomRadius, 2.5 ), Vec3(0,.45,0) ).material( mat7 ),
         .175
       ),
-      PolarRepeat( Box( Vec3(.7,1.5,.125), null, mat5 ), 40, roomRadius+.5 )
+      PolarRepeat( Box( Vec3(.7,1.5,.125) ).material( mat5 ), 40, roomRadius+.5 )
     )
   )
 )

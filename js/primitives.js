@@ -45,7 +45,8 @@ const createPrimitives = function( SDF ) {
       let decl = `SDF sdfs[${length}] = SDF[${length}](\n`
       geos.forEach( (geo, i) => {
         const textureID = geo.__textureObj === undefined ? 50000 : geo.__textureObj.id
-        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${textureID}, ${geo.repeat !== null ? geo.repeat.distance.emit() : 'vec3(0.)'}, ${geo.repeat !== null ? geo.repeat.transform.emit() : `mat4(1.)`} )`
+        const hasRepeat = geo.repeat !== null && geo.repeat !== undefined
+        decl += `        SDF( ${materials.indexOf( geo.__material )}, ${geo.transform.varName}, ${textureID}, ${hasRepeat ? geo.repeat.distance.emit() : 'vec3(0.)'}, ${hasRepeat ? geo.repeat.transform.emit() : `mat4(1.)`} )`
         if( i < geos.length - 1 ) decl += ','
         decl += '\n'
       })
@@ -210,7 +211,7 @@ const createPrimitives = function( SDF ) {
     // create codegen string
 
 
-    Primitives[ name ].prototype.emit = function ( __name, transform = null, offsetMode=0, offset=null ) {
+    Primitives[ name ].prototype.emit = function ( __name, transform = null, bump=null ) {
       if( SDF.memo[ this.id ] !== undefined ) return { preface:'', out:name+this.matId }
       if( this.__bumpObj !== undefined && this.renderingBump === false) {
         this.renderingBump = true
@@ -235,7 +236,7 @@ const createPrimitives = function( SDF ) {
             tstring = `( ${pname} * ${this.transform.emit()} ).xyz`
       
       const primitive = `
-        vec2 ${name}${this.id} = vec2( ${desc.primitiveString.call( this, tstring )} * ${s}, ${id}.);
+        vec2 ${name}${this.id} = vec2( ${desc.primitiveString.call( this, tstring, bump )} * ${s}, ${id}.);
       `
       SDF.memo[ this.id ] = name + this.id
 

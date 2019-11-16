@@ -61,6 +61,21 @@ const __Textures = function( SDF ) {
         const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
         const functionName = mode === '2d' ? t.name + '2d' : t.name 
 
+        //decl += `
+        //  case ${i}:
+        //      ${mode === '2d' 
+        //      ? `    
+        //      vec3 n = normalize( pos );
+        //      vec4 texx =  vec4(${functionName}( .5*n.yz+.5 ${ args.length > 0 ? ',' + args.join(',') : ''} ), 1.);
+        //      vec4 texy =  vec4(${functionName}( .5*n.zx+.5 ${ args.length > 0 ? ',' + args.join(',') : ''} ), 1.);
+        //      vec4 texz =  vec4(${functionName}( .5*n.xy+.5 ${ args.length > 0 ? ',' + args.join(',') : ''} ), 1.);
+        //      tex = triplanar( n, texx, texy,texz,false,false ).xyz;`
+        //      : ` 
+        //      tex = ${functionName}( pos ${ args.length > 0 ? ',' + args.join(',') : ''} );
+        //   `}
+        //    break;\n`
+
+
         decl +=`
           case ${i}:
             ${mode === '2d' ? `     pos2 = getUVCubic( pos );\n` : ''} 

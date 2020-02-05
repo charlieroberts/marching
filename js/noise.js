@@ -44,7 +44,7 @@ Noise.prototype = SceneNode()
 Noise.prototype.emit = function ( __name ) {
   let name = __name === undefined ? 'p' : __name
 
-  const out = `(${this.bias.emit()} + snoise( vec4( p, time * ${this.timeMod.emit()} )) * ${this.strength.emit()})`  
+  const out = `(${this.bias.emit()} + snoise( vec4( p.xyz, time * ${this.timeMod.emit()} )) * ${this.strength.emit()})`  
 
   const output = {
     out,

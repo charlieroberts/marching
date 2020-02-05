@@ -211,7 +211,7 @@ const createPrimitives = function( SDF ) {
     // create codegen string
 
 
-    Primitives[ name ].prototype.emit = function ( __name, transform = null, bump=null ) {
+    Primitives[ name ].prototype.emit = function ( __name, transform = null, bump=null, scale=null ) {
       if( SDF.memo[ this.id ] !== undefined ) return { preface:'', out:name+this.matId }
       if( this.__bumpObj !== undefined && this.renderingBump === false) {
         this.renderingBump = true
@@ -232,7 +232,7 @@ const createPrimitives = function( SDF ) {
 
       const pname = typeof __name !== 'string' ? 'p' : __name,
             id = this.__sdfID,
-            s = this.transform.emit_scale(),
+            s = scale === null ? this.transform.emit_scale() : `${this.transform.emit_scale()} * ${scale}`,
             tstring = `( ${pname} * ${this.transform.emit()} ).xyz`
       
       const primitive = `

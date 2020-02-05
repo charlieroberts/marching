@@ -47,8 +47,21 @@ window.onload = function() {
 
   SDF.init( document.querySelector('canvas') )
   SDF.export( window )
+  SDF.keys = {
+    w:0,
+    a:0,
+    s:0,
+    d:0
+  }
   Math.export()
   SDF.useProxies = false
+
+  SDF.camera.speed = .01
+  SDF.camera.go = function() {
+    camera.pos.x += camera.dir.x * SDF.keys.w
+    camera.pos.y += camera.dir.y * SDF.keys.w
+    camera.pos.z += camera.dir.z * SDF.keys.w
+  }
 
   let hidden = false
   let fontSize = .95
@@ -85,6 +98,18 @@ window.onload = function() {
     },
     'Shift-Ctrl-G'() { 
       toggleGUI() 
+    },
+    'Alt-W'( cm ) {
+      SDF.keys.w = 1
+    },
+    'Alt-A'( cm ) {
+      SDF.keys.a = 1
+    },
+    'Alt-S'( cm ) {
+      SDF.keys.s = 1
+    },
+    'Alt-D'( cm ) {
+      SDF.keys.d = 1
     },
     'Alt-Enter'( cm ) {
       try {
@@ -165,9 +190,17 @@ window.onload = function() {
     styleActiveLine:true,
     autofocus:true,
     matchBrackets:true,
-    autoCloseBrackets:true
+    autoCloseBrackets:true,
+
   })
   cm.setOption('fullScreen', true )
+
+  cm.on('keyup', (cm, event) => {
+    if( event.altKey === true ) {
+      const code = event.code.slice(3).toLowerCase()
+      SDF.keys[ code ] = 0
+    }    
+  })
 
   const sel = document.querySelector('select')
   const demoGroup = document.createElement('optgroup')
@@ -290,7 +323,7 @@ window.onload = function() {
         ? window[ objname ][ propname ].value 
         : window[ objname ][ split[0] ][ split[1] ]
 
-      diff[ 0 ] = target - startValue
+      diff[ 0 ] = target - startValue[ 0 ]
     }
 
     const fnc = () => {

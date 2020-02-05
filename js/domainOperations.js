@@ -48,33 +48,41 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
-  // shouldn't be using a uniform for this!!!!!
   Mirror: {
     parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     extra:[{ name:'dims', type:'local', default:'xyz' }],
 
-    emit( name='p', transform=null ) {
+    emit( name='p', transform=null, notused=null, scale=null ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
-      if( transform !== null ) this.transform.apply( transform, false )
+      if( transform !== null ) {
+        this.transform.apply( transform, false )
+      }
       this.transform.invert()
      
-      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
-
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`,
+            s = scale === null ? this.transform.emit_scale() : `${this.transform.emit_scale()} * ${scale}`
+ 
       let preface =`
-        vec4 ${pName} = vec4( ( ${pointString} / ${this.transform.emit_scale()} ) * ${this.transform.emit_scale()}, 1.);\n
+        vec4 ${pName} = vec4( ( ${pointString} ) , 1.);\n
         ${pName}.${this.dims} = abs( ${pName}.${this.dims} );\n`
 
-      this.sdf.repeat = null
-      const sdf = this.sdf.emit( pName )//, this.transform )//, 1, this.__target.distance )
+      const sdf = this.sdf.emit( pName, null, null, s )
 
       if( typeof sdf.preface === 'string' ) preface += sdf.preface 
 
       return { out:sdf.out, preface }
     }
   },
+  //let preface = `         vec3 ${pName} = ${name} / ${this.amount.emit()};\n`
 
+  //let sdf = this.sdf.emit( pName )
+  //let out = sdf.out 
+
+  //sdf.preface += `      ${out}.x = ${out}.x * ${this.amount.emit()};\n`
+
+  //if( typeof sdf.preface === 'string' ) preface += sdf.preface
   Repetition: {
     parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
     emit( name='p', transform=null ) {
@@ -97,102 +105,8 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
-  
-  // DEPRECATED
-  Rotation: {
-    parameters: [
-      { name:'axis', type:'vec3', default:Vec3(1) },
-      { name:'angle', type:'float', default:0 },
-    ],
-    emit( name='p' ) {
-      const pId = MaterialID.alloc()//this.matId
-      const pName = 'q'+pId
-
-      let preface =`        
-        mat4 m${pName} = rotationMatrix(${this.axis.emit()}, -${this.angle.emit()});
-        rotations[ 0 ] = m${pName};
-      `
-      const center = this.getCenter()
-
-      preface += center !== undefined
-        ? `        vec3 ${pName} = ( m${pName} * vec4(${name} - ${center.emit()}, 1.) ).xyz + ${center.emit()};\n`
-        : `        vec3 ${pName} = ( m${pName} * vec4(${name}, 1.) ).xyz;\n`
-
-
-      const sdf = this.sdf.emit( pName )
-      let out = sdf.out
-
-      if( typeof sdf.preface === 'string' )
-        preface += sdf.preface
-
-      return { out, preface }
-    },
-    glsl: `   mat4 rotationMatrix(vec3 axis, float angle) {
-      vec3 a = normalize(axis);
-      float s = sin(angle);
-      float c = cos(angle);
-      float oc = 1.0 - c;
-      float sx = s * a.x;
-      float sy = s * a.y;
-      float sz = s * a.z;
-      float ocx = oc * a.x;
-      float ocy = oc * a.y;
-      float ocz = oc * a.z;
-      float ocxx = ocx * a.x;
-      float ocxy = ocx * a.y;
-      float ocxz = ocx * a.z;
-      float ocyy = ocy * a.y;
-      float ocyz = ocy * a.z;
-      float oczz = ocz * a.z;
-      mat4 m = mat4(
-        vec4(ocxx + c, ocxy - sz, ocxz + sy, 0.0),
-        vec4(ocxy + sz, ocyy + c, ocyz - sx, 0.0),
-        vec4(ocxz - sy, ocyz + sx, oczz + c, 0.0),
-        vec4( 0.0, 0.0, 0.0, 1.0)
-      );
-
-      return m;
-    }
-    `
-  },
-  // DEPRECATED
-  Translate:{
-    parameters: [ { name:'amount', type:'vec3', default:Vec3(0) } ],
-    emit( name='p' ) {
-      const pId = MaterialID.alloc()//this.matId
-      const pName = name+pId
-
-      let preface = `vec3 ${pName} = ${name} - ${this.amount.emit()};\n`
-
-      const sdf = this.sdf.emit( pName )
-      let out = sdf.out
-
-      if( typeof sdf.preface === 'string' ) preface += sdf.preface
-
-      return { out, preface }
-    }
-  },
-  // DEPRECATED
-  Scale:{
-    parameters: [{ name:'amount', type:'float', default:1 } ],
-    emit( name='p' ) {
-      const pId = MaterialID.alloc()//this.matId
-      const pName = name+pId
-
-      let preface = `         vec3 ${pName} = ${name} / ${this.amount.emit()};\n`
-
-      let sdf = this.sdf.emit( pName )
-      let out = sdf.out 
-      
-      sdf.preface += `      ${out}.x = ${out}.x * ${this.amount.emit()};\n`
-
-      if( typeof sdf.preface === 'string' ) preface += sdf.preface
-
-      return { out, preface }
-    }
-  }
 }
-
+  
 const getDomainOps = function( SDF ) {
   const ops = {}
 

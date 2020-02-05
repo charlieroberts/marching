@@ -277,7 +277,7 @@ module.exports = {
     ],
 
     primitiveString( pName ) { 
-      return `length(${pName}) - ${this.radius.emit()}`
+      return `(length(${pName}) - ${this.radius.emit()})`
     },
     glslify:glsl`    #pragma glslify: sdSphere	= require('glsl-sdf-primitives/sdSphere' )`
   },

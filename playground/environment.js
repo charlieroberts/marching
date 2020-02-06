@@ -299,6 +299,22 @@ window.onload = function() {
   
   }
 
+  const hydrascript = document.createElement( 'script' )
+  hydrascript.src = 'http://localhost:12000/playground/hydra.js'
+  document.querySelector( 'head' ).appendChild( hydrascript )
+
+  hydrascript.onload = function() {
+    const Hydrasynth = Hydra
+
+    window.Hydra = function( w=500,h=500 ) {
+      const canvas = document.createElement('canvas')
+      canvas.width  = w
+      canvas.height = h
+      const hydra   = new Hydrasynth({ canvas })
+      return hydra
+    }
+  } 
+
   const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
 
   window.fade = ( objname, propname, target, seconds ) => {
@@ -330,7 +346,7 @@ window.onload = function() {
       const easeValue = ease( t )
       if( split === null ) {
         if( isVec === false ) {
-          window[ objname ][ propname ] = startValue[0] + easeValue * diff[0]
+          window[ objname ][ propname ]   = startValue[0] + easeValue * diff[0]
         }else{
           window[ objname ][ propname ].x = startValue[0] + easeValue * diff[0]
           window[ objname ][ propname ].y = startValue[1] + easeValue * diff[1]

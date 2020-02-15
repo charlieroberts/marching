@@ -1,7 +1,7 @@
 const Camera = {
   init( gl, program, handler ) {
     const camera_pos    = gl.getUniformLocation( program, 'camera_pos' )
-    //const camera_normal = gl.getUniformLocation( program, 'camera_normal' )
+    const camera_normal = gl.getUniformLocation( program, 'camera_normal' )
     const camera_rot    = gl.getUniformLocation( program, 'camera_rot' )
 
     this.pos = { dirty:false }
@@ -54,7 +54,7 @@ const Camera = {
 
     let init = false
     gl.uniform3f( camera_pos,    this.pos.x, this.pos.y, this.pos.z )
-    //gl.uniform3f( camera_normal, this.dir.x, this.dir.y, this.dir.z )
+    gl.uniform3f( camera_normal, this.dir.x, this.dir.y, this.dir.z )
     gl.uniform1f( camera_rot, this.rot ) 
 
     handler( ()=> {
@@ -62,10 +62,10 @@ const Camera = {
         gl.uniform3f( camera_pos, this.pos.x, this.pos.y, this.pos.z )
         this.pos.dirty = false
       }
-      //if( this.dir.dirty === true ) {
-      //  gl.uniform3f( camera_normal, this.dir.x, this.dir.y, this.dir.z )
-      //  this.dir.dirty = false
-      //}
+      if( this.dir.dirty === true ) {
+        gl.uniform3f( camera_normal, this.dir.x, this.dir.y, this.dir.z )
+        this.dir.dirty = false
+      }
       if( this.__rot.dirty === true ) {
         gl.uniform1f( camera_rot, this.__rot.value )
         this.__rot.dirty = false

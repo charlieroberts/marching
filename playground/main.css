@@ -43,18 +43,34 @@ body {
   top: 1em;
   right: 1.5em;
   z-index: 999;
-}
-
-#menu #help {
   color: white;
   display: inline-block;
   line-height: 2em;
   vertical-align: top;
-  padding: 0.15em 0.5em;
   font-family: sans-serif;
   font-weight: bold;
   font-size: 12px;
   text-decoration: none;
+}
+
+#menu #help, #cameracontrols {
+  color: white;
+  display: inline-block;
+  line-height: 2em;
+  vertical-align: top;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+#cameracontrols { user-select:none }
+
+#help { margin:0 1em }
+
+input {
+  vertical-align:super;
+  margin-right:1em
 }
 
 #menu #help:hover { 

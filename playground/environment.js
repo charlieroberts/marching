@@ -58,9 +58,11 @@ window.onload = function() {
 
   SDF.camera.speed = .01
   SDF.camera.go = function() {
-    camera.pos.x += camera.dir.x * SDF.keys.w
-    camera.pos.y += camera.dir.y * SDF.keys.w
-    camera.pos.z += camera.dir.z * SDF.keys.w
+    SDF.camera.pos.x -= SDF.camera.dir.x * SDF.keys.a
+    SDF,camera.pos.x += SDF.camera.dir.x * SDF.keys.d
+    //camera.pos.y += camera.dir.y * SDF.keys.w
+    SDF.camera.pos.z += SDF.camera.dir.z * SDF.keys.w * SDF.camera.speed
+    //SDF.camera.pos.z -= SDF.camera.dir.z * SDF.keys.s
   }
 
   let hidden = false

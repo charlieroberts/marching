@@ -52,8 +52,10 @@ const getScene = function( SDF ) {
     steps( v ) { this.__steps = v; this.useQuality = false; return this },  
     farPlane( v ) { this.__farPlane = v; this.useQuality = false;  return this },  
     camera( x=0, y=0, z=5 ) {
-      //Object.assign( SDF.camera.pos, { x,y,z })
-      SDF.camera.move( x,y,z )
+      SDF.camera.__camera.position[0] = x
+      SDF.camera.__camera.position[1] = y
+      SDF.camera.__camera.position[2] = z
+      SDF.camera.update()
       return this
     },
     shadow( k=0 ) {
@@ -76,25 +78,25 @@ const getScene = function( SDF ) {
     background: require( './background.js' )( Scene, SDF ),
     presets: {
       'fractal.med': {
-        farPlane:1.5,
-        resolution:1,
-        steps:100,
+        farPlane:5,
+        resolution:.75,
+        steps:80,
         animated:true,
-        threshold:.0005,
-      },
-      'fractal.low': {
-        farPlane:1.5,
-        resolution:.5,
-        animated:true,
-        steps:75,
         threshold:.001,
       },
+      'fractal.low': {
+        farPlane:3.0,
+        resolution:.5,
+        animated:true,
+        steps:50,
+        threshold:.005,
+      },
       'fractal.high': {
-        farPlane:2.5,
+        farPlane:10,
         resolution:1,
         animated:true,
         steps:100,
-        threshold:.00025,
+        threshold:.001,
       },
       'repeat.low': {
         farPlane:25,

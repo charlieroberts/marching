@@ -16,7 +16,7 @@
     "glsl-smooth-min": "^1.0.0",
     "glsl-superformula": "^1.0.3",
     "glslify": "^6.1.0",
-    "mousetrap": "^1.6.1",
+    "mousetrap": "^1.6.1"
   },
   "devDependencies": {
     "browserify": "^14.5.0",

@@ -51,22 +51,21 @@ window.onload = function() {
     w:0,
     a:0,
     s:0,
-    d:0
+    d:0,
+    alt:0
   }
+
   Math.export()
   SDF.useProxies = false
 
-  SDF.camera.speed = .01
-  SDF.camera.go = function() {
-    SDF.camera.pos.x -= SDF.camera.dir.x * SDF.keys.a
-    SDF,camera.pos.x += SDF.camera.dir.x * SDF.keys.d
-    //camera.pos.y += camera.dir.y * SDF.keys.w
-    SDF.camera.pos.z += SDF.camera.dir.z * SDF.keys.w * SDF.camera.speed
-    //SDF.camera.pos.z -= SDF.camera.dir.z * SDF.keys.s
-  }
-
   let hidden = false
   let fontSize = .95
+  SDF.cameraEnabled = false
+
+  //document.querySelector('#cameratoggle').onclick = e => {
+  //  SDF.cameraEnabled = e.target.checked
+  //}
+
   CodeMirror.keyMap.playground =  {
     fallthrough:'default',
 
@@ -100,6 +99,9 @@ window.onload = function() {
     },
     'Shift-Ctrl-G'() { 
       toggleGUI() 
+    },
+    'Shift-Ctrl-C'() { 
+      toggleCamera() 
     },
     'Alt-W'( cm ) {
       SDF.keys.w = 1
@@ -179,8 +181,19 @@ window.onload = function() {
 
     hidden = !hidden
   }
+
+  const toggleCamera = function() {
+    Marching.cameraEnabled = !Marching.cameraEnabled
+    //document.querySelector('#cameratoggle').checked = Marching.cameraEnabled
+    toggleGUI()
+    Marching.camera.on()
+  }
+
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+g', toggleGUI )
+  Mousetrap.bind('ctrl+shift+c', e => {
+    toggleCamera()
+  })
 
   delete CodeMirror.keyMap.default[ 'Ctrl-H' ]
 
@@ -198,10 +211,37 @@ window.onload = function() {
   cm.setOption('fullScreen', true )
 
   cm.on('keyup', (cm, event) => {
-    if( event.altKey === true ) {
-      const code = event.code.slice(3).toLowerCase()
+    if( SDF.cameraEnabled ) {
+      const code = event.key//.code.slice(3).toLowerCase()
       SDF.keys[ code ] = 0
-    }    
+    }else if( event.key === 'Alt' ) {
+      for( let key in SDF.keys ) {
+        SDF.keys[ key ] = 0
+      }
+    } 
+  })
+
+  cm.on('keydown', (cm,event) => {
+    if( SDF.cameraEnabled ) {
+      SDF.keys[ event.key ] = 1
+      event.codemirrorIgnore = 1
+      event.preventDefault()
+    }
+  })
+
+  delete CodeMirror.keyMap.default[ 'Ctrl-H' ]
+
+  window.addEventListener( 'keydown', e => {
+    if( e.key === 'h' && e.ctrlKey === true ) {
+      toggleGUI()
+    }else if( SDF.cameraEnabled ) {
+      SDF.keys[ e.key ] = 1
+    }
+  })
+  window.addEventListener( 'keyup', e => {
+    if( SDF.cameraEnabled ) {
+      SDF.keys[ e.key ] = 0
+    }
   })
 
   const sel = document.querySelector('select')
@@ -225,7 +265,6 @@ window.onload = function() {
     tutorialGroup.appendChild( opt )
   }
   sel.appendChild( tutorialGroup )
-
 
   sel.onchange = e => {
     let isDemo = true

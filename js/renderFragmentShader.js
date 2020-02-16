@@ -43,6 +43,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       uniform vec3 camera_pos;
       uniform vec3 camera_normal;
       uniform float camera_rot;
+      uniform mat4 camera;
 
       ${variables}
 
@@ -136,26 +137,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return position;
       }
 
-      void orbitCamera(
-        in float camAngle,
-        in float camHeight,
-        in float camDistance,
-        in vec2 screenResolution,
-        out vec3 rayOrigin,
-        out vec3 rayDirection
-      ) {
-        vec2 screenPos = squareFrame(screenResolution);
-        vec3 rayTarget = vec3(0.0);
-
-        rayOrigin = vec3(
-          camDistance * sin(camAngle),
-          camHeight,
-          camDistance * cos(camAngle)
-        );
-
-        rayDirection = getRay(rayOrigin, rayTarget, screenPos, 2.0);
-      }
-
       vec4 opElongate( in vec3 p, in vec3 h ) {
         //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
         
@@ -205,12 +186,14 @@ ${preface}
 
       void main() {
         vec2 pos = v_uv * 2.0 - 1.0;
-        pos.x *= ( resolution.x / resolution.y );
+
+        // not sure why I need the -y axis but without it
+        // everything is flipped using perspective-camera
+        pos.x *= ( resolution.x / -resolution.y );
+
         vec3 color = bg; 
         vec3 ro = camera_pos;
-        vec3 rd = camera_normal;
-
-        orbitCamera( camera_rot, ro.y, ro.z, resolution, ro, rd );
+        vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
         
         vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
  

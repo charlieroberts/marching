@@ -32,6 +32,7 @@ const getScene = function( SDF ) {
       .resolution( 1 )
 
     scene.useQuality = true
+    scene.useVoxels  = false
 
     SDF.__scene = scene
 
@@ -48,6 +49,11 @@ const getScene = function( SDF ) {
       this.useQuality = false
       return this 
     },  
+    voxel( v = .1 ) { 
+      this.useVoxels = true
+      this.__voxelSize = v
+      return this
+    },
     threshold( v ) { this.__threshold = v; this.useQuality = false; return this },  
     steps( v ) { this.__steps = v; this.useQuality = false; return this },  
     farPlane( v ) { this.__farPlane = v; this.useQuality = false;  return this },  
@@ -115,11 +121,27 @@ const getScene = function( SDF ) {
         resolution:1,
         animated:true,
         steps:100
-      }
+      },
+      'voxel.high': {
+        resolution:1,
+        animated:true,
+        steps:300
+      },
+      'voxel.med': {
+        resolution:1,
+        animated:true,
+        steps:100
+      },
+      'voxel.low': {
+        resolution:.5,
+        animated:true,
+        steps:100
+      },
     },
+
     applyPreset( presetName ) {
       const preset = this.presets[ presetName ]
-      this.farPlane( preset.farPlane )
+      if( preset.farPlane !== undefined ) this.farPlane( preset.farPlane )
       this.steps( preset.steps )
       this.resolution( preset.resolution )
       this.threshold( preset.threshold || .001 )
@@ -130,7 +152,7 @@ const getScene = function( SDF ) {
       this.background() // adds default if none has been specified
       if( typeof quality === 'string' ) {
         animate = this.applyPreset( quality )
-      }else if( useQuality === true ) {
+      }else if( this.useQuality === true ) {
         this.quality( quality )
       }
       this.animate( animate )

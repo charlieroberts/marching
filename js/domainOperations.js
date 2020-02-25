@@ -7,6 +7,13 @@ const Transform = require( './transform.js' )
 const descriptions = {
   Elongation: {
     parameters:[ { name:'distance', type:'vec3', default:Vec3(0) } ],
+    func:`
+      vec4 opElongate( in vec3 p, in vec3 h ) {
+        //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
+        
+        vec3 q = abs(p)-h;
+        return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );
+      }`,
     emit( name='p' ) {
       const pId = this.getID()
       const pName = 'p' + pId

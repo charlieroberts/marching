@@ -1,6 +1,175 @@
 const glsl = require( 'glslify' )
 
-module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops ) {
+const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing ) {
+  const out = `
+  // adapted from https://www.shadertoy.com/view/ldfSWs
+  vec3 calcNormal(vec3 pos, float eps) {
+    const vec3 v1 = vec3( 1.0,-1.0,-1.0);
+    const vec3 v2 = vec3(-1.0,-1.0, 1.0);
+    const vec3 v3 = vec3(-1.0, 1.0,-1.0);
+    const vec3 v4 = vec3( 1.0, 1.0, 1.0);
+
+    return normalize( v1 * scene ( pos + v1*eps ).x+
+                      v2 * scene ( pos + v2*eps ).x+
+                      v3 * scene ( pos + v3*eps ).x+
+                      v4 * scene ( pos + v4*eps ).x);
+  }
+
+  vec3 calcNormal(vec3 pos) {
+    return calcNormal(pos, 0.002);
+  }
+
+  // Adapted from from https://www.shadertoy.com/view/ldfSWs
+  vec2 calcRayIntersection( vec3 rayOrigin, vec3 rayDir, float maxd, float precis ) {
+    float latest = precis * 2.0;
+    float dist   = +0.0;
+    float type   = -1.0;
+    vec2 result;
+    vec2 res = vec2(-50000., -1.);;
+
+    for (int i = 0; i < ${steps} ; i++) {
+      if (latest < precis || dist > maxd) break;
+
+      result = scene(rayOrigin + rayDir * dist);
+
+      latest = result.x;
+      dist  += latest;
+    }
+
+    if( dist < maxd ) {
+      result.x = dist;
+      res = result;
+    }
+
+    return res;
+  }
+
+  out vec4 col;
+  void main() {
+    vec2 pos = v_uv * 2.0 - 1.0;
+
+    // not sure why I need the -y axis but without it
+    // everything is flipped using perspective-camera
+    pos.x *= ( resolution.x / -resolution.y );
+
+    vec3 color = bg; 
+    vec3 ro = camera_pos;
+    vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
+    
+    vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
+
+    if( t.x > -0.5 ) {
+      vec3 pos = ro + rd * t.x;
+      vec3 nor = calcNormal( pos );
+
+      color = lighting( pos, nor, ro, rd, t.y ); 
+    }
+
+    ${postprocessing}
+    
+    col = clamp( vec4( color, 1.0 ), 0., 1. );
+  }`
+
+  return out
+}
+
+const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
+  const out = `
+  struct VoxelDistance {
+    bvec3 mask;
+    vec3  distance;
+    float fogCoeff;
+    int   id;
+  };
+
+  VoxelDistance calcRayIntersection( vec3 rayOrigin, vec3 rayDir ) {
+    vec2 result;
+
+    float m = ${voxelSize};
+    rayOrigin *= 1./m;
+    vec3 mapPos = vec3(floor(rayOrigin));
+    vec3 diff = mapPos - rayOrigin;
+
+    vec3 deltaDist = abs(vec3(length(rayDir)) / rayDir);
+    vec3 rayStep = vec3(sign(rayDir));
+    vec3 sideDist = (sign(rayDir) * diff + (sign(rayDir) * 0.5) + 0.5) * deltaDist; 
+
+    bvec3 mask;
+    vec3 d = vec3(-100000.);
+    float fogCoeff = 0.;
+
+    for (int i = 0; i < ${Math.round(steps*1/voxelSize)} ; i++) {
+      result = scene(mapPos*m);
+      if( result.x <= 0. ) {
+        d = mapPos*m*result.x;
+        break;
+      }
+
+      mask = bvec3( lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy)) );
+      sideDist += vec3( mask ) * deltaDist; 
+      mapPos += vec3(mask) * rayStep;
+      fogCoeff += result.x * m;
+    }
+
+    VoxelDistance vd = VoxelDistance( mask, d, fogCoeff, int(result.y) );
+    return vd;
+  }
+
+  out vec4 col;
+  void main() {
+    vec2 pos = v_uv * 2.0 - 1.0;
+
+    // not sure why I need the -y axis but without it
+    // everything is flipped using perspective-camera
+    pos.x *= ( resolution.x / -resolution.y );
+    
+    vec3 color = bg; 
+    vec3 ro = camera_pos;
+    vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
+                 
+    VoxelDistance vd = calcRayIntersection( ro, rd );
+    bvec3 mask = vd.mask;
+    
+    vec3 nor;
+    if (mask.x) {
+      color = vec3(0.5);
+      nor = vec3(1.,0.,0.);
+    }
+    if (mask.y) {
+      color = vec3(1.0);
+      nor = vec3(0.,1.,0.);
+    }
+    if (mask.z) {
+      color = vec3(0.75);
+      nor = vec3(0.,0.,1.);
+    }
+    if( vd.distance.x == -100000. ) {
+      color = bg;
+    }
+    
+    if( color != bg ) {
+      vec3 pos = vd.distance; 
+      color *= lighting( pos, nor, ro, rd, float(vd.id) ); 
+      color = min(color,1.);
+    }
+    
+    float modAmount = ${(1./voxelSize).toFixed(1)};
+    vec2 t = vec2( vd.fogCoeff, vd.id );
+  ${postprocessing}; 
+    col = vec4( color, 1. ); 
+    //col = clamp( vec4( color, 1.0 ), 0., 1. );
+    //col = vec4( color.x, color.y, 1.-abs(t.x), 1. ); 
+  }`
+
+  return out
+}
+
+module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops, voxelSize=0 ) {
+
+  const main = voxelSize === 0
+    ? getMainContinuous( steps, minDistance, maxDistance, postprocessing ) 
+    : getMainVoxels( steps, postprocessing, voxelSize )
+
     const fs_source = glsl`     #version 300 es
       precision mediump float;
 
@@ -59,91 +228,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
       vec2 scene(vec3 p);
 
-      // Adapted from from https://www.shadertoy.com/view/ldfSWs
-
-      vec2 calcRayIntersection( vec3 rayOrigin, vec3 rayDir, float maxd, float precis ) {
-        float latest = precis * 2.0;
-        float dist   = +0.0;
-        float type   = -1.0;
-        vec2 result;
-        vec2 res = vec2(-50000., -1.);;
-
-        for (int i = 0; i < ${steps} ; i++) {
-          if (latest < precis || dist > maxd) break;
-
-          result = scene(rayOrigin + rayDir * dist);
-
-          latest = result.x;
-          dist  += latest;
-          //if (dist > maxd ) dist = dist-maxd+.001;
-        }
-
-        if( dist < maxd ) {
-          result.x = dist;
-          res = result;
-        }
-
-        return res;
-      }
-
-      vec2 calcRayIntersection(vec3 rayOrigin, vec3 rayDir) {
-        return calcRayIntersection(rayOrigin, rayDir, 20.0, 0.001);
-      }
-
-      // adapted from https://www.shadertoy.com/view/ldfSWs
-      vec3 calcNormal(vec3 pos, float eps) {
-        const vec3 v1 = vec3( 1.0,-1.0,-1.0);
-        const vec3 v2 = vec3(-1.0,-1.0, 1.0);
-        const vec3 v3 = vec3(-1.0, 1.0,-1.0);
-        const vec3 v4 = vec3( 1.0, 1.0, 1.0);
-
-        return normalize( v1 * scene ( pos + v1*eps ).x+
-                          v2 * scene ( pos + v2*eps ).x+
-                          v3 * scene ( pos + v3*eps ).x+
-                          v4 * scene ( pos + v4*eps ).x);
-      }
-
-      vec3 calcNormal(vec3 pos) {
-        return calcNormal(pos, 0.002);
-      }
-
-      mat3 calcLookAtMatrix(vec3 origin, vec3 target, float roll) {
-        vec3 rr = vec3(sin(roll), cos(roll), 0.0);
-        vec3 ww = normalize(target - origin);
-        vec3 uu = normalize(cross(ww, rr));
-        vec3 vv = normalize(cross(uu, ww));
-
-        return mat3(uu, vv, ww);
-      }
-
-      vec3 getRay(mat3 camMat, vec2 screenPos, float lensLength) {
-        return normalize(camMat * vec3(screenPos, lensLength));
-      }
-
-      vec3 getRay(vec3 origin, vec3 target, vec2 screenPos, float lensLength) {
-        mat3 camMat = calcLookAtMatrix(origin, target, 0.0);
-        return getRay(camMat, screenPos, lensLength);
-      }
-
-      vec2 squareFrame(vec2 screenSize) {
-        vec2 position = 2.0 * (gl_FragCoord.xy / screenSize.xy) - 1.0;
-        position.x *= screenSize.x / screenSize.y;
-        return position;
-      }
-
-      vec2 squareFrame(vec2 screenSize, vec2 coord) {
-        vec2 position = 2.0 * (coord.xy / screenSize.xy) - 1.0;
-        position.x *= screenSize.x / screenSize.y;
-        return position;
-      }
-
-      vec4 opElongate( in vec3 p, in vec3 h ) {
-        //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
-        
-        vec3 q = abs(p)-h;
-        return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );
-      }
-
+      // XXX todo put this in domainOperations.js
       vec3 polarRepeat(vec3 p, float repetitions) {
         float angle = 2.*PI/repetitions;
         float a = atan(p.z, p.x) + angle/2.;
@@ -156,8 +241,6 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         if (abs(c) >= (repetitions/2.)) c = abs(c);
         return _p;
       }
-
-      /* ******************************************************* */
 
       // added k value to glsl-sdf-ops/soft-shadow
       float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){
@@ -182,32 +265,8 @@ ${preface}
         return ${scene};
       }
  
-      out vec4 col;
-
-      void main() {
-        vec2 pos = v_uv * 2.0 - 1.0;
-
-        // not sure why I need the -y axis but without it
-        // everything is flipped using perspective-camera
-        pos.x *= ( resolution.x / -resolution.y );
-
-        vec3 color = bg; 
-        vec3 ro = camera_pos;
-        vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
-        
-        vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
- 
-        if( t.x > -0.5 ) {
-          vec3 pos = ro + rd * t.x;
-          vec3 nor = calcNormal( pos );
-
-          color = lighting( pos, nor, ro, rd, t.y ); 
-        }
-
-        ${postprocessing}
-        
-        col = clamp( vec4( color, 1.0 ), 0., 1. );
-      }`
+${main}
+`
 
     return fs_source
   }

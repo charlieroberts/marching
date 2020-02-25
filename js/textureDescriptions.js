@@ -25,6 +25,20 @@ const textures = {
       { name:'strength', type:'float', default:1 },   
     ]
   },
+  rainbow: {
+    name:'rainbow',
+    parameters: [
+      { name:'strength', type:'float', default:1 },
+      { name:'shift', type:'float', default:0 },
+      { name:'scale', type:'float', default:1 },
+    ],
+    glsl:` 
+    vec3 rainbow( vec3 pos, float strength, float shift, float scale ) {
+      pos = pos * scale;
+      vec3 a = vec3(0.5,0.5,0.5), b = vec3(0.5,0.5,0.5), c = vec3(1.0,1.0,1.0),d = vec3(0.0,0.33,0.67);
+      return a + b * cos( 6.283818 * ( c * mod(length(pos) + shift, 1. ) + d ) ) * strength;
+    }` 
+  },
   checkers: {
     name:'checkers',
     glsl:`          

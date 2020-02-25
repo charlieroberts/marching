@@ -125,17 +125,17 @@ const getScene = function( SDF ) {
       'voxel.high': {
         resolution:1,
         animated:true,
-        steps:300
+        steps:30
       },
       'voxel.med': {
         resolution:1,
         animated:true,
-        steps:100
+        steps:20
       },
       'voxel.low': {
         resolution:.5,
         animated:true,
-        steps:100
+        steps:10
       },
     },
 
@@ -176,7 +176,8 @@ const getScene = function( SDF ) {
         lighting,
         postprocessing, 
         this.__steps, this.__threshold, this.__farPlane.toFixed(1),
-        SDF.distanceOps.__getGLSL()
+        SDF.distanceOps.__getGLSL(),
+        this.useVoxels ? this.__voxelSize : 0
       )
 
       SDF.start( this.fs, this.width, this.height, this.__animate )

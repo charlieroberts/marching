@@ -147,13 +147,13 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
       color = bg;
     }
     
+    float modAmount = ${(1./voxelSize).toFixed(1)};
     if( color != bg ) {
       vec3 pos = vd.distance; 
-      color *= lighting( pos, nor, ro, rd, float(vd.id) ); 
+      color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id) ); 
       color = min(color,1.);
     }
     
-    float modAmount = ${(1./voxelSize).toFixed(1)};
     vec2 t = vec2( vd.fogCoeff, vd.id );
   ${postprocessing}; 
     col = vec4( color, 1. ); 

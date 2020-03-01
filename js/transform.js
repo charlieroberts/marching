@@ -1,7 +1,7 @@
 const { param_wrap, MaterialID } = require( './utils.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const Matrix = require( './external/matrix.js' )
-
+window.Matrix = Matrix
 const MatrixWrap = function ( shouldInvert = false ) {
   const m = Object.create( MatrixWrap.prototype )
   m.dirty = true
@@ -127,6 +127,7 @@ const MatrixWrap = function ( shouldInvert = false ) {
     },
   })
 
+  m.__rotations = []
   m.__id   = VarAlloc.alloc()  
   m.__dirty = function() {}
   m.__data = Matrix.identity()
@@ -174,14 +175,22 @@ MatrixWrap.prototype = {
 		this.dirty = false
   },
 
+
   internal() {
     this.__data = Matrix.identity()
-    if( this.parent !== null ) this.__data = this.parent.__data
+    if( this.parent != null ) this.__data = this.parent.__data
 
     this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) ) 
+    
+    this.__rotations.forEach( r => {
+      this.__data = this.__data.multiply( r )
+    })
+    //let mul = Matrix.rotate( 45, 0,1,0 )
+    //this.__data = this.__data.multiply( mul )
+    //mul = mul.multiply( Matrix.rotate(30,0,1,0) )
+    //this.__data = this.__data.multiply( mul )
     this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
     this.__data = this.__data.multiply( Matrix.scale( this.scale, this.scale, this.scale ) )
-
   },
 
   invert( shouldInvert = true) {

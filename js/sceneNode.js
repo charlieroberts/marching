@@ -1,6 +1,5 @@
-// SceneNode
-
-let SceneNode = ()=> Object.create( SceneNode.prototype )
+const SceneNode = ()=> Object.create( SceneNode.prototype )
+const Matrix = require( './external/matrix.js' )
 
 SceneNode.prototype = {
 	emit() { return "#NotImplemented#"; },
@@ -45,6 +44,11 @@ SceneNode.prototype = {
     if( y !== undefined ) this.transform.rotation.axis.y = y
     if( z !== undefined ) this.transform.rotation.axis.z = z
   
+    return this
+  },
+
+  rotateBy( angle,x,y,z ) {
+    this.transform.__rotations.push( Matrix.rotate( angle,x,y,z ) )
     return this
   },
 

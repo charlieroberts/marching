@@ -376,14 +376,22 @@ window.onload = function() {
       diff[1] = target - startValue[1]
       if( vecCount > 2 ) diff[2] = target - startValue[2]
     }else{
-      startValue[ 0 ] = split === null 
-        ? window[ objname ][ propname ].value 
-        : window[ objname ][ split[0] ][ split[1] ]
+      if( split === null ) { 
+        startValue[0] = window[ objname ][ propname ].value 
+      }else{
+        let obj = window[ objname ]
+        for( let i = 0; i < split.length; i++ ) {
+          //split.forEach( (v,i) => obj = isVec ? : obj[ v ] )
+          obj = obj[ split[ i ] ] 
+        }
+        startValue[0] = obj 
+      }
 
       diff[ 0 ] = target - startValue[ 0 ]
     }
 
     const fnc = () => {
+      let obj = null
       const easeValue = ease( t )
       if( split === null ) {
         if( isVec === false ) {
@@ -397,13 +405,17 @@ window.onload = function() {
           }
         }
       }else{
-        window[ objname ][ split[0] ][ split[1] ] = startValue[0] + easeValue * diff[0]
+        obj = window[ objname ]
+        for( let i = 0; i < split.length - 1; i++ ) {
+          //split.forEach( (v,i) => obj = isVec ? : obj[ v ] )
+          obj = obj[ split[ i ] ] 
+        }
+        obj[ split[ split.length - 1 ] ]= startValue[0] + easeValue * diff[0]
       }
-      
       t += inc
       if( t >= 1 ) {
         if( split !== null ) {
-          window[ objname ][ split[0] ][ split[1] ] = target 
+          obj[ split[ split.length - 1 ] ] = target 
         }else{
           window[ objname ][ propname ] = target
         }

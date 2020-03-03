@@ -62,7 +62,7 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
       vec3 pos = ro + rd * t.x;
       vec3 nor = calcNormal( pos );
 
-      color = lighting( pos, nor, ro, rd, t.y ); 
+      color = lighting( pos, nor, ro, rd, t.y, true ); 
     }
 
     ${postprocessing}
@@ -101,7 +101,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     for (int i = 0; i < ${Math.round(steps*1/voxelSize)} ; i++) {
       result = scene(mapPos*m);
       if( result.x <= 0. ) {
-        d = mapPos*m*result.x;
+        d = mapPos*m+result.x;
         break;
       }
 
@@ -150,15 +150,18 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     float modAmount = ${(1./voxelSize).toFixed(1)};
     if( color != bg ) {
       vec3 pos = vd.distance; 
-      color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id) ); 
-      color = min(color,1.);
+      //vec3 pos = ro + rd * vd.fogCoeff;
+
+      color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
+      //color *= lighting( pos, nor, ro, rd, float(vd.id), false ); 
+      //color = min(color,1.);
+      //color = getTexture( 0, pos );
+      
     }
     
     vec2 t = vec2( vd.fogCoeff, vd.id );
   ${postprocessing}; 
     col = vec4( color, 1. ); 
-    //col = clamp( vec4( color, 1.0 ), 0., 1. );
-    //col = vec4( color.x, color.y, 1.-abs(t.x), 1. ); 
   }`
 
   return out
@@ -259,11 +262,11 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
 ${lighting}
 
-      vec2 scene(vec3 _p ) {
-        vec4 p = vec4( _p, 1. );
+    vec2 scene(vec3 _p ) {
+      vec4 p = vec4( _p, 1. );
 ${preface}
-        return ${scene};
-      }
+      return ${scene};
+    }
  
 ${main}
 `

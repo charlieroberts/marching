@@ -167,7 +167,11 @@ for( let name in ops ) {
       op.update_data= function() {}
       op.upload_location = function() {}
     }
-
+    op.__setMaterial = function(mat) {
+      if( typeof mat === 'string' ) mat = Marching.Material[ mat ]
+      this.__material = this.mat = Marching.materials.addMaterial( mat )
+      op.sdf.material( this.__material )
+    }
     if( name === 'Displace' || name === 'Bump' ) {
       let __var2 =  param_wrap( 
         c, 

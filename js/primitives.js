@@ -190,6 +190,7 @@ const createPrimitives = function( SDF ) {
           set(v){ b.size = v }
         })
       }
+
       Object.assign( p, {
         renderingBump : false,
         emittingDecl  : false,

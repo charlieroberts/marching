@@ -181,15 +181,13 @@ MatrixWrap.prototype = {
     if( this.parent != null ) this.__data = this.parent.__data
 
     this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) ) 
-    
-    this.__rotations.forEach( r => {
-      this.__data = this.__data.multiply( r )
-    })
-    //let mul = Matrix.rotate( 45, 0,1,0 )
-    //this.__data = this.__data.multiply( mul )
-    //mul = mul.multiply( Matrix.rotate(30,0,1,0) )
-    //this.__data = this.__data.multiply( mul )
+
+    // handle cumulative rotations via .rotateBy() method
+    this.__rotations.forEach( r => this.__data = this.__data.multiply( r ) )
+
+    // handle absolute rotations via .rotate() method... should this be aliased to rotateTo() ?
     this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
+
     this.__data = this.__data.multiply( Matrix.scale( this.scale, this.scale, this.scale ) )
   },
 

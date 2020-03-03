@@ -57,10 +57,12 @@ const getScene = function( SDF ) {
     threshold( v ) { this.__threshold = v; this.useQuality = false; return this },  
     steps( v ) { this.__steps = v; this.useQuality = false; return this },  
     farPlane( v ) { this.__farPlane = v; this.useQuality = false;  return this },  
-    camera( x=0, y=0, z=5 ) {
+    camera( x=0, y=0, z=5, speed=1 ) {
       SDF.camera.__camera.position[0] = x
       SDF.camera.__camera.position[1] = y
       SDF.camera.__camera.position[2] = z
+      SDF.camera.__camera.rotationSpeed = speed * .01
+      SDF.camera.__camera.positionSpeed = speed * -.25
       SDF.camera.update()
       return this
     },
@@ -83,6 +85,13 @@ const getScene = function( SDF ) {
     fog: getFog( Scene, SDF ),
     background: require( './background.js' )( Scene, SDF ),
     presets: {
+      'fractal.close': {
+        farPlane:1,
+        resolution:1,
+        steps:150,
+        animated:true,
+        threshold:.000125
+      },
       'fractal.med': {
         farPlane:5,
         resolution:.75,

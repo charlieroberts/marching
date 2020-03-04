@@ -92,34 +92,34 @@ const Camera = {
     Object.defineProperties( this.pos, {
       x: {
         get()  { return px },
-        set(v) { px = v; this.dirty = true; }
+        set(v) { px = camera.position[0] = v;this.dirty = true; }
       },
 
       y: {
         get()  { return py },
-        set(v) { py = v; this.dirty = true; }
+        set(v) { py = camera.position[1] = v; this.dirty = true; }
       },
 
       z: {
         get()  { return pz },
-        set(v) { pz = v; this.dirty = true; }
+        set(v) { pz = camera.position[2] = v; this.dirty = true; }
       },
     })
 
     Object.defineProperties( this.dir, {
       x: {
         get()  { return nx },
-        set(v) { nx = v; this.dirty = true; }
+        set(v) { nx = camera.rotation[0] = v; this.dirty = true; }
       },
 
       y: {
         get()  { return ny },
-        set(v) { ny = v; this.dirty = true; }
+        set(v) { ny = camera.rotation[1] = v; this.dirty = true; }
       },
 
       z: {
         get()  { return nz },
-        set(v) { nz = v; this.dirty = true; }
+        set(v) { nz = camera.rotation[2] = v; this.dirty = true; }
       },
     })
 
@@ -135,7 +135,12 @@ const Camera = {
       camera.move([x,y,z])
       Camera.update()
     }
-
+    Camera.moveTo = (x,y,z) => {
+      camera.position[0] = x
+      camera.position[1] = y
+      camera.position[2] = z
+      Camera.update()
+    }
     Camera.update = ()=> {
       const pos = camera.position
       gl.uniform3f( camera_pos, pos[0], pos[1], pos[2]  )
@@ -189,12 +194,15 @@ const Camera = {
         //camera.position = [this.pos.x, this.pos.y, this.pos.z ]
         //camera.update()
         const pos = camera.position
-        gl.uniform3f( camera_pos, pos.x, pos.y, pos.z )
+        gl.uniform3f( camera_pos, pos[0], pos[1], pos[2] )
         gl.uniformMatrix4fv( ucamera, false, camera.view() )
         this.pos.dirty = false
       }
+
+      // XXX this is broken and needs to be fixed
       if( this.dir.dirty === true ) {
         gl.uniform3f( camera_normal, this.dir.x, this.dir.y, this.dir.z )
+        gl.uniformMatrix4fv( ucamera, false, camera.view() )
         this.dir.dirty = false
       }
       if( this.__rot.dirty === true ) {

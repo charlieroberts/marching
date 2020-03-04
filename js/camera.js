@@ -132,14 +132,14 @@ const Camera = {
     gl.uniform1f( camera_rot, this.rot ) 
 
     Camera.move = (x,y,z) => {
+      // XXX does this need to update property values?
       camera.move([x,y,z])
       Camera.update()
     }
     Camera.moveTo = (x,y,z) => {
-      camera.position[0] = x
-      camera.position[1] = y
-      camera.position[2] = z
-      Camera.update()
+      Camera.pos.x = x
+      Camera.pos.y = y
+      Camera.pos.z = z
     }
     Camera.update = ()=> {
       const pos = camera.position

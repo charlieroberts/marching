@@ -99,7 +99,7 @@ const MatrixWrap = function ( shouldInvert = false ) {
     } 
   })
 
-  let rx = 1, ry = 1, rz = 1
+  let rx = 0, ry = 0, rz = 0
   Object.defineProperties( m.rotation.axis, {
     x: {
       get() { return rx },
@@ -131,6 +131,7 @@ const MatrixWrap = function ( shouldInvert = false ) {
   m.__id   = VarAlloc.alloc()  
   m.__dirty = function() {}
   m.__data = Matrix.identity()
+  m.__Matrix = Matrix
   m.varName = 'transform' + m.__id
 
   return m

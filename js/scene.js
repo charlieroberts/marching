@@ -1,4 +1,5 @@
 const getFog = require( './fog.js' )
+const vignette = require( './vignette.js' )
 const { param_wrap, MaterialID } = require( './utils.js' )
 const __lighting = require( './lighting.js' )
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require('./var.js')
@@ -83,6 +84,7 @@ const getScene = function( SDF ) {
       return this
     },
     fog: getFog( Scene, SDF ),
+    vignette: vignette( Scene, SDF ),
     background: require( './background.js' )( Scene, SDF ),
     presets: {
       'fractal.close': {

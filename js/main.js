@@ -179,9 +179,7 @@ const SDF = {
       pp += processor.emit()
       variablesDeclaration += processor.emit_decl()
     }
-
-
-
+    
     this.postprocessing = __scene.postprocessing
 
     return [ variablesDeclaration, sceneRendering, pp ]

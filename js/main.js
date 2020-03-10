@@ -30,6 +30,7 @@ const SDF = {
 
   // a speed of 1 corresponds to 60 fps.
   delay: 0,
+  __isPaused:false,
 
   defaultVertexSource:`    #version 300 es
     in vec3 a_pos;
@@ -239,6 +240,10 @@ const SDF = {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
 
+  pause() {
+    this.__isPaused = !this.__isPaused
+  },
+
   initWebGL( vs_source, fs_source, width, height,shouldAnimate=false ) {
     const gl = this.gl
     //if( shouldInit === true ) this.initBuffers()
@@ -284,23 +289,24 @@ const SDF = {
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
         return
       }
-      
-      this.currentTime = timestamp
+      if( this.__isPaused === false ) {
+        this.currentTime = timestamp
 
-      if( this.delay !== 0 && this.delay >= frameCount ) {
-        frameCount++
-        return
-      }else if( this.delay !== 0 ) {
-        frameCount = 0
-      }
+        if( this.delay !== 0 && this.delay >= frameCount ) {
+          frameCount++
+          return
+        }else if( this.delay !== 0 ) {
+          frameCount = 0
+        }
 
-      total_time = timestamp / 1000.0
-      gl.uniform1f( loc_u_time, total_time )
+        total_time = timestamp / 1000.0
+        gl.uniform1f( loc_u_time, total_time )
 
-      this.callbacks.forEach( cb => cb( total_time, this.currentTime ) )
+        this.callbacks.forEach( cb => cb( total_time, this.currentTime ) )
 
-      if( typeof window.onframe === 'function' ) {
-        window.onframe( total_time )
+        if( typeof window.onframe === 'function' ) {
+          window.onframe( total_time )
+        }
       }
 
       this.materials.upload_data( gl )

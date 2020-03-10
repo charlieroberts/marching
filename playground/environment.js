@@ -144,7 +144,6 @@ window.onload = function() {
       SDF.clear() 
       proxies.length = 0
     },
-
     "Shift-Ctrl-=": function(cm) {
       fontSize += .1
       document.querySelector('.CodeMirror-lines').style.fontSize= fontSize + 'em'
@@ -234,6 +233,8 @@ window.onload = function() {
   window.addEventListener( 'keydown', e => {
     if( e.key === 'h' && e.ctrlKey === true ) {
       toggleGUI()
+    }else if( e.key === '.' && e.ctrlKey === true && e.shiftKey === true ) {
+      SDF.pause()
     }else if( SDF.cameraEnabled ) {
       SDF.keys[ e.key ] = 1
     }

@@ -2,7 +2,7 @@
   "name": "marching",
   "version": "1.0.0",
   "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
-  "main": "js/index.js",
+  "main": "dist/index.js",
   "dependencies": {
     "browserify": "^14.4.0",
     "codemirror": "^5.34.0",

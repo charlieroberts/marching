@@ -94,6 +94,13 @@ const getScene = function( SDF ) {
         animated:true,
         threshold:.000125
       },
+      'fractal.kindaclose': {
+        farPlane:2,
+        resolution:1,
+        steps:250,
+        animated:true,
+        threshold:.000125/2
+      },
       'fractal.med': {
         farPlane:5,
         resolution:.75,

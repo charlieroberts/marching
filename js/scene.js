@@ -23,7 +23,8 @@ const getScene = function( SDF ) {
       objs, 
       canvas,
       postprocessing:[],
-      __shadow:8
+      __shadow:8,
+      __followLight:null
     })
 
     scene.animate( shouldAnimate )
@@ -79,8 +80,18 @@ const getScene = function( SDF ) {
 
       return this
     },
+    follow( light ) {
+      this.__followLight = light
+      SDF.camera.onmove = function( camera ) {
+        light.pos.x = SDF.camera.__camera.position[0]
+        light.pos.y = SDF.camera.__camera.position[1]
+        light.pos.z = SDF.camera.__camera.position[2]
+      }
+      return this
+    },
     light( ...lights ) {
       SDF.lighting.lights = SDF.lighting.lights.concat( lights )
+      if( this.__followLight !== null ) SDF.lighting.lights.push( this.__followLight )
       return this
     },
     fog: getFog( Scene, SDF ),

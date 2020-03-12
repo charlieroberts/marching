@@ -44,6 +44,8 @@ FirstPersonCamera.prototype.move = function(dir) {
     mat4.rotateX(cam, cam, this.rotation[0])
     vec3.transformMat4(dir, dir, cam)
     vec3.add(this.position, this.position, dir)
+    this.parent.pos.dirty = true
+
   }
 }
 
@@ -60,6 +62,7 @@ FirstPersonCamera.prototype.move = function(dir) {
 
 const Camera = {
   init( gl, program, handler ) {
+
     const camera = FirstPersonCamera({
       fov: 190,
       near:.01,
@@ -69,6 +72,7 @@ const Camera = {
     })
     camera.rotation = [0,Math.PI,Math.PI] 
     Camera.__camera = camera
+    camera.parent = this
 
     const camera_pos    = gl.getUniformLocation( program, 'camera_pos' )
     const camera_normal = gl.getUniformLocation( program, 'camera_normal' )
@@ -189,6 +193,7 @@ const Camera = {
 
     handler( ()=> {
       if( this.pos.dirty === true ) {
+
         //camera.position = [this.pos.x, this.pos.y, this.pos.z ]
  
         //camera.position = [this.pos.x, this.pos.y, this.pos.z ]
@@ -197,6 +202,10 @@ const Camera = {
         gl.uniform3f( camera_pos, pos[0], pos[1], pos[2] )
         gl.uniformMatrix4fv( ucamera, false, camera.view() )
         this.pos.dirty = false
+
+        if( typeof this.onmove === 'function' ) {
+          this.onmove( this )
+        }
       }
 
       // XXX this is broken and needs to be fixed

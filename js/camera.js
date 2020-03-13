@@ -151,6 +151,17 @@ const Camera = {
       gl.uniformMatrix4fv( ucamera, false, camera.view() )
     }
 
+    // determine an offset from the current camera position based
+    // on the current camera rotation e.g. to always position a light
+    // behind the camera.
+    Camera.offset = (amt=[0,0,3]) => {
+      const cam = mat4.create()
+      mat4.rotateY(cam, cam, camera.rotation[1])
+      mat4.rotateX(cam, cam, camera.rotation[0])
+      vec3.transformMat4(amt, amt, cam)
+      return amt
+    }
+
     let prvx = 0, prvy = 0, x = 0, y = 0
     Camera.__mousemovefnc = e => {
       prvx = x
@@ -203,9 +214,7 @@ const Camera = {
         gl.uniformMatrix4fv( ucamera, false, camera.view() )
         this.pos.dirty = false
 
-        if( typeof this.onmove === 'function' ) {
-          this.onmove( this )
-        }
+
       }
 
       // XXX this is broken and needs to be fixed
@@ -217,6 +226,9 @@ const Camera = {
       if( this.__rot.dirty === true ) {
         gl.uniform1f( camera_rot, this.__rot.value )
         this.__rot.dirty = false
+      }
+      if( typeof this.onmove === 'function' ) {
+        this.onmove( this )
       }
     })
 

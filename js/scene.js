@@ -80,17 +80,21 @@ const getScene = function( SDF ) {
 
       return this
     },
-    follow( light ) {
+    follow( light, distance=3 ) {
       this.__followLight = light
       SDF.camera.onmove = function( camera ) {
-        light.pos.x = SDF.camera.__camera.position[0]
-        light.pos.y = SDF.camera.__camera.position[1]
-        light.pos.z = SDF.camera.__camera.position[2]
+        const offset = SDF.camera.offset()
+        light.pos.x = SDF.camera.__camera.position[0] - offset[0]
+        light.pos.y = SDF.camera.__camera.position[1] - offset[1]
+        light.pos.z = SDF.camera.__camera.position[2] - offset[2]
+        light.dirty = true
       }
+      SDF.lighting.lights = [light]
       return this
     },
     light( ...lights ) {
       SDF.lighting.lights = SDF.lighting.lights.concat( lights )
+      debugger
       if( this.__followLight !== null ) SDF.lighting.lights.push( this.__followLight )
       return this
     },

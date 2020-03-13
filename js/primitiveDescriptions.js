@@ -153,7 +153,7 @@ module.exports = {
 `,
   },
 
-  Mandelex: {
+  Mandalay: {
     parameters:[
       { name:'size', type:'float', default:5 },
       { name:'minrad', type:'float', default:1/3 },    

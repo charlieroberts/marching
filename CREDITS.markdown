@@ -15,6 +15,8 @@ The defaut lighting scheme is adapted from [this demo](https://www.shadertoy.com
 
 The Mandelbulb primitive is taken from [this demo](https://www.shadertoy.com/view/ltfSWn) by [Inigo Quilez](http://www.iquilezles.org).  
 
+The Mandalay fractal is taken from [this demo](https://www.shadertoy.com/view/MdV3Wz) by Dave Hoskins.
+
 The Julia fractal primitive is taken from [this demo](https://www.shadertoy.com/view/MsfGRr) by [Inigo Quilez](http://www.iquilezles.org).  
 
 The SuperFormula primitive is taken from [a repo](https://github.com/Softwave/glsl-superformula) by [JC Leyba](http://s0ftwave.com). 

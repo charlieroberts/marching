@@ -6,6 +6,7 @@
   "dependencies": {
     "browserify": "^14.4.0",
     "codemirror": "^5.34.0",
+    "dat.gui": "^0.7.6",
     "first-person-camera": "^1.1.0",
     "glsl-camera-ray": "^1.0.0",
     "glsl-noise": "0.0.0",

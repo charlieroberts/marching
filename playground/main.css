@@ -166,6 +166,7 @@ span.cm-string, span.cm-string-2 {color: rgb(225, 225, 225) !important }
   display: block;
 }
 
+.tp-rotv_t { background:black !important }
 /*.CodeMirror-selected {*/
 /*  background:rgba(84,84,84,.5) !important;*/
 /*}*/

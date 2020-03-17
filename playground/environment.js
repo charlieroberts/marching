@@ -10,6 +10,8 @@ require( '../node_modules/codemirror/addon/selection/active-line.js' )
 require( '../node_modules/codemirror/addon/display/panel.js' )
 require( '../node_modules/mousetrap/mousetrap.min.js' )
 
+const dat = require( 'dat.gui' )
+
 const demos = {
   introduction: require( './demos/intro.js' ),
   ['textured transformations']: require('./demos/texture_transforms.js'),
@@ -142,6 +144,8 @@ window.onload = function() {
     },
     'Ctrl-.'( cm ) {
       SDF.clear() 
+      guis.forEach( g => { if( g.containerElem_ !== null ) { g.dispose() } } )
+      guis.length = 0
       proxies.length = 0
     },
     "Shift-Ctrl-=": function(cm) {
@@ -465,5 +469,145 @@ window.onload = function() {
     }
   }
 
+  let guielement = null
+  const guis = []
+
+  const processParams = function( obj, pane, params ) {
+    params.forEach( param => {
+      if( param.type === 'float' ) { 
+        const guiparam = {
+          get [param.name]() { return obj[ param.name ].value.x },
+          set [param.name](v){ obj[ param.name ].value.x = v; obj[ param.name ].dirty = true }
+        }
+        const min = param.min || 0, max = param.max || 3, step = param.step
+        pane.addInput( guiparam, param.name, { min, max, step })
+      }else if( param.type === 'vec3' ) {
+        if( param.name.search( 'color' ) === -1 ) {
+          const guiparam = {
+            [param.name]:{
+              get x() { return obj[ param.name ].value.x },
+              set x(v){ obj[ param.name ].value.x = v; obj[ param.name ].dirty = true },
+              get y() { return obj[ param.name ].value.y },
+              set y(v){ obj[ param.name ].value.y = v; obj[ param.name ].dirty = true },
+              get z() { return obj[ param.name ].value.z },
+              set z(v){ obj[ param.name ].value.z = v; obj[ param.name ].dirty = true }
+            }
+          }
+          const min = param.min || 0, max = param.max || 3, step = param.step
+          pane.addInput( guiparam[ param.name ], 'x', { min, max, label:param.name + ' X' })
+          pane.addInput( guiparam[ param.name ], 'y', { min, max, label:param.name + ' Y' })
+          pane.addInput( guiparam[ param.name ], 'z', { min, max, label:param.name + ' Z' })
+        }else{
+          const guiparam = { [param.name]:{r:0,g:0,b:0} }
+          pane.addInput( guiparam, param.name, { input:'color' })
+            .on( 'change', v => {
+              const rgb = v.toRgbObject()
+              obj[ param.name ].value.x = rgb.r / 255 
+              obj[ param.name ].value.y = rgb.g / 255
+              obj[ param.name ].value.z = rgb.b / 255
+              obj[ param.name ].dirty = true
+            }) 
+        }
+      }
+    })
+  }
+
+  const guiForObject = function( ) {
+    const obj = this
+
+    const pane = new Tweakpane({ container: document.querySelector('#menu'), title:this.name })
+    guis.push( pane )
+
+    const params = obj.params || obj.parameters
+    processParams( obj, pane, params )
+
+    const transform = {
+      get tx() { return obj.transform.translation.x },
+      set tx(v){ obj.transform.translation.x = v },
+      get ty() { return obj.transform.translation.y },
+      set ty(v){ obj.transform.translation.y = v },
+      get tz() { return obj.transform.translation.z },
+      set tz(v){ obj.transform.translation.z = v },
+      get rx() { return obj.transform.rotation.axis.x },
+      set rx(v){ obj.transform.rotation.axis.x = v },
+      get ry() { return obj.transform.rotation.axis.y },
+      set ry(v){ obj.transform.rotation.axis.y = v },
+      get rz() { return obj.transform.rotation.axis.z },
+      set rz(v){ obj.transform.rotation.axis.z = v },
+      get ra() { return obj.transform.rotation.angle },
+      set ra(v){ obj.transform.rotation.angle = v },
+      get scale() { return obj.transform.scale },
+      set scale(v){ obj.transform.scale = v },
+    }
+
+    const transformFolder = pane.addFolder({ title:'Transform' })
+    transformFolder.addInput( transform, 'tx', { label:'Translate X', min:-5, max:5 })
+    transformFolder.addInput( transform, 'ty', { label:'Translate y', min:-5, max:5 })
+    transformFolder.addInput( transform, 'tz', { label:'Translate z', min:-5, max:5 })
+    transformFolder.addInput( transform, 'rx', { label:'Rotation Axis X', min:0, max:1 })
+    transformFolder.addInput( transform, 'ry', { label:'Rotation Axis Y', min:0, max:1 })
+    transformFolder.addInput( transform, 'rz', { label:'Rotation Axis Z', min:0, max:1 })
+    transformFolder.addInput( transform, 'ra', { label:'Rotation Angle', min:-360, max:360 })
+    transformFolder.addInput( transform, 'scale', { label:'Scale', min:0.001, max:5, presetKey:'transformScale' })
+
+    if( this.__textureObj !== undefined ) {
+      const textureFolder = pane.addFolder({ title:'Texture' })
+      processParams( this.__textureObj.__target, textureFolder, this.__textureObj.parameters )   
+    }
+
+    this.__gui = pane
+    this.__gui.__target = obj
+    this.gui.applyPreset = p => applyPreset.call( this, p )
+    this.gui.export = pane.exportPreset.bind( pane )
+
+    return this
+  }
+
+  const applyPreset = function( presetObj ){
+    const keys = Object.keys( presetObj ),
+          transformStartIdx = keys.indexOf('tx'),
+          textureStartIdx = transformStartIdx + 8
+    
+    for( let i = 0; i < transformStartIdx; i++ ) {
+      const key = keys[ i ]
+      this[ key ].value.x = presetObj[ key ]
+    }
+
+    this.transform.translation.x = presetObj.tx
+    this.transform.translation.y = presetObj.ty
+    this.transform.translation.z = presetObj.tz
+    this.transform.rotation.x = presetObj.rx
+    this.transform.rotation.y = presetObj.ry
+    this.transform.rotation.z = presetObj.rz
+    this.transform.rotation.angle = presetObj.ra
+    this.transform.scale = presetObj.transformScale
+
+    if( this.__textureObj !== undefined ) {
+      for( let i = textureStartIdx; i < keys.length; i++ ) {
+        const key = keys[ i ]
+        this.__textureObj.__target[ key ].value.x = presetObj[ key ]
+        this.__textureObj.__target[ key ].dirty = true 
+      }
+    }
+
+    this.__gui.dispose()
+    guiForObject.call( this )
+
+  }
+
+  window.gui = function() {
+    if( guielement !== null ) {
+      guielement.dispose()
+    }
+    const scene = Marching.scene
+
+    
+    guielement = pane
+  }
+
+  const _____s = SDF.Sphere()
+  _____s.__proto__.__proto__.gui = guiForObject
+
   eval( demos.introduction )
+
 }

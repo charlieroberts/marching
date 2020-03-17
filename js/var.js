@@ -40,6 +40,18 @@ let Var = function( value, fixedName = null, __type ) {
         get() { return this.value.w },
         set(v){ this.value.w = v; this.dirty = true }
       },
+      r: {
+        get() { return this.value.x },
+        set(v){ this.value.x = v; this.dirty = true }
+      },
+      g: {
+        get() { return this.value.y },
+        set(v){ this.value.y = v; this.dirty = true }
+      },
+      b: {
+        get() { return this.value.z },
+        set(v){ this.value.z = v; this.dirty = true }
+      },
     })
   }/*else{
     let __value = v.value

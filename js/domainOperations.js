@@ -125,11 +125,12 @@ const getDomainOps = function( SDF ) {
       op.sdf = sdf
       op.parameters = []
       op.transform = Transform()
+      op.name = key
       const target = op.__target = op // sdf.__target !== undefined ? sdf.__target : op
 
       let count = 0
       for( let prop of opDesc.parameters ) {
-        op.parameters.push({ name:prop.name })
+        op.parameters.push( prop )
 
         let arg = args[ count ]
         let __var

@@ -94,7 +94,6 @@ const getScene = function( SDF ) {
     },
     light( ...lights ) {
       SDF.lighting.lights = SDF.lighting.lights.concat( lights )
-      debugger
       if( this.__followLight !== null ) SDF.lighting.lights.push( this.__followLight )
       return this
     },

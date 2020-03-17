@@ -3,7 +3,7 @@ const glsl = require( 'glslify' )
 module.exports = {
   Box: {
     parameters:[
-      { name:'size', type:'vec3', default:[1,1,1] },
+      { name:'size', type:'vec3', default:[1,1,1], min:.001, max:5 },
     ],
 
     primitiveString( pName ) { 
@@ -16,7 +16,7 @@ module.exports = {
   // XXX we should normalize dimensions in the shader... 
   Cone: {
     parameters:[
-      { name:'dimensions', type:'vec3', default:[.8,.6,.3] },
+      { name:'dimensions', type:'vec3', default:[.8,.6,.3], min:.001, max:5 },
     ],
 
     primitiveString( pName ) { 
@@ -27,7 +27,7 @@ module.exports = {
 
 	Cylinder: {
     parameters:[
-      { name:'dimensions', type:'vec2', default:[.8,.6] },
+      { name:'dimensions', type:'vec2', default:[.8,.6], min:.001, max:5 },
     ],
 
     primitiveString( pName ) { 
@@ -42,9 +42,9 @@ module.exports = {
 
   Capsule: {	
     parameters:[
-      { name:'start', type:'vec3', default:[0,0,0] },
-      { name:'end', type:'vec3', default:[.8,1,0] },
-      { name:'radius', type:'float', default:.5 },
+      { name:'start', type:'vec3', default:[0,0,0], min:0, max:.5 },
+      { name:'end', type:'vec3', default:[.8,1,0], min:.5, max:1 },
+      { name:'radius', type:'float', default:.5, min:.001, max:5 },
     ],
 
     primitiveString( pName ) { 
@@ -58,7 +58,7 @@ module.exports = {
   //` #pragma glslify: sdCylinder	= require('glsl-sdf-primitives/sdCylinder')`
  	HexPrism: {
     parameters:[
-      { name:'dimensions', type:'vec2', default:[.8,.6] },
+      { name:'dimensions', type:'vec2', default:[.8,.6], min:.001, max:5 },
     ],
 
     primitiveString( pName ) { 
@@ -69,7 +69,7 @@ module.exports = {
 
   Julia: {
     parameters:[
-      { name:'fold', type:'float', default:0 },
+      { name:'fold', type:'float', default:0, min:0, max:10 },
     ],
 
     primitiveString( pName ) { 
@@ -155,13 +155,11 @@ module.exports = {
 
   Mandalay: {
     parameters:[
-      { name:'size', type:'float', default:5 },
-      { name:'minrad', type:'float', default:1/3 },    
+      { name:'size', type:'float', default:5, min:1, max:10 },
+      { name:'minrad', type:'float', default:1/3, min:0, max:1 },    
+      { name:'iterations', type:'float', default:5, min:1, max:10, step:1 },    
     ],
     glslify:`                 
-  float Scale = 5.;
-  float MinRad2 = 1./3.;
-   
   float sr = 4.0;
   vec3 fo =vec3 (0.7,.9528,.9);
   vec3 gh = vec3 (.8,.7,0.5638);
@@ -196,12 +194,11 @@ module.exports = {
     p.z=DBFold(p.zxy,fo.z,g.z,w.z);
     return p;
   }
-  float sineSponge(vec3 p, float scale, float minrad ) {
+  float sineSponge(vec3 p, float scale, float minrad, float iterations ) {
     vec4 JC=vec4(p,1.);
     float r2=dot(p,p);
     float dd = 1.;
-    for(int i = 0; i<5; i++){
-      
+    for(int i = 0; i<int(iterations); i++){
       p = p - clamp(p.xyz, -1.0, 1.0) * 2.0;  // mandelbox's box fold
    
       vec3 signs=sign(p);//Save 	the original signs
@@ -232,27 +229,28 @@ module.exports = {
     `,
    
     primitiveString( pName ) { 
-      return `sineSponge( ${pName}, ${this.size.emit()}, ${this.minrad.emit()} )`
+      return `sineSponge( ${pName}, ${this.size.emit()}, ${this.minrad.emit()}, ${this.iterations.emit()} )`
     }
   },  
   Mandelbulb: {
     parameters:[
-      { name:'c0', type:'float', default:8 },
+      { name:'fold', type:'float', default:8, min:1, max:15 },
+      { name:'iterations', type:'float', default:4, min:1, max:6, step:1 },    
     ],
 
     primitiveString( pName ) { 
-      return `mandelbulb( ${pName}, ${this.c0.emit()} )`
+      return `mandelbulb( ${pName}, ${this.fold.emit()}, ${this.iterations.emit()} )`
     },
 
     // adapted from: https://www.shadertoy.com/view/ltfSWn
-    glslify:glsl`      float mandelbulb( in vec3 p, in float aa ){
+    glslify:glsl`      float mandelbulb( in vec3 p, in float aa, float iterations ){
         vec3 w = p;
         float m = dot(w,w);
 
         vec4 trap = vec4(abs(w),m);
         float dz = 1.0;
                 
-        for( int i=0; i<4; i++ ) {
+        for( int i=0; i<int(iterations); i++ ) {
           dz = aa*pow(sqrt(m),aa - 1.)*dz + 1.0;
 
           float r = length(w);
@@ -277,8 +275,8 @@ module.exports = {
   Mandelbox: {
     parameters:[
       { name:'fold', type:'float', default:.1 },
-      { name:'scale', type:'float', default:3.},
-      { name:'iterations', type:'float', default:5 },
+      { name:'scale', type:'float', default:3., min:1, max:10 },
+      { name:'iterations', type:'float', default:5, min:1, max:10, step:1 },
     ],
 
     glslify:`float mandelbox( float MR2, float SCALE, float ITER, vec3 position ){
@@ -301,7 +299,7 @@ module.exports = {
 
 	Octahedron: {
     parameters:[
-      { name:'radius', type:'float', default:1 },
+      { name:'radius', type:'float', default:1, min:0, max:4 },
     ],
 
     primitiveString( pName ) { 
@@ -317,8 +315,8 @@ module.exports = {
 
  	Plane: {
     parameters:[
-      { name:'normal', type:'vec3', default:[0,1,0] },
-      { name:'distance', type:'float', default:1 },
+      { name:'normal', type:'vec3', default:[0,1,0], min:0, max:1 },
+      { name:'distance', type:'float', default:1, min:0, max:5 },
     ],
 
     primitiveString( pName ) { 
@@ -344,8 +342,8 @@ module.exports = {
 
   RoundBox: {
     parameters:[
-      { name:'size', type:'vec3', default:[1,1,1] },
-      { name:'radius', type:'float', default:1 },
+      { name:'size', type:'vec3', default:[1,1,1], min:0, max:3 },
+      { name:'radius', type:'float', default:1, min:0, max:3 },
     ],
 
     primitiveString( pName ) { 
@@ -355,7 +353,7 @@ module.exports = {
   }, 
   Sphere:{
     parameters:[
-      { name:'radius', type:'float', default:1 },
+      { name:'radius', type:'float', default:1, min:0, max:3 },
     ],
 
     primitiveString( pName ) { 
@@ -366,18 +364,18 @@ module.exports = {
   // phi, m, n1, n2, n3, a, b
   SuperFormula:{
     parameters:[
-      { name:'m_1', type:'float', default:1 },
-      { name:'n1_1', type:'float', default:1 },
-      { name:'n2_1', type:'float', default:1 },
-      { name:'n3_1', type:'float', default:1 },
-      { name:'a_1', type:'float', default:1 },
-      { name:'b_1', type:'float', default:1 },
-      { name:'m_2', type:'float', default:1 },
-      { name:'n1_2', type:'float', default:1 },
-      { name:'n2_2', type:'float', default:1 },
-      { name:'n3_2', type:'float', default:1 },
-      { name:'a_2', type:'float', default:1 },
-      { name:'b_2', type:'float', default:1 },
+      { name:'m_1', type:'float',  default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'n1_1', type:'float', default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'n2_1', type:'float', default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'n3_1', type:'float', default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'a_1', type:'float',  default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'b_1', type:'float',  default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'m_2', type:'float',  default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'n1_2', type:'float', default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'n2_2', type:'float', default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'n3_2', type:'float', default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'a_2', type:'float',  default:1, min:-Math.PI*4, max:Math.PI*4 },
+      { name:'b_2', type:'float',  default:1, min:-Math.PI*4, max:Math.PI*4 },
     ],
 
     primitiveString( pName ) { 
@@ -399,7 +397,7 @@ module.exports = {
 
   Torus:{
     parameters:[
-      { name:'radii',  type:'vec2', default:[.5,.1] },
+      { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },
     ],
 
     primitiveString( pName ) { 
@@ -410,7 +408,7 @@ module.exports = {
   },  
   Torus88:{
     parameters:[
-      { name:'radii',  type:'vec2', default:[.5,.1] },
+      { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },
     ],
 
     primitiveString( pName ) { 
@@ -423,7 +421,7 @@ module.exports = {
   },
   Torus82:{
     parameters:[
-      { name:'radii',  type:'vec2', default:[.5,.1] },
+      { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },
     ],
 
     primitiveString( pName ) { 
@@ -449,7 +447,7 @@ module.exports = {
 
   TriPrism: {
     parameters:[
-      { name:'dimensions', type:'vec2', default:[.5,.5] },
+      { name:'dimensions', type:'vec2', default:[.5,.5], min:0, max:3 },
     ],
 
     primitiveString( pName ) { 
@@ -457,35 +455,6 @@ module.exports = {
     },
     glslify:glsl`      #pragma glslify: sdTriPrism = require('glsl-sdf-primitives/sdTriPrism')`
 
-  }, 
-  /*VoxelSphere:{
-    parameters:[
-      { name:'radius', type:'float', default:1 },
-      { name:'resolution', type:'float', default:20 },
-      { name:'center', type:'vec3', default:[0,0,0] },
-      { name:'material', type:'mat', default:null }
-    ],
-
-    primitiveString( pName ) { 
-      return `VoxelSphere( ${pName}, ${this.radius.emit()}, ${this.resolution.emit()} )`
-    },
-    glslify:glsl`float sdBox( vec3 p, vec3 b ){
-        vec3 d = abs(p) - b;
-        return min(max(d.x,max(d.y,d.z)),0.0) +
-               length(max(d,0.0));
-      }
-      float VoxelSphere( vec3 p, float radius, float resolution ) {
-        //vec3 ref = p * resolution;
-        //ref = round( ref );
-        //return ( length( ref ) - resolution * radius ) / resolution;
-
-        float dist = round( length( p ) - radius * resolution) / resolution;
-        //if( dist < resolution ) {
-        //  dist = sdBox( vec3(0.), vec3(resolution) );
-        //}
-
-        return dist; 
-    }`
-  },*/
+  },
 
 }

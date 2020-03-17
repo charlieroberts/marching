@@ -32,6 +32,21 @@ const Vec3 = function (x=0, y, z) {
       get()  { return vz },
       set(v) { vz = v; this.dirty = true; }
     },
+    r: {
+      get()  { return vx },
+      set(v) { vx = v; this.dirty = true; }
+    },
+
+    g: {
+      get()  { return vy },
+      set(v) { vy = v; this.dirty = true; }
+    },
+
+    b: {
+      get()  { return vz },
+      set(v) { vz = v; this.dirty = true; }
+    },
+
   })
 
   if( y === undefined && z === undefined) {

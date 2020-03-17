@@ -82,7 +82,8 @@ for( let name in ops ) {
     op.b = b
     op.transform = Transform( false )
     op.id = VarAlloc.alloc()
-    op.type = 'domain_op'
+    op.type = 'distance_op'
+    op.name = name
 
     let __c = param_wrap( c, float_var_gen(.3) )
 

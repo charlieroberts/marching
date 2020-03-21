@@ -1,6 +1,13 @@
 const Vec2 = function (x=0, y=0) {
+  if( x.type === 'vec2' ) return x  
   const v = Object.create( Vec2.prototype )
-  v.x = x; v.y = y
+  if( Array.isArray( x ) ) {
+    v.x = x[0]; v.y = x[1]; 
+  } else if( y === undefined ) {
+    v.x = v.y = x
+  }else{
+    v.x = x; v.y = y; 
+  }
 
   return v
 }
@@ -15,6 +22,7 @@ Vec2.prototype = {
 }
 
 const Vec3 = function (x=0, y, z) {
+  if( x.type === 'vec3' ) return x  
   const v = Object.create( Vec3.prototype )
   let vx =0,vy=0,vz=0
   Object.defineProperties( v, {
@@ -49,7 +57,9 @@ const Vec3 = function (x=0, y, z) {
 
   })
 
-  if( y === undefined && z === undefined) {
+  if( Array.isArray( x ) ) {
+    v.x = x[0]; v.y = x[1]; v.z = x[2]; 
+  } else if( y === undefined && z === undefined) {
     v.x = v.y = v.z = x
   }else{
     v.x = x; v.y = y; v.z = z;
@@ -137,13 +147,16 @@ Vec3.prototype = {
 
 }
 
-const Vec4 = function (x=0, y, z) {
+const Vec4 = function (x=0, y, z, w) {
+  if( x.type === 'vec4' ) return x
   const v = Object.create( Vec4.prototype )
 
-  if( y === undefined && z === undefined) {
-    v.x = v.y = v.z = x
+  if( Array.isArray( x ) ) {
+    v.x = x[0]; v.y = x[1]; v.z = x[2]; v.w = x[3] 
+  } else if( y === undefined && z === undefined) {
+    v.x = v.y = v.z = v.w = x
   }else{
-    v.x = x; v.y = y; v.z = z;
+    v.x = x; v.y = y; v.z = z; v.w = w;;
   }
 
   v.isGen = v.x.type === 'string' || v.y.type === 'string' || v.z.type === 'string'

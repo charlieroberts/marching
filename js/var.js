@@ -13,7 +13,7 @@ const VarAlloc = {
 	}
 }
 
-let Var = function( value, fixedName = null, __type ) {
+const Var = function( value, fixedName = null, __type ) {
   const v = Object.create( Var.prototype )
 	v.varName = fixedName !== null ? fixedName : 'var' + VarAlloc.alloc()
   v.value = value
@@ -53,13 +53,7 @@ let Var = function( value, fixedName = null, __type ) {
         set(v){ this.value.z = v; this.dirty = true }
       },
     })
-  }/*else{
-    let __value = v.value
-    Object.defineProperty( v, 'value', {
-      get() { return __value },
-      set(v){ __value = v; this.dirty = true }
-    })
-  }*/
+  }
 
   return v
 }
@@ -167,20 +161,14 @@ function int_var_gen(x,name=null) {
 function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }
 
 function vec2_var_gen(x, y,name=null) { 
-  if( y === undefined ) y = x
   return ()=> Var( Vec2(x, y), name  ) 
 }
 
 function vec3_var_gen(x=0, y, z,name=null) { 
-  if( y === undefined ) y = x
-  if( z === undefined ) z = x
   return ()=> Var( Vec3(x, y, z), name ) 
 }
 
 function vec4_var_gen( x, y, z, w, name=null ) { 
-  if( y === undefined ) y = x
-  if( z === undefined ) z = x
-  if( w === undefined ) w = x
   return Var( Vec4( x, y, z, w ), name ) 
 }
 //function float_var_gen(x,name=null) { return ()=> { return Var( float(x), name, 'float' ) } }

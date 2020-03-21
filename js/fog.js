@@ -17,8 +17,7 @@ const Fogger = function( Scene, SDF ) {
       }
     })
 
-    if( typeof color === 'number' ) color = Vec3( color ) 
-    const __color = param_wrap( color, vec3_var_gen( 0,0,0 ) )  
+    const __color = param_wrap( Vec3(color), vec3_var_gen( 0,0,0 ) )  
     
     Object.defineProperty( fog, 'color', {
       get() { return __color },

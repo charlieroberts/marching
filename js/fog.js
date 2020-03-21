@@ -2,6 +2,8 @@ const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc } = require( './var.js' )
 
+const { Vec2, Vec3, Vec4 } = require( './vec.js' )
+
 const Fogger = function( Scene, SDF ) {
 
   const Fog = function( amount=0.055, color ) {
@@ -15,7 +17,8 @@ const Fogger = function( Scene, SDF ) {
       }
     })
 
-    const __color = param_wrap( color, vec3_var_gen( .5,.6,.7 ) )  
+    if( typeof color === 'number' ) color = Vec3( color ) 
+    const __color = param_wrap( color, vec3_var_gen( 0,0,0 ) )  
     
     Object.defineProperty( fog, 'color', {
       get() { return __color },

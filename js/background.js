@@ -2,12 +2,15 @@ const SceneNode = require( './sceneNode.js' ),
       { param_wrap, MaterialID } = require( './utils.js' ),
       { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen } = require( './var.js' )
 
+const { Vec2, Vec3, Vec4 } = require( './vec.js' )
+
 const BG = function( Scene, SDF ) {
 
   const Background = function( color ) {
     if( SDF.memo.background === undefined ) {
       const bg = Object.create( Background.prototype )
 
+      if( typeof color === 'number' ) color = Vec3( color )
       const __color = param_wrap( color, vec3_var_gen( 0,0,0, 'bg' ), 'bg' )  
       
       Object.defineProperty( bg, 'color', {

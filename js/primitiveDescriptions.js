@@ -384,8 +384,8 @@ module.exports = {
     glslify:glsl`    #pragma glslify: SuperFormula	= require( 'glsl-superformula' )
  float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {
     float d = length( p );
-    float theta = atan(p.y / p.x);
-    float phi = asin(p.z / d);
+    float theta = atan(p.y, p.x);
+    float phi = d == 0. ? 0. : asin(p.z / d);
     float r1 = SuperFormula( theta, m_1, n1_1, n2_1, n3_1, a_1, b_1 );
     float r2 = SuperFormula( phi, m_2, n1_2, n2_2, n3_2, a_2, b_2 );
     vec3 q = r2 * vec3(r1 * cos(theta) * cos(phi), r1 * sin(theta) * cos(phi), sin(phi));
@@ -394,14 +394,39 @@ module.exports = {
     return d;
   }    
 ` },
+    //glslify:`
+    //  float radiusForAngle(float angle, float a, float b, float m, float n1, float n2, float n3) {
+    //    float tempA = abs(cos(angle * m * 0.25) / a);
+    //    float tempB = abs(sin(angle * m * 0.25) / b);
+    //    float tempAB = pow(tempA, n2) + pow(tempB, n3);
+    //    return abs(pow(tempAB, - 1.0 / n1));
+    //  }
+
+    //  float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {
+    //  //vec3 superPositionForPosition(vec3 p) {
+    //    float r = length(p);
+
+    //    float phi = atan(p.y, p.x);
+    //    float theta = r == 0.0 ? 0.0 : asin(p.z / r);
+
+    //    float superradiusphi = radiusForAngle(phi, a_1, b_1, m_1, n1_1, n2_1, n3_1);
+    //    float superradiustheta = radiusForAngle(theta, a_2, b_2, m_2, n1_2, n2_2, n3_2);
+
+    //    p.x = r * superradiusphi * cos(phi) * superradiustheta * cos(theta);
+    //    p.y = r * superradiusphi * sin(phi) * superradiustheta * cos(theta);
+    //    p.z = r * superradiustheta * sin(theta);
+
+    //    return r - length(p);//p;
+    //  }`
+  //},
 
   Torus:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },
     ],
 
-    primitiveString( pName ) { 
-      return `sdTorus( ${pName}, ${this.radii.emit()} )`
+    primitiveString( pname ) { 
+      return `sdTorus( ${pname}, ${this.radii.emit()} )`
     },
     glslify:glsl`    #pragma glslify: sdTorus 	= require('glsl-sdf-primitives/sdTorus')`
 
@@ -411,8 +436,8 @@ module.exports = {
       { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },
     ],
 
-    primitiveString( pName ) { 
-      return `sdTorus88( ${pName}, ${this.radii.emit()} )`
+    primitiveString( pname ) { 
+      return `sdTorus88( ${pname}, ${this.radii.emit()} )`
     },
     glslify:`float sdTorus88( vec3 p, vec2 t ) {
         vec2 q = vec2( length8( p.xz ) - t.x, p.y );
@@ -424,8 +449,8 @@ module.exports = {
       { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },
     ],
 
-    primitiveString( pName ) { 
-      return `sdTorus82( ${pName}, ${this.radii.emit()} )`
+    primitiveString( pname ) { 
+      return `sdTorus82( ${pname}, ${this.radii.emit()} )`
     },
     glslify:`float sdTorus82( vec3 p, vec2 t ) {
         vec2 q = vec2( length( p.xz ) - t.x, p.y );
@@ -439,10 +464,10 @@ module.exports = {
       { name:'v3', type:'vec3', default:[.5,.0,0] },
     ],
 
-    primitiveString( pName ) { 
-      return `udTriangle( ${pName}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
+    primitivestring( pname ) { 
+      return `udtriangle( ${pname}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
     },
-    glslify:glsl`    #pragma glslify: udTriangle	= require('glsl-sdf-primitives/udTriangle')`
+    glslify:glsl`    #pragma glslify: udtriangle	= require('glsl-sdf-primitives/udtriangle')`
   }, 
 
   TriPrism: {

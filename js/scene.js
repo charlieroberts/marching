@@ -169,6 +169,34 @@ const getScene = function( SDF ) {
         animated:true,
         steps:10
       },
+      low: {
+        threshold:.05,
+        steps:45,
+        farPlane:12,
+        resolution:.4,
+        animated:true
+      },
+      medium: {
+        threshold:.01,
+        steps:80,
+        farPlane:18,
+        resolution:.5,
+        animated:true
+      },
+      med: {
+        threshold:.01,
+        steps:80,
+        farPlane:18,
+        resolution:.5,
+        animated:true
+      },
+      high: {
+        threshold:.005,
+        steps:90,
+        farPlane:20,
+        resolution:1,
+        animated:true
+      }
     },
 
     applyPreset( presetName ) {

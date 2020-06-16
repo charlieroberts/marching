@@ -2,9 +2,8 @@
   "name": "marching",
   "version": "1.0.0",
   "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
-  "main": "dist/index.js",
+  "main": "js/index.js",
   "dependencies": {
-    "browserify": "^14.4.0",
     "codemirror": "^5.34.0",
     "dat.gui": "^0.7.6",
     "first-person-camera": "^1.1.0",
@@ -16,11 +15,6 @@
     "glsl-sdf-primitives": "0.0.1",
     "glsl-smooth-min": "^1.0.0",
     "glsl-superformula": "^1.0.3",
-    "glslify": "^6.1.0",
-    "mousetrap": "^1.6.1"
-  },
-  "devDependencies": {
-    "browserify": "^14.5.0",
     "get-pixels": "^3.3.2",
     "gl-texture2d": "^2.1.0",
     "glsl-diffuse-oren-nayar": "^1.0.2",
@@ -29,6 +23,11 @@
     "glsl-turntable-camera": "^1.0.0",
     "glsl-voronoi-noise": "^1.2.2",
     "glsl-worley": "^1.0.2",
+    "glslify": "^6.1.0",
+    "mousetrap": "^1.6.1"
+  },
+  "devDependencies": {
+    "browserify": "^14.5.0",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",
     "vinyl-source-stream": "^2.0.0",

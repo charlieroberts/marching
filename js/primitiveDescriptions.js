@@ -394,32 +394,7 @@ module.exports = {
     return d;
   }    
 ` },
-    //glslify:`
-    //  float radiusForAngle(float angle, float a, float b, float m, float n1, float n2, float n3) {
-    //    float tempA = abs(cos(angle * m * 0.25) / a);
-    //    float tempB = abs(sin(angle * m * 0.25) / b);
-    //    float tempAB = pow(tempA, n2) + pow(tempB, n3);
-    //    return abs(pow(tempAB, - 1.0 / n1));
-    //  }
-
-    //  float superformula( vec3 p, float m_1, float n1_1, float n2_1, float n3_1, float a_1, float b_1, float m_2, float n1_2, float n2_2, float n3_2, float a_2, float b_2 ) {
-    //  //vec3 superPositionForPosition(vec3 p) {
-    //    float r = length(p);
-
-    //    float phi = atan(p.y, p.x);
-    //    float theta = r == 0.0 ? 0.0 : asin(p.z / r);
-
-    //    float superradiusphi = radiusForAngle(phi, a_1, b_1, m_1, n1_1, n2_1, n3_1);
-    //    float superradiustheta = radiusForAngle(theta, a_2, b_2, m_2, n1_2, n2_2, n3_2);
-
-    //    p.x = r * superradiusphi * cos(phi) * superradiustheta * cos(theta);
-    //    p.y = r * superradiusphi * sin(phi) * superradiustheta * cos(theta);
-    //    p.z = r * superradiustheta * sin(theta);
-
-    //    return r - length(p);//p;
-    //  }`
-  //},
-
+ 
   Torus:{
     parameters:[
       { name:'radii',  type:'vec2', default:[.5,.1], min:0, max:3 },

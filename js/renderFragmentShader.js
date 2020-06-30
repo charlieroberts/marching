@@ -44,7 +44,8 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     return res;
   }
 
-  out vec4 col;
+  layout(location = 0) out vec4 col;
+  layout(location = 1) out vec4 depth;
   void main() {
     vec2 pos = v_uv * 2.0 - 1.0;
 
@@ -58,16 +59,25 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     
     vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
 
+    vec3 samplePos = vec3(100.f);
+    float zdist = 100000.;//vec3(100000.f);
     if( t.x > -0.5 ) {
-      vec3 pos = ro + rd * t.x;
-      vec3 nor = calcNormal( pos );
+      samplePos = ro + rd * t.x;
+      zdist = rd.z * t.x;
+      vec3 nor = calcNormal( samplePos );
 
-      color = lighting( pos, nor, ro, rd, t.y, true ); 
+      color = lighting( samplePos, nor, ro, rd, t.y, true ); 
     }
 
     ${postprocessing}
     
     col = clamp( vec4( color, 1.0 ), 0., 1. );
+    //float normalizedDepth = 1.- ((samplePos.z) / ${maxDistance});
+
+    float normalizedDepth = 1. / (1. - samplePos.z);
+    depth = samplePos.z < ${maxDistance} ? vec4( vec3( normalizedDepth ), 1. ) : vec4(0.);
+    //depth = samplePos.z < ${maxDistance} ? vec4( vec3( 1./(1.+normalizedDepth) * 255. ), 1. ) : vec4(0.);
+////vec4(1./(1. + zdist ));
   }`
 
   return out

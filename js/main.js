@@ -1,3 +1,4 @@
+const MP   = require( '../node_modules/merge-pass/dist/index.js' )
 const SDF = {
   camera:           require( './camera.js' ),
   __primitives:     require( './primitives.js' ),
@@ -68,7 +69,9 @@ const SDF = {
     this.domainOps  = this.__domainOps( this )
     this.noise     = this.__noise( this )
     this.export( this )
-    this.canvas = canvas 
+
+    this.canvas = canvas//document.createElement('canvas')
+    this.canvasMP = canvas
 
     this.lighting   = this.__lighting( this )
     this.Light = this.lighting.light
@@ -77,37 +80,11 @@ const SDF = {
     this.textures = this.__textures( this )
     this.Texture = this.textures.texture
 
-    this.canvas.width = window.innerWidth 
-    this.canvas.height = window.innerHeight
+    this.canvas.width = this.canvasMP.width = window.innerWidth 
+    this.canvas.height = this.canvasMP.height = window.innerHeight
     this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
-
+    //this.glMP = this.canvasMP.getContext( 'webgl2', { antialias:true, alpha:true })
   },
-
-  initBuffers() {
-    const gl = this.gl
-    gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
-    gl.clear(gl.COLOR_BUFFER_BIT)
-
-    const vbo = gl.createBuffer()
-
-    const vertices = new Float32Array([
-      -1.0, -1.0, 0.0, 0.0, 0.0,
-      1.0, -1.0, 0.0, 1.0, 0.0,
-      -1.0, 1.0, 0.0, 0.0, 1.0,
-      1.0, 1.0, 0.0, 1.0, 1.0
-    ])
-
-    gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
-    gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
-
-    const ibo = gl.createBuffer()
-
-    const indices = new Uint16Array( [0, 1, 2, 2, 1, 3] )
-
-    gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
-    gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
-  },
-
   // generate shaders, initialize camera, start rendering loop 
   createScene( ...args ) {
     const scene = this.Scene( args, this.canvas )
@@ -228,7 +205,27 @@ const SDF = {
 			return null
 		}
 
-		return program
+    const drawProgram = gl.createProgram()
+    const fragSource = ` #version 300 es
+  precision mediump float;
+
+  uniform sampler2D uSampler;
+  uniform vec2 resolution;
+
+  out vec4 col;
+  void main() {
+    // copy color info from texture
+    col = vec4( texture( uSampler, gl_FragCoord.xy / resolution ).rgb, 1. );
+  }`
+
+    const fs_draw = this.compile( gl.FRAGMENT_SHADER, fragSource )
+    const vs_draw = this.compile( gl.VERTEX_SHADER, vs_source )
+
+    gl.attachShader( drawProgram, vs_draw )
+		gl.attachShader( drawProgram, fs_draw )
+		gl.linkProgram( drawProgram )
+
+    return [ program, drawProgram ]
   },
 
   clear() {
@@ -244,15 +241,83 @@ const SDF = {
     this.__isPaused = !this.__isPaused
   },
 
+  initBuffers( width, height ) {
+    const gl = this.gl
+    gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
+    gl.clear(gl.COLOR_BUFFER_BIT)
+
+    //const depth = gl.createBuffer()
+    //const depthData = new Float32Array( width * height )
+    //gl.bindBuffer( gl.PIXEL_PACK_BUFFER, depth )
+    //gl.bufferData( gl.PIXEL_PACK_BUFFER, depthData, gl.DYNAMIC_READ )
+
+    const vbo = gl.createBuffer()
+
+    const vertices = new Float32Array([
+      -1.0, -1.0, 0.0, 0.0, 0.0,
+      1.0, -1.0, 0.0, 1.0, 0.0,
+      -1.0, 1.0, 0.0, 0.0, 1.0,
+      1.0, 1.0, 0.0, 1.0, 1.0
+    ])
+
+    gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
+    gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
+
+    const ibo = gl.createBuffer()
+
+    const indices = new Uint16Array( [0, 1, 2, 2, 1, 3] )
+
+    gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
+    gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
+    
+    return { vbo, ibo, vertices, indices }
+  },
+
   initWebGL( vs_source, fs_source, width, height,shouldAnimate=false ) {
     const gl = this.gl
     //if( shouldInit === true ) this.initBuffers()
-    this.initBuffers()
+    
+    // XXX clean all this up!
+    const colorTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, colorTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
+    const depthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-    const program = this.program = this.createProgram( vs_source, fs_source )
-    gl.useProgram(program);
+    const lenExpr = MP.op(MP.len(MP.ncfcoord()), "*", 3);
+    //const merger = new MP.Merger([MP.blur2d(lenExpr, lenExpr, 6)], sourceCanvas, gl);
+    window.MP = MP
+    window.fl = MP.float(MP.mut(1));
+    window.fl2 = MP.float(MP.mut(1));
+    window.dof = MP.dof()
+    const m = new MP.Merger([
 
+      dof
+      //MP.blur2d(lenExpr, lenExpr, 2)     
+      //MP.fxaa()
+      //MP.blur2d(fl, fl2)
+      //MP.hsv2rgb((c = MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.mut(0.5), "r", "+")))
+      //MP.hsv2rgb(MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.op(MP.time(), '/', 5), "r", "+"))
+    ], colorTexture, this.gl, { channels: [depthTexture] });
+    
+    const programs = this.createProgram( vs_source, fs_source )
+    const program = this.program = programs[0]
+    gl.useProgram( this.program )
+
+    const { vbo, ibo, vertices, indices } = this.initBuffers( width, height )
+
+    const framebuffer = gl.createFramebuffer()
+ 
     const loc_a_pos = gl.getAttribLocation(program, "a_pos");
     const loc_a_uv = gl.getAttribLocation(program, "a_uv");
 
@@ -283,12 +348,18 @@ const SDF = {
 
     let frameCount = 0
     const render = function( timestamp ){
+      gl.useProgram( this.program )
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0);
+
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
       }else if( render.running === false ) {
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
         return
       }
+
       if( this.__isPaused === false ) {
         this.currentTime = timestamp
 
@@ -315,9 +386,45 @@ const SDF = {
       this.lighting.upload_data( gl )
       this.postprocessing.forEach( pp => pp.upload_data( gl ) )
 
+      gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
+      gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
+      gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
+      gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
+
+      gl.drawBuffers([
+        gl.COLOR_ATTACHMENT0,
+        gl.COLOR_ATTACHMENT1 
+      ])
+      // Create a color texture
       gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
 
+      //gl.bindFramebuffer( gl.FRAMEBUFFER, null )
+      //gl.viewport(0, 0, width, height )
+      //// select the texture we would like to draw to the screen.
+      //// note that webgl does not allow you to write to / read from the
+      //// same texture in a single render pass. Because of the swap, we're
+      //// displaying the state of our simulation ****before**** this render pass (frame)
+      //gl.activeTexture( gl.TEXTURE0 )
+      //gl.bindTexture( gl.TEXTURE_2D, colorTexture )
+      //gl.useProgram( programs[1] )
+      ////this.initBuffers()
+      //const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
+      //gl.uniform2f( u_resolution, width, height )
+      //gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+      gl.bindBuffer (gl.ARRAY_BUFFER, null )
+      gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null )
+     //
+
+      m.draw( total_time )
     }.bind( SDF )
+
+    //const dof = MP.dof();     
+    //const merger = new MP.Merger(
+    //  [dof], 
+    //  this.canvas, 
+    //  gl, 
+    //  { buffers: [depthBuffer] }
+    //)
 
     render.running = true
 

@@ -3,12 +3,14 @@ var browserify = require('browserify')
 var source = require('vinyl-source-stream')
 var watchify = require( 'watchify' )
 var gutil = require( 'gulp-util' )
+const tsify = require('tsify')
 
 gulp.task('build', function () {
   
   browserify({
     entries: './js/index.js',
   })
+  .plugin( tsify )
   .bundle()
   .pipe( source('index.js') )
   .pipe( gulp.dest( './dist/' ) )

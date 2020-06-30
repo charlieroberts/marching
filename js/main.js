@@ -246,11 +246,6 @@ const SDF = {
     gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
     gl.clear(gl.COLOR_BUFFER_BIT)
 
-    //const depth = gl.createBuffer()
-    //const depthData = new Float32Array( width * height )
-    //gl.bindBuffer( gl.PIXEL_PACK_BUFFER, depth )
-    //gl.bufferData( gl.PIXEL_PACK_BUFFER, depthData, gl.DYNAMIC_READ )
-
     const vbo = gl.createBuffer()
 
     const vertices = new Float32Array([
@@ -331,20 +326,16 @@ const SDF = {
     this.materials.update_location( gl, program )
     this.lighting.update_location( gl, program )
 
-    gl.enableVertexAttribArray(loc_a_pos)
-    gl.enableVertexAttribArray(loc_a_uv)
+    //gl.enableVertexAttribArray(loc_a_pos)
+    //gl.enableVertexAttribArray(loc_a_uv)
 
-    gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
-    gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
+    //gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
+    //gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
 
     gl.viewport( 0,0,width,height )
     gl.uniform2f( loc_u_resolution, width, height )
 
     let total_time = 0.0;
-
-    function clamp255(v) {
-      return Math.min( Math.max( 0, v * 255 ), 255 )
-    }
 
     let frameCount = 0
     const render = function( timestamp ){
@@ -390,6 +381,11 @@ const SDF = {
       gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
       gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
       gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
+      gl.enableVertexAttribArray(loc_a_pos)
+      gl.enableVertexAttribArray(loc_a_uv)
+
+      gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
+      gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
 
       gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -398,33 +394,24 @@ const SDF = {
       // Create a color texture
       gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
 
-      //gl.bindFramebuffer( gl.FRAMEBUFFER, null )
+      //gl.bindBuffer (gl.ARRAY_BUFFER, null )
+      //gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null )
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null );
       //gl.viewport(0, 0, width, height )
-      //// select the texture we would like to draw to the screen.
-      //// note that webgl does not allow you to write to / read from the
-      //// same texture in a single render pass. Because of the swap, we're
-      //// displaying the state of our simulation ****before**** this render pass (frame)
-      //gl.activeTexture( gl.TEXTURE0 )
-      //gl.bindTexture( gl.TEXTURE_2D, colorTexture )
-      //gl.useProgram( programs[1] )
-      ////this.initBuffers()
-      //const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
-      //gl.uniform2f( u_resolution, width, height )
-      //gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
-      gl.bindBuffer (gl.ARRAY_BUFFER, null )
-      gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null )
-     //
 
+      gl.activeTexture( gl.TEXTURE0 )
+      gl.bindTexture( gl.TEXTURE_2D, colorTexture )
+      gl.useProgram( programs[1] )
+      //gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
+      //gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
+      ////this.initBuffers()
+      const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
+      gl.uniform2f( u_resolution, width, height )
+      gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+
+      //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
       m.draw( total_time )
     }.bind( SDF )
-
-    //const dof = MP.dof();     
-    //const merger = new MP.Merger(
-    //  [dof], 
-    //  this.canvas, 
-    //  gl, 
-    //  { buffers: [depthBuffer] }
-    //)
 
     render.running = true
 

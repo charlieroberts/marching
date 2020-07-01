@@ -241,7 +241,7 @@ const SDF = {
     this.__isPaused = !this.__isPaused
   },
 
-  initBuffers( width, height ) {
+  initBuffers( width, height, colorTexture, depthTexture ) {
     const gl = this.gl
     gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
     gl.clear(gl.COLOR_BUFFER_BIT)
@@ -262,87 +262,128 @@ const SDF = {
 
     const indices = new Uint16Array( [0, 1, 2, 2, 1, 3] )
 
+    const framebuffer = gl.createFramebuffer()
+ 
     gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
     gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
-    
-    return { vbo, ibo, vertices, indices }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.drawBuffers([
+      gl.COLOR_ATTACHMENT0,
+      gl.COLOR_ATTACHMENT1 
+    ])
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0);
+
+    return { vbo, ibo, vertices, indices, framebuffer }
   },
 
-  initWebGL( vs_source, fs_source, width, height,shouldAnimate=false ) {
-    const gl = this.gl
-    //if( shouldInit === true ) this.initBuffers()
-    
-    // XXX clean all this up!
-    const colorTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, colorTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  initUniforms( gl, program ) {
+    const aPos = this.gl.getAttribLocation( this.program, "a_pos" )
+    const aUV = this.gl.getAttribLocation( this.program, "a_uv" )
+
+    const uTime= this.gl.getUniformLocation( this.program, "time" )
+    const uResolution = this.gl.getUniformLocation( this.program, "resolution" )
+
+    return { aPos, aUV, uTime, uResolution } 
+  },
+
+  initTextures( gl, width, height ) {
+    const colorTexture = gl.createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, colorTexture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+    gl.myColorTexture = colorTexture
 
     const depthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindTexture(gl.TEXTURE_2D, depthTexture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
 
+    return { colorTexture, depthTexture }
+  },
+
+  updateLocations() {
+    this.postprocessing.forEach( pp => pp.update_location( this.gl, this.program ) )
+    this.scene.update_location( this.gl, this.program )
+    this.textures.update_location( this.gl, this.program )
+    this.materials.update_location( this.gl, this.program )
+    this.lighting.update_location( this.gl, this.program )
+  },
+
+  initShaderProgram( vs, fs, gl ) {
+    const programs = this.createProgram( vs, fs )
+    this.program = programs[0]
+
+    return programs
+  },
+
+  uploadData( gl ) {
+    this.materials.upload_data( gl )
+    this.textures.upload_data( gl )
+    this.scene.upload_data( gl )
+    this.lighting.upload_data( gl )
+    this.postprocessing.forEach( pp => pp.upload_data( gl ) )
+  },
+
+  uploadVertices( gl, aPos, aUV, vertices, indices ) {
+    gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
+    gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
+
+    gl.enableVertexAttribArray( aPos )
+    gl.enableVertexAttribArray( aUV )
+
+    gl.vertexAttribPointer( aPos, 3, gl.FLOAT, false, 20, 0)
+    gl.vertexAttribPointer( aUV, 2, gl.FLOAT, false, 20, 12)
+  },
+
+  initMergePass( colorTexture, depthTexture ) {
     const lenExpr = MP.op(MP.len(MP.ncfcoord()), "*", 3);
     //const merger = new MP.Merger([MP.blur2d(lenExpr, lenExpr, 6)], sourceCanvas, gl);
+
     window.MP = MP
-    window.fl = MP.float(MP.mut(1));
-    window.fl2 = MP.float(MP.mut(1));
+    window.fl = MP.float( MP.mut(1) )
+    window.fl2 = MP.float( MP.mut(1) )
     window.dof = MP.dof()
     const m = new MP.Merger([
 
-      dof
+      //dof
       //MP.blur2d(lenExpr, lenExpr, 2)     
       //MP.fxaa()
       //MP.blur2d(fl, fl2)
-      //MP.hsv2rgb((c = MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.mut(0.5), "r", "+")))
+      MP.hsv2rgb((c = MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.mut(0.5), "r", "+")))
       //MP.hsv2rgb(MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.op(MP.time(), '/', 5), "r", "+"))
-    ], colorTexture, this.gl, { channels: [depthTexture] });
-    
-    const programs = this.createProgram( vs_source, fs_source )
-    const program = this.program = programs[0]
-    gl.useProgram( this.program )
+    ], colorTexture, this.gl, { channels: [ depthTexture ] })
 
-    const { vbo, ibo, vertices, indices } = this.initBuffers( width, height )
+    return m
+  },
 
-    const framebuffer = gl.createFramebuffer()
+  initWebGL( vs, fs, width, height,shouldAnimate=false ) {
+    const gl                                = this.gl,
+          programs                          = this.initShaderProgram( vs, fs, gl ),
+          { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),
+          { aPos, aUV, uTime, uResolution } = this.initUniforms( gl, programs[0] ),
+          merger                            = this.initMergePass( colorTexture, depthTexture ),
+          { vbo, ibo, vertices, indices, framebuffer } = this.initBuffers( width, height, colorTexture, depthTexture )
  
-    const loc_a_pos = gl.getAttribLocation(program, "a_pos");
-    const loc_a_uv = gl.getAttribLocation(program, "a_uv");
+    let total_time = 0.0,
+        frameCount = 0
 
-    const loc_u_time = gl.getUniformLocation(program, "time");
-    const loc_u_resolution = gl.getUniformLocation(program, "resolution" )
-
-    this.postprocessing.forEach( pp => pp.update_location( gl, program ) )
-
-    this.scene.update_location( gl, program )
-    this.textures.update_location( gl, program )
-    this.materials.update_location( gl, program )
-    this.lighting.update_location( gl, program )
-
-    //gl.enableVertexAttribArray(loc_a_pos)
-    //gl.enableVertexAttribArray(loc_a_uv)
-
-    //gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
-    //gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
+    gl.useProgram( this.program )
+    this.updateLocations( gl, this.program )
+    this.uploadVertices( gl, aPos, aUV, vertices, indices )
 
     gl.viewport( 0,0,width,height )
-    gl.uniform2f( loc_u_resolution, width, height )
-
-    let total_time = 0.0;
-
-    let frameCount = 0
+    gl.uniform2f( uResolution, width, height )
+ 
     const render = function( timestamp ){
       gl.useProgram( this.program )
-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0);
+      gl.bindFramebuffer( gl.FRAMEBUFFER, framebuffer )
 
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
@@ -362,60 +403,52 @@ const SDF = {
         }
 
         total_time = timestamp / 1000.0
-        gl.uniform1f( loc_u_time, total_time )
+        gl.uniform1f( uTime, total_time )
 
         this.callbacks.forEach( cb => cb( total_time, this.currentTime ) )
 
-        if( typeof window.onframe === 'function' ) {
-          window.onframe( total_time )
-        }
+        if( typeof window.onframe === 'function' ) window.onframe( total_time )
       }
 
-      this.materials.upload_data( gl )
-      this.textures.upload_data( gl )
-      this.scene.upload_data( gl )
-      this.lighting.upload_data( gl )
-      this.postprocessing.forEach( pp => pp.upload_data( gl ) )
+      // transfer all data associated with uniforms in marching.js
+      this.uploadData( gl )
 
-      gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
-      gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
-      gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
-      gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
-      gl.enableVertexAttribArray(loc_a_pos)
-      gl.enableVertexAttribArray(loc_a_uv)
-
-      gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
-      gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
-
-      gl.drawBuffers([
-        gl.COLOR_ATTACHMENT0,
-        gl.COLOR_ATTACHMENT1 
-      ])
-      // Create a color texture
+      // draw to color and depth texturese
       gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
 
-      //gl.bindBuffer (gl.ARRAY_BUFFER, null )
-      //gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null )
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null );
-      //gl.viewport(0, 0, width, height )
+      /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS COLOR OUPTUT ***************/
+      this.runCopyShader( gl, width, height, aPos, aUV, programs, colorTexture )
+      
+      /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS DEPTH OUPTUT ***************/
+      //this.runCopyShader( gl, width, height, aPos, aUV, programs, depthTexture )
+ 
+      // disable to avoid warning in mergepass rendering
+      gl.disableVertexAttribArray( aPos )
+      gl.disableVertexAttribArray( aUV )
 
-      gl.activeTexture( gl.TEXTURE0 )
-      gl.bindTexture( gl.TEXTURE_2D, colorTexture )
-      gl.useProgram( programs[1] )
-      //gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
-      //gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
-      ////this.initBuffers()
-      const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
-      gl.uniform2f( u_resolution, width, height )
-      gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+      // mergepass render
+      merger.draw( total_time )
 
-      //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
-      m.draw( total_time )
     }.bind( SDF )
 
     render.running = true
 
     return render    
+  },
+
+  runCopyShader( gl, width, height, loc_a_pos, loc_a_uv, programs, colorTexture ) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null )
+
+    gl.bindTexture(gl.TEXTURE_2D, colorTexture)
+    gl.viewport(0, 0, width, height )
+
+    gl.useProgram( programs[1] )
+    gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
+    gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
+    const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
+    gl.uniform2f( u_resolution, width, height )
+    gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+
   }
 }
 

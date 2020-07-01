@@ -26,7 +26,8 @@
     "glslify": "^6.1.0",
     "mousetrap": "^1.6.1",
     "tsify": "^4.0.2",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.5",
+    "@bandaloo/merge-pass": "latest"
   },
   "devDependencies": {
     "browserify": "^14.5.0",

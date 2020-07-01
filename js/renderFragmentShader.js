@@ -47,7 +47,8 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
   layout(location = 0) out vec4 col;
   layout(location = 1) out vec4 depth;
   void main() {
-    vec2 pos = v_uv * 2.0 - 1.0;
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 pos = uv * 2.0 - 1.0;
 
     // not sure why I need the -y axis but without it
     // everything is flipped using perspective-camera
@@ -127,7 +128,8 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
 
   out vec4 col;
   void main() {
-    vec2 pos = v_uv * 2.0 - 1.0;
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 pos = uv * 2.0 - 1.0;
 
     // not sure why I need the -y axis but without it
     // everything is flipped using perspective-camera
@@ -188,7 +190,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
 
       float PI = 3.141592653589793;
 
-      in vec2 v_uv;
+
 
       struct Light {
         vec3 position;
@@ -226,6 +228,8 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       uniform vec3 camera_normal;
       uniform float camera_rot;
       uniform mat4 camera;
+
+      
 
       ${variables}
 

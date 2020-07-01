@@ -8,6 +8,7 @@ const tsify = require('tsify')
 gulp.task('build', function () {
   
   browserify({
+    debug:true,
     entries: './js/index.js',
   })
   .plugin( tsify )

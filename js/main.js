@@ -34,13 +34,10 @@ const SDF = {
   __isPaused:false,
 
   defaultVertexSource:`    #version 300 es
-    in vec3 a_pos;
-		in vec2 a_uv;
-		out vec2 v_uv;
+    in vec2 a_pos;
 
 		void main() {
-			v_uv = a_uv;
-			gl_Position = vec4(a_pos, 1.0);
+			gl_Position = vec4( a_pos, 0., 1. );
     }`
   ,
 
@@ -246,27 +243,42 @@ const SDF = {
     gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
     gl.clear(gl.COLOR_BUFFER_BIT)
 
+    const framebuffer = gl.createFramebuffer()
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     const vbo = gl.createBuffer()
 
+    //const vertices = new Float32Array([
+    //  -1.0, -1.0, 0.0,
+    //  0.0, 0.0, 1.0, 
+    //  -1.0, 0.0, 1.0, 
+    //  0.0, -1.0, 1.0, 
+    //  0.0, 0.0, 1.0,
+    //  1.0, 1.0, 0.0, 1.0, 1.0
+    //])
+
     const vertices = new Float32Array([
-      -1.0, -1.0, 0.0, 0.0, 0.0,
-      1.0, -1.0, 0.0, 1.0, 0.0,
-      -1.0, 1.0, 0.0, 0.0, 1.0,
-      1.0, 1.0, 0.0, 1.0, 1.0
+      -1, -1,
+      1,  -1,
+      -1, 1,
+      -1, 1,
+      1, -1,
+      1, 1
     ])
 
+    // initialize memory for buffer and populate it. Give
+    // open gl hint contents will not change dynamically.
     gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
     gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
+    //gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
 
-    const ibo = gl.createBuffer()
+    //const ibo = gl.createBuffer()
 
-    const indices = new Uint16Array( [0, 1, 2, 2, 1, 3] )
+    //const indices = new Uint16Array( [0, 1, 2, 2, 1, 3] )
 
-    const framebuffer = gl.createFramebuffer()
  
-    gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
-    gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    //gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
+    //gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
+
     gl.drawBuffers([
       gl.COLOR_ATTACHMENT0,
       gl.COLOR_ATTACHMENT1 
@@ -274,17 +286,16 @@ const SDF = {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0);
 
-    return { vbo, ibo, vertices, indices, framebuffer }
+    return { vbo, vertices, framebuffer }
   },
 
   initUniforms( gl, program ) {
     const aPos = this.gl.getAttribLocation( this.program, "a_pos" )
-    const aUV = this.gl.getAttribLocation( this.program, "a_uv" )
 
     const uTime= this.gl.getUniformLocation( this.program, "time" )
     const uResolution = this.gl.getUniformLocation( this.program, "resolution" )
 
-    return { aPos, aUV, uTime, uResolution } 
+    return { aPos, uTime, uResolution } 
   },
 
   initTextures( gl, width, height ) {
@@ -331,15 +342,12 @@ const SDF = {
     this.postprocessing.forEach( pp => pp.upload_data( gl ) )
   },
 
-  uploadVertices( gl, aPos, aUV, vertices, indices ) {
+  uploadVertices( gl, aPos, vertices ) {
     gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
-    gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
+    //gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
 
     gl.enableVertexAttribArray( aPos )
-    gl.enableVertexAttribArray( aUV )
-
-    gl.vertexAttribPointer( aPos, 3, gl.FLOAT, false, 20, 0)
-    gl.vertexAttribPointer( aUV, 2, gl.FLOAT, false, 20, 12)
+    gl.vertexAttribPointer( aPos, 2, gl.FLOAT, false, 0, 0)
   },
 
   initMergePass( colorTexture, depthTexture ) {
@@ -352,11 +360,11 @@ const SDF = {
     window.dof = MP.dof()
     const m = new MP.Merger([
 
-      //dof
+      dof
       //MP.blur2d(lenExpr, lenExpr, 2)     
       //MP.fxaa()
       //MP.blur2d(fl, fl2)
-      MP.hsv2rgb((c = MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.mut(0.5), "r", "+")))
+      //MP.hsv2rgb((c = MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.mut(0.5), "r", "+")))
       //MP.hsv2rgb(MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.op(MP.time(), '/', 5), "r", "+"))
     ], colorTexture, this.gl, { channels: [ depthTexture ] })
 
@@ -367,16 +375,16 @@ const SDF = {
     const gl                                = this.gl,
           programs                          = this.initShaderProgram( vs, fs, gl ),
           { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),
-          { aPos, aUV, uTime, uResolution } = this.initUniforms( gl, programs[0] ),
+          { aPos, uTime, uResolution }      = this.initUniforms( gl, programs[0] ),
           merger                            = this.initMergePass( colorTexture, depthTexture ),
-          { vbo, ibo, vertices, indices, framebuffer } = this.initBuffers( width, height, colorTexture, depthTexture )
+          { vbo, vertices, framebuffer } = this.initBuffers( width, height, colorTexture, depthTexture )
  
     let total_time = 0.0,
         frameCount = 0
 
     gl.useProgram( this.program )
     this.updateLocations( gl, this.program )
-    this.uploadVertices( gl, aPos, aUV, vertices, indices )
+    this.uploadVertices( gl, aPos, vertices )
 
     gl.viewport( 0,0,width,height )
     gl.uniform2f( uResolution, width, height )
@@ -384,6 +392,8 @@ const SDF = {
     const render = function( timestamp ){
       gl.useProgram( this.program )
       gl.bindFramebuffer( gl.FRAMEBUFFER, framebuffer )
+
+      gl.enableVertexAttribArray( aPos )
 
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
@@ -414,17 +424,18 @@ const SDF = {
       this.uploadData( gl )
 
       // draw to color and depth texturese
-      gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+      //gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+      gl.bindBuffer( gl.ARRAY_BUFFER, vbo )
+      gl.drawArrays( gl.TRIANGLES, 0, 6 )
 
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS COLOR OUPTUT ***************/
-      this.runCopyShader( gl, width, height, aPos, aUV, programs, colorTexture )
+      //this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
       
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS DEPTH OUPTUT ***************/
-      //this.runCopyShader( gl, width, height, aPos, aUV, programs, depthTexture )
+      //this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )
  
       // disable to avoid warning in mergepass rendering
-      gl.disableVertexAttribArray( aPos )
-      gl.disableVertexAttribArray( aUV )
+      //gl.disableVertexAttribArray( aPos )
 
       // mergepass render
       merger.draw( total_time )
@@ -436,19 +447,21 @@ const SDF = {
     return render    
   },
 
-  runCopyShader( gl, width, height, loc_a_pos, loc_a_uv, programs, colorTexture ) {
+  runCopyShader( gl, width, height, loc_a_pos, programs, colorTexture, vbo ) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null )
 
     gl.bindTexture(gl.TEXTURE_2D, colorTexture)
     gl.viewport(0, 0, width, height )
 
+    gl.bindBuffer( gl.ARRAY_BUFFER, vbo )
     gl.useProgram( programs[1] )
+
     gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
-    gl.vertexAttribPointer(loc_a_uv, 2, gl.FLOAT, false, 20, 12)
     const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
     gl.uniform2f( u_resolution, width, height )
-    gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
 
+    //gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
+    gl.drawArrays( gl.TRIANGLES, 0, 6 )
   }
 }
 

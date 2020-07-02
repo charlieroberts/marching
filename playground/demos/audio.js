@@ -111,4 +111,41 @@ onframe = t => {
   b.size = fft * .75
   
   sphere.radius = FFT.high / 2 
-}`
+}
+
+/* __--__--__--__--__--__--__--____
+By default, the FFT assigns frequences 
+< 150 Hz o FFT.low, 150-1400Hz to
+FFT.mid, and all remaining frequencies
+to FFT.high. However, you can also
+define your own definitions by passing
+an array to FFT.start(); if you do this
+the averages will then be in FFT[0], 
+FFT[1], FFT[2] etc. Below is the first
+example from this tutorial, modified
+to use more bins.
+__--__--__--__--__--__--__--____ */
+
+march(
+  si = StairsIntersection(
+    Sphere(2).material( 'white' ),
+    repeat = Repeat(
+      sphere = Sphere(.125),
+      Vec3(.5)
+    ),
+    .125
+  )
+).render( 4, true )
+ 
+// start our FFT
+FFT.start([100,200,400,800,1600,3200,6400,12800,22050])
+ 
+onframe = time => {
+  si.rotate( time * 15 )
+  
+  repeat.distance.x = FFT[0]
+  repeat.distance.y = FFT[1] + FFT[2]
+  repeat.distance.z = FFT[3]
+  sphere.radius = FFT[4] * FFT[5]
+}
+`

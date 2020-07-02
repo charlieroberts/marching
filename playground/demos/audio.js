@@ -1,4 +1,5 @@
-module.exports=`/* __--__--__--__--__--__--__--____
+module.exports = `
+/* __--__--__--__--__--__--__--____
 Audio-Reactive Visuals
 
 marching.js will perform an FFT analysis

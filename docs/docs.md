@@ -720,6 +720,28 @@ Halve.DOWN (1): Cut off the lower half of the SDF.
 Halve.LEFT (2): Cut off the left half of the SDF.   
 Halve.RIGHT (3): Cut off the right half of the SDF.    
 
+Mirror
+----
+This operation mirrors a distance field around the world's origin. Mirroring centered objects will create any effect, however, mirroring objects that are translated and rotated will create duplicates of the object along each axis where translation occurs. Mirroring is one of the "funnest" transformations in marching.js and should definitely be explored. [See this demo for an example of using Mirror procedurally](https://gist.github.com/charlieroberts/5518b0f99af48c27bdc015502a89137c). 
+
+#### Constructor ####
+**sdf** &nbsp; *object* &nbsp; A signed distance field to be mirrored. 
+
+#### Example ####
+```js
+march(
+  m = Mirror(
+    Mirror(
+      Mirror(
+        Box().scale(.275).translate(.5,.25,.35)
+      ).rotate(45,1,.5,.25).translate(.5,.5,.5)
+    ).rotate(45,.25,.5,1).translate(.25,.25,.25)
+  )
+).render('med')
+
+onframe = t => m.rotate(t*20,1,1,1)
+```
+
 Onion
 ----
 This operation 'hollows out' a signed distance fields, letting you choose the width of the outer wall. Note that you'll need to view the inside of the SDF (either by moving the camera inside of it or by cutting the SDF in half using Halve) in order to see the effects.

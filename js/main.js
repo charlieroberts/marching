@@ -80,6 +80,7 @@ const SDF = {
     this.canvas.width = this.canvasMP.width = window.innerWidth 
     this.canvas.height = this.canvasMP.height = window.innerHeight
     this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
+
     //this.glMP = this.canvasMP.getContext( 'webgl2', { antialias:true, alpha:true })
   },
   // generate shaders, initialize camera, start rendering loop 
@@ -358,9 +359,16 @@ const SDF = {
     window.fl = MP.float( MP.mut(1) )
     window.fl2 = MP.float( MP.mut(1) )
     window.dof = MP.dof()
+    //const pos =  MP.vec2(MP.op(0.5, "+", MP.op((pos = MP.float(MP.mut(0))), "/", 5)), 0.5)
+    const pos = MP.mut(MP.pvec2(0.2, 0.2))
     const m = new MP.Merger([
 
-      dof
+      dof,
+(godrays = MP.godrays(MP.fcolor(), MP.mut(1.0), MP.mut(0.99), MP.mut(1.0), MP.mut(0.01), pos, 0, {
+
+            threshold: -0.2,
+            newColor: MP.vec4(.5,.15,0,1),
+        }))
       //MP.blur2d(lenExpr, lenExpr, 2)     
       //MP.fxaa()
       //MP.blur2d(fl, fl2)
@@ -434,9 +442,6 @@ const SDF = {
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS DEPTH OUPTUT ***************/
       //this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )
  
-      // disable to avoid warning in mergepass rendering
-      //gl.disableVertexAttribArray( aPos )
-
       // mergepass render
       merger.draw( total_time )
 
@@ -456,11 +461,9 @@ const SDF = {
     gl.bindBuffer( gl.ARRAY_BUFFER, vbo )
     gl.useProgram( programs[1] )
 
-    gl.vertexAttribPointer(loc_a_pos, 3, gl.FLOAT, false, 20, 0)
     const u_resolution = gl.getUniformLocation(programs[1], "resolution" )
     gl.uniform2f( u_resolution, width, height )
 
-    //gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
     gl.drawArrays( gl.TRIANGLES, 0, 6 )
   }
 }

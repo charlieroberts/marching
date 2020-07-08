@@ -224,6 +224,12 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return float( pow( pow(p.x,8.)+pow(p.y,8.), 1./8. ) ); 
       }
 
+      vec4 opElongate( in vec3 p, in vec3 h ) {
+        //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
+       
+        vec3 q = abs(p)-h;
+        return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );
+      }
       ${ops}
 
       /* GEOMETRIES */

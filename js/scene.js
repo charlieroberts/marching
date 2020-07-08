@@ -218,6 +218,7 @@ const getScene = function( SDF ) {
       this.animate( animate )
 
       SDF.distanceOps.__clear()
+      SDF.alterations.__clear()
       SDF.textures.clear()
       const geometries = SDF.primitives.emit_geometries()
 
@@ -236,7 +237,7 @@ const getScene = function( SDF ) {
         lighting,
         postprocessing, 
         this.__steps, this.__threshold, this.__farPlane.toFixed(1),
-        SDF.distanceOps.__getGLSL(),
+        SDF.distanceOps.__getGLSL() + SDF.alterations.__getGLSL(),
         this.useVoxels ? this.__voxelSize : 0
       )
 

@@ -757,7 +757,7 @@ march(
     Onion(
       Onion(
         Onion(
-          Sphere( null,null,Material.normal ),
+          Sphere().material('normal'),
           .1
         ),
         .05
@@ -768,7 +768,7 @@ march(
   )
 )
 .render()
-.camera( 0,3,4 )
+.camera( 0,.75,3 )
 ```
 
 Round

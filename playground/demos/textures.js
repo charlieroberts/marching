@@ -1,4 +1,4 @@
-module.exports = `zigzag = Box(.5)
+module.exports =`zigzag = Box(.5)
   .move( -2,1.25 )
   .texture(
     'zigzag', 
@@ -66,8 +66,17 @@ cellular = Box(.5)
       strength:1 
     }
 )
+
+rainbows = Box(.5)
+  .move( -0,-1.55)
+  .texture(
+    'rainbow', 
+    { 
+      scale:4
+    }
+)
  
-voronoi= Box(.5)
+voronoi = Box(.5)
   .move( 2,-1.55 )
   .texture(
     'voronoi', 
@@ -83,6 +92,6 @@ bg = Plane( Vec3(0,0,1), .5 ).material('white glow')
 march( 
   zigzag, dots, noise, 
   truchet, stripes, cellular, 
-  checkers, voronoi, bg
+  checkers, rainbows, voronoi, bg
 )
-.render()` 
+.render()`

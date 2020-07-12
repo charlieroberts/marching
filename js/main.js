@@ -300,6 +300,8 @@ const SDF = {
   },
 
   initTextures( gl, width, height ) {
+    gl.getExtension( 'EXT_color_buffer_float' )
+
     const colorTexture = gl.createTexture()
     gl.bindTexture(gl.TEXTURE_2D, colorTexture)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -315,7 +317,7 @@ const SDF = {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, null)
 
     return { colorTexture, depthTexture }
   },
@@ -364,11 +366,11 @@ const SDF = {
     const m = new MP.Merger([
 
       dof,
-(godrays = MP.godrays(MP.fcolor(), MP.mut(1.0), MP.mut(0.99), MP.mut(1.0), MP.mut(0.01), pos, 0, {
+//(godrays = MP.godrays(MP.fcolor(), MP.mut(1.0), MP.mut(0.99), MP.mut(1.0), MP.mut(0.01), pos, 0, {
 
-            threshold: -0.2,
-            newColor: MP.vec4(.5,.15,0,1),
-        }))
+//            threshold: -0.2,
+//            newColor: MP.vec4(.5,.15,0,1),
+//        }))
       //MP.blur2d(lenExpr, lenExpr, 2)     
       //MP.fxaa()
       //MP.blur2d(fl, fl2)

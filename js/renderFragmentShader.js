@@ -75,8 +75,8 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     col = clamp( vec4( color, 1.0 ), 0., 1. );
 
     
-    float normalizedDepth = 1. - exp( -t.x );// 1. / (1. + abs(samplePos.z-ro.z) );
-    depth = abs(samplePos.z - ro.z ) < ${maxDistance} ? vec4( vec3( 1. - normalizedDepth ), 1. ) : vec4(0.);
+    float normalizedDepth = t.x / ${maxDistance};  //1. - exp( -t.x );// 1. / (1. + abs(samplePos.z-ro.z) );
+    depth = abs(samplePos.z - ro.z ) < ${maxDistance} ? vec4( vec3( normalizedDepth ), 1. ) : vec4(0.);
   }`
 
   return out

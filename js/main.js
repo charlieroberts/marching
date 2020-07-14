@@ -1,4 +1,3 @@
-const MP   = require( '../node_modules/merge-pass/dist/index.js' )
 const SDF = {
   camera:           require( './camera.js' ),
   __primitives:     require( './primitives.js' ),
@@ -15,6 +14,7 @@ const SDF = {
   Var:              require( './var.js' ).Var,
   //Color:            require( './color.js' ),
   FFT:              require( './audio.js' ),
+  fx:               require( './mergepass.js' ),
 
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),
@@ -51,6 +51,8 @@ const SDF = {
       this.distanceDeforms,
       this.alterations
     )
+
+    this.fx.export( obj )
 
     obj.Light = this.Light
     obj.Material = this.Material
@@ -229,6 +231,10 @@ const SDF = {
   clear() {
     if( this.callbacks !== undefined ) this.callbacks.length = 0
     if( this.render !== null ) this.render.running = false
+
+    // remove post-processing fx
+    this.fx.clear()
+
     this.geometries.length = 0
 
     const gl = this.gl
@@ -248,15 +254,6 @@ const SDF = {
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     const vbo = gl.createBuffer()
 
-    //const vertices = new Float32Array([
-    //  -1.0, -1.0, 0.0,
-    //  0.0, 0.0, 1.0, 
-    //  -1.0, 0.0, 1.0, 
-    //  0.0, -1.0, 1.0, 
-    //  0.0, 0.0, 1.0,
-    //  1.0, 1.0, 0.0, 1.0, 1.0
-    //])
-
     const vertices = new Float32Array([
       -1, -1,
       1,  -1,
@@ -270,20 +267,12 @@ const SDF = {
     // open gl hint contents will not change dynamically.
     gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
     gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
-    //gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
-
-    //const ibo = gl.createBuffer()
-
-    //const indices = new Uint16Array( [0, 1, 2, 2, 1, 3] )
-
- 
-    //gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, ibo )
-    //gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
 
     gl.drawBuffers([
       gl.COLOR_ATTACHMENT0,
       gl.COLOR_ATTACHMENT1 
     ])
+
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0);
 
@@ -304,13 +293,16 @@ const SDF = {
 
     const colorTexture = gl.createTexture()
     gl.bindTexture(gl.TEXTURE_2D, colorTexture)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    
+    // must use linear interpolation for merge-pass integration 
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR )
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR )
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE )
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE )
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
     gl.myColorTexture = colorTexture
 
+    // store depth in floating point texture
     const depthTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, depthTexture)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -347,38 +339,9 @@ const SDF = {
 
   uploadVertices( gl, aPos, vertices ) {
     gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
-    //gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW )
 
     gl.enableVertexAttribArray( aPos )
     gl.vertexAttribPointer( aPos, 2, gl.FLOAT, false, 0, 0)
-  },
-
-  initMergePass( colorTexture, depthTexture ) {
-    const lenExpr = MP.op(MP.len(MP.ncfcoord()), "*", 3);
-    //const merger = new MP.Merger([MP.blur2d(lenExpr, lenExpr, 6)], sourceCanvas, gl);
-
-    window.MP = MP
-    window.fl = MP.float( MP.mut(1) )
-    window.fl2 = MP.float( MP.mut(1) )
-    window.dof = MP.dof()
-    //const pos =  MP.vec2(MP.op(0.5, "+", MP.op((pos = MP.float(MP.mut(0))), "/", 5)), 0.5)
-    const pos = MP.mut(MP.pvec2(0.2, 0.2))
-    const m = new MP.Merger([
-
-      dof,
-//(godrays = MP.godrays(MP.fcolor(), MP.mut(1.0), MP.mut(0.99), MP.mut(1.0), MP.mut(0.01), pos, 0, {
-
-//            threshold: -0.2,
-//            newColor: MP.vec4(.5,.15,0,1),
-//        }))
-      //MP.blur2d(lenExpr, lenExpr, 2)     
-      //MP.fxaa()
-      //MP.blur2d(fl, fl2)
-      //MP.hsv2rgb((c = MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.mut(0.5), "r", "+")))
-      //MP.hsv2rgb(MP.changecomp(MP.rgb2hsv(MP.fcolor()), MP.op(MP.time(), '/', 5), "r", "+"))
-    ], colorTexture, this.gl, { channels: [ depthTexture ] })
-
-    return m
   },
 
   initWebGL( vs, fs, width, height,shouldAnimate=false ) {
@@ -386,11 +349,13 @@ const SDF = {
           programs                          = this.initShaderProgram( vs, fs, gl ),
           { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),
           { aPos, uTime, uResolution }      = this.initUniforms( gl, programs[0] ),
-          merger                            = this.initMergePass( colorTexture, depthTexture ),
-          { vbo, vertices, framebuffer } = this.initBuffers( width, height, colorTexture, depthTexture )
+          { vbo, vertices, framebuffer }    = this.initBuffers( width, height, colorTexture, depthTexture )
  
     let total_time = 0.0,
         frameCount = 0
+
+    // only init post-processing if effects have been registered
+    if( this.fx.chain.length > 0 ) this.fx.init( colorTexture, depthTexture, gl )
 
     gl.useProgram( this.program )
     this.updateLocations( gl, this.program )
@@ -434,7 +399,6 @@ const SDF = {
       this.uploadData( gl )
 
       // draw to color and depth texturese
-      //gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 )
       gl.bindBuffer( gl.ARRAY_BUFFER, vbo )
       gl.drawArrays( gl.TRIANGLES, 0, 6 )
 
@@ -445,7 +409,10 @@ const SDF = {
       //this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )
  
       // mergepass render
-      merger.draw( total_time )
+      if( this.fx.merger !== null ) 
+        this.fx.merger.draw( total_time )
+      else
+        this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
 
     }.bind( SDF )
 

@@ -208,6 +208,12 @@ const getScene = function( SDF ) {
 
       return preset.animated
     },
+
+    post( ...fx ) {
+      SDF.fx.post( ...fx )
+      return this
+    },
+
     render( quality=10, animate=false, useQuality=true ) {
       this.background() // adds default if none has been specified
       if( typeof quality === 'string' ) {

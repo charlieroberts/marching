@@ -1,5 +1,3 @@
-const glsl = require( 'glslify' )
-
 const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing ) {
   const out = `
   // adapted from https://www.shadertoy.com/view/ldfSWs
@@ -74,7 +72,6 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     
     col = clamp( vec4( color, 1.0 ), 0., 1. );
 
-    
     float normalizedDepth = t.x / ${maxDistance};  //1. - exp( -t.x );// 1. / (1. + abs(samplePos.z-ro.z) );
     depth = abs(samplePos.z - ro.z ) < ${maxDistance} ? vec4( vec3( normalizedDepth ), 1. ) : vec4(0.);
   }`
@@ -183,7 +180,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
     ? getMainContinuous( steps, minDistance, maxDistance, postprocessing ) 
     : getMainVoxels( steps, postprocessing, voxelSize )
 
-    const fs_source = glsl`     #version 300 es
+    const fs_source = `     #version 300 es
       precision mediump float;
 
       float PI = 3.141592653589793;

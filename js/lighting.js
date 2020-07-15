@@ -479,51 +479,6 @@ const Lights = function( SDF ) {
         return str
       }, 
 
-
-      global_save( numlights, lights, materials, shadow='' ) {
-        const str = glsl`
-        #pragma glslify: calcAO = require( 'glsl-sdf-ops/ao', map = scene )
-
-        ${materials}
-
-        ${lights}
-
-        vec3 lighting( vec3 pos, vec3 nor, vec3 ro, vec3 rd, float materialID ) {
-          Light light = lights[ 0 ];
-          vec3  ref = reflect( rd, nor ); // reflection angle
-          float occ = calcAO( pos, nor );
-          vec3  lig = normalize( light.position ); // light position
-          float amb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0 );
-          float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
-
-          // simulated backlight
-          float bac = clamp( dot( nor, normalize( vec3( -lig.x, 0.0 , -lig.z ))), 0.0, 1.0 ) * clamp( 1.0-pos.y, 0.0 ,1.0 );
-
-          // simulated skydome light
-          float dom = smoothstep( -0.1, 0.1, ref.y );
-          float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 2.0 );
-          float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );
-
-          dif *= softshadow( pos, lig, 0.02, 2.5, 8. );
-          dom *= softshadow( pos, ref, 0.02, 2.5, 8. );
-
-          Material mat = materials[ int(materialID) ];
-
-          vec3 brdf = vec3( 0.0 );
-          brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;
-          brdf += 2.20 * spe * vec3( 1.00,0.90,0.60 ) * dif * mat.specular * light.color;
-          brdf += 0.30 * amb * vec3( 0.50,0.70,1.00 ) * occ * mat.ambient * light.color;
-          brdf += 0.40 * dom * vec3( 0.50,0.70,1.00 ) * occ;
-          brdf += 0.70 * bac * vec3( 0.25 ) * occ;
-          brdf += 0.40 * (fre * light.color) * occ;
-
-          return brdf;
-        }`
-
-        return str
-
-      },
-
       normal() { return '' },
       noise() { return '' }
     },

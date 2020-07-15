@@ -27,14 +27,25 @@ const FX = {
   },
 
   post( ...fx ) {
-    FX.chain = fx.map( v => v.__wrapped__ )
+    //FX.chain = fx.map( v => v.__wrapped__ )
+    FX.chain.length = 0
+
+    fx.forEach( v => {
+      if( Array.isArray( v.__wrapped__ ) ) {
+        v.__wrapped__.forEach( w => FX.chain.push( w ) )
+      }else{
+        FX.chain.push( v.__wrapped__ )
+      }
+    })
   },
 
   export( obj ) {
+    obj.Glow = FX.Glow
     obj.Blur = FX.Blur
     obj.Bokeh = FX.Bokeh
     obj.Godrays = FX.Godrays
     obj.Antialias = FX.Antialias
+    obj.MotionBlur = FX.MotionBlur
   },
 
   wrapProperty( obj, name, __value ) {
@@ -71,6 +82,29 @@ const FX = {
     return fx
   },
 
+  Glow( __contrast=1.2, __brightness = .15, __blur=1, __adjust=-.5, loops=5 ) {
+    
+    const fx = {},
+          contrast   = FX.wrapProperty( fx, 'contrast', __contrast ),
+          brightness = FX.wrapProperty( fx, 'brightness', __brightness ),
+          blur       = FX.wrapProperty( fx, 'blur', __blur ),
+          adjust     = FX.wrapProperty( fx, 'adjust', __adjust )
+
+    fx.__wrapped__ = [  
+      MP.loop([
+        MP.gauss(MP.vec2(blur, 0)),
+        MP.gauss(MP.vec2(0, blur)),
+        MP.brightness( brightness ),
+        MP.contrast( contrast),
+      ], loops ),
+      MP.brightness( adjust ),
+      MP.setcolor( MP.op( MP.fcolor(), "+", MP.input() ) )
+    ]
+
+    return fx
+  },
+
+
   Godrays( __decay=1, __weight=.01, __density=1 ) {
     const fx = {},
           decay   = FX.wrapProperty( fx, 'decay',   __decay   ),
@@ -79,15 +113,44 @@ const FX = {
 
     fx.__wrapped__ = MP.godrays({ 
       decay, weight, density,
-      threshold: -0.2,
+      threshold: 0.5,
       newColor: MP.vec4(.5,.15,0,1),
     })
 
     return fx
   },
 
+  MotionBlur() {
+    const fx = {}
+
+    fx.__wrapped__ = [ 
+      MP.loop([
+        MP.setcolor(
+          MP.op( 
+            MP.op( 
+              MP.input(), "+", MP.channel(0) 
+            ), 
+            "/", 
+            2 
+          )
+        )
+      ], 2 ).target( 0 ),
+        //MP.loop([MP.setcolor(MP.vec4(0, 1, 0, 1))], 1).target(0),
+        //MP.blur2d(3, 3).target(0),
+      MP.channel(0),
+    ]/*, sourceCanvas, gl, {
+        channels: [ null ]
+    })*/
+
+    return fx
+  },
+
   Antialias( mult=1 ) {
     return MP.loop([ MP.fxaa() ], mult )
+  },
+
+  Bloom() {
+  
   }
 }
 

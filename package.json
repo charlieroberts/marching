@@ -6,7 +6,6 @@
   "dependencies": {
     "@bandaloo/merge-pass": "^0.4.3",
     "codemirror": "^5.5.0",
-    "dat.gui": "^0.7.6",
     "get-pixels": "^3.3.2",
     "gl-texture2d": "^2.1.0",
     "glsl-diffuse-oren-nayar": "^1.0.2",

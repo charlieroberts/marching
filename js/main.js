@@ -273,9 +273,6 @@ const SDF = {
       gl.COLOR_ATTACHMENT1 
     ])
 
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0);
-
     return { vbo, vertices, framebuffer }
   },
 
@@ -357,6 +354,14 @@ const SDF = {
     // only init post-processing if effects have been registered
     if( this.fx.chain.length > 0 ) this.fx.init( colorTexture, depthTexture, gl )
 
+    if( this.fx.merger !== null ) {
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.fx.merger.tex.back.tex, 0 )
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, this.fx.merger.tex.bufTextures[0].tex, 0)
+    }else{
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0)
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0)
+    }
+
     gl.useProgram( this.program )
     this.updateLocations( gl, this.program )
     this.uploadVertices( gl, aPos, vertices )
@@ -403,10 +408,10 @@ const SDF = {
       gl.drawArrays( gl.TRIANGLES, 0, 6 )
 
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS COLOR OUPTUT ***************/
-      //this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
+      // this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
       
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS DEPTH OUPTUT ***************/
-      //this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )
+      // this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )
  
       // mergepass render
       if( this.fx.merger !== null ) 

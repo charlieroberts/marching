@@ -354,14 +354,6 @@ const SDF = {
     // only init post-processing if effects have been registered
     if( this.fx.chain.length > 0 ) this.fx.init( colorTexture, depthTexture, gl )
 
-    if( this.fx.merger !== null ) {
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.fx.merger.tex.back.tex, 0 )
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, this.fx.merger.tex.bufTextures[0].tex, 0)
-    }else{
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0)
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0)
-    }
-
     gl.useProgram( this.program )
     this.updateLocations( gl, this.program )
     this.uploadVertices( gl, aPos, vertices )
@@ -372,6 +364,14 @@ const SDF = {
     const render = function( timestamp ){
       gl.useProgram( this.program )
       gl.bindFramebuffer( gl.FRAMEBUFFER, framebuffer )
+    
+      if( this.fx.merger !== null ) {
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.fx.merger.tex.back.tex, 0 )
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, this.fx.merger.tex.bufTextures[0].tex, 0)
+      }else{
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0)
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0)
+      }
 
       gl.enableVertexAttribArray( aPos )
 

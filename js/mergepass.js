@@ -43,6 +43,8 @@ const FX = {
     obj.Glow       = FX.Glow
     obj.Blur       = FX.Blur
     obj.Bloom      = FX.Bloom
+    obj.Brightness = FX.Brightness
+    obj.Contrast   = FX.Contrast
     obj.Edge       = FX.Edge
     obj.Focus      = FX.Focus
     obj.Godrays    = FX.Godrays
@@ -76,13 +78,31 @@ const FX = {
     return fx
   },
 
-  Blur( amount=.5, reps=2, taps=5 ) {
+  Blur( amount=3, reps=2, taps=5 ) {
     const fx = {}
 
     const __amount = FX.wrapProperty( fx, 'amount', amount )
     fx.__wrapped__ = MP.blur2d( __amount, __amount, reps, taps )
 
     return fx 
+  },
+
+  Brightness( __amount=.25 ) {
+    const fx = {},
+          amount = FX.wrapProperty( fx, 'amount', __amount )
+
+    fx.__wrapped__ = MP.brightness( amount )
+
+    return fx
+  },
+
+  Contrast( __amount=.5 ) {
+    const fx = {},
+          amount = FX.wrapProperty( fx, 'amount', __amount )
+
+    fx.__wrapped__ = MP.contrast( amount )
+
+    return fx
   },
 
   Edge() {
@@ -124,12 +144,12 @@ const FX = {
   },
 
 
-  Godrays( __decay=1, __weight=.01, __density=1, __threshold=.1 ) {
+  Godrays( __decay=1, __weight=.01, __density=1, __threshold=.9 ) {
     const fx = {},
           decay   = FX.wrapProperty( fx, 'decay',   __decay   ),
           weight  = FX.wrapProperty( fx, 'weight',  __weight  ),
           density = FX.wrapProperty( fx, 'density', __density ),
-          threshold = FX.wrapProperty( fx, 'threshold', __threshold )
+          threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v )
 
     fx.__wrapped__ = MP.godrays({ 
       decay, weight, density,

@@ -869,6 +869,35 @@ onframe = t => {
   ri.rotate( t*15,1,.5,.25 )
 }
 ```
+Hue
+----
+The `Hue` effect shifts the hue of objects below a provided depth threshold. Using the default threshold value of .99 the scene will be inverted while the background retains its original color. With a threshold value of 1 the background color will also be changed.
+
+#### Constructor ####
+**shift** &nbsp; *float* &nbsp; Default:`.5`. The amount to shift the hue in the HSV color space.   
+**threshold** &nbsp; *float* &nbsp; Default:`.99`. Object fragments with a depth below this number (where depth is normalized to be between 0–1) will have their color inverted, other parts of the scene will be unaffected. 
+
+#### Example ####
+```js
+march(
+  Sphere()
+)
+.post( h = Hue() )
+.render('med')
+
+onframe = t => {
+  h.shift = t/5
+}
+```
+
+Invert
+----
+The `Invert` effect inverts the color of objects below a provided depth threshold. Using the default threshold value of .99 (really, any value lower than 1) the scene will be inverted while the background retains its original color. With a threshold value of 1 the background color will also be changed.
+
+
+
+#### Constructor ####
+**threshold** &nbsp; *float* &nbsp; Default:.99. Object fragments with a depth below this number (where depth is normalized to be between 0–1) will have their color inverted, other parts of the scene will be unaffected. 
 
 MotionBlur
 ----

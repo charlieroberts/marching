@@ -27,11 +27,11 @@ const getScene = function( SDF ) {
       __followLight:null
     })
 
-    scene.animate( shouldAnimate )
-      .steps( steps )
-      .threshold( minDistance )
-      .farPlane( maxDistance )
-      .resolution( 1 )
+    //scene.animate( shouldAnimate )
+    //  .steps( steps )
+    //  .threshold( minDistance )
+    //  .farPlane( maxDistance )
+    //  .resolution( 1 )
 
     scene.useQuality = true
     scene.useVoxels  = false
@@ -201,10 +201,10 @@ const getScene = function( SDF ) {
 
     applyPreset( presetName ) {
       const preset = this.presets[ presetName ]
-      if( preset.farPlane !== undefined ) this.farPlane( preset.farPlane )
-      this.steps( preset.steps )
-      this.resolution( preset.resolution )
-      this.threshold( preset.threshold || .001 )
+      if( preset.farPlane !== undefined ) this.farPlane( this.__farPlane || preset.farPlane )
+      this.steps( this.__steps || preset.steps )
+      this.resolution( this.__resolution || preset.resolution )
+      this.threshold( this.__threshold || preset.threshold || .001 )
 
       return preset.animated
     },

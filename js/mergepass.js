@@ -40,15 +40,17 @@ const FX = {
   },
 
   export( obj ) {
-    obj.Glow       = FX.Glow
+    obj.Antialias  = FX.Antialias
     obj.Blur       = FX.Blur
     obj.Bloom      = FX.Bloom
     obj.Brightness = FX.Brightness
     obj.Contrast   = FX.Contrast
     obj.Edge       = FX.Edge
     obj.Focus      = FX.Focus
+    obj.Glow       = FX.Glow
     obj.Godrays    = FX.Godrays
-    obj.Antialias  = FX.Antialias
+    obj.Hue        = FX.Hue
+    obj.Invert     = FX.Invert
     obj.MotionBlur = FX.MotionBlur
   },
 
@@ -144,21 +146,66 @@ const FX = {
   },
 
 
-  Godrays( __decay=1, __weight=.01, __density=1, __threshold=.9 ) {
+  Godrays( __decay=1, __weight=.01, __density=1, __threshold=.9, __newColor=[.5,.15,0,1] ) {
     const fx = {},
           decay   = FX.wrapProperty( fx, 'decay',   __decay   ),
           weight  = FX.wrapProperty( fx, 'weight',  __weight  ),
           density = FX.wrapProperty( fx, 'density', __density ),
           threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v )
 
+    const newColor = MP.mut( MP.pvec4( ...__newColor ) )
+    
+    let value = __newColor 
+    Object.defineProperty( fx, 'color', {
+      get() { return value },
+      set(v) {
+        value = Array.isArray(v) ? v : [v,v,v,v]
+        fx.__wrapped__.setNewColor( MP.pvec4( ...value ) )
+      }
+    })
+
+
     fx.__wrapped__ = MP.godrays({ 
       decay, weight, density,
 
       convertDepth: {                 
         threshold,                 
-        newColor: MP.vec4(.5,.15,0,1)
+        newColor
       }
     })
+
+    return fx
+  },
+
+  Hue( __shift=.5, __threshold = .99 )  {
+    const fx = {},
+          frag = MP.fcolor(), 
+          depth = MP.channel(0),
+          threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v ),
+          shift= FX.wrapProperty( fx, 'shift', __shift )
+
+    let control
+    fx.__wrapped__ = MP.hsv2rgb( 
+      MP.changecomp(
+        MP.rgb2hsv( MP.fcolor() ),
+        MP.cfloat( MP.tag `length(${depth}.rgb) >= ${threshold} ? ${shift} : 0.`  ),
+        "r", 
+        "+"
+      )
+    )
+
+    return fx
+  },
+
+  Invert( __threshold = .99 )  {
+    const fx = {},
+          frag = MP.fcolor(), 
+          depth = MP.channel(0),
+          threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v )
+
+    fx.__wrapped__ = MP.setcolor( 
+      MP.cvec4( MP.tag `length(${depth}.rgb) >= ${threshold} ? (1. - vec4(${frag}.rgb, 0.)) : ${frag}`  )
+    ) 
 
     return fx
   },
@@ -173,7 +220,7 @@ const FX = {
   },
 
   Antialias( mult=1 ) {
-    return MP.loop([ MP.fxaa() ], mult )
+    return { __wrapped: MP.loop([ MP.fxaa() ], mult ) }
   },
 
 }

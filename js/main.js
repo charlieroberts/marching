@@ -265,7 +265,7 @@ const SDF = {
 
     // initialize memory for buffer and populate it. Give
     // open gl hint contents will not change dynamically.
-    gl.bindBuffer (gl.ARRAY_BUFFER, vbo )
+    gl.bindBuffer( gl.ARRAY_BUFFER, vbo )
     gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW )
 
     gl.drawBuffers([
@@ -362,6 +362,13 @@ const SDF = {
     gl.uniform2f( uResolution, width, height )
  
     const render = function( timestamp ){
+      if( render.running === true && shouldAnimate === true ) {
+        window.requestAnimationFrame( render )
+      }else if( render.running === false ) {
+        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
+        return
+      }
+
       gl.useProgram( this.program )
       gl.bindFramebuffer( gl.FRAMEBUFFER, framebuffer )
     
@@ -374,13 +381,6 @@ const SDF = {
       }
 
       gl.enableVertexAttribArray( aPos )
-
-      if( render.running === true && shouldAnimate === true ) {
-        window.requestAnimationFrame( render )
-      }else if( render.running === false ) {
-        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
-        return
-      }
 
       if( this.__isPaused === false ) {
         this.currentTime = timestamp
@@ -405,19 +405,23 @@ const SDF = {
 
       // draw to color and depth texturese
       gl.bindBuffer( gl.ARRAY_BUFFER, vbo )
+
+      // if post-processing is not being used,
+      // draw directly to screen
+      if( this.fx.merger === null ) {
+        gl.bindFramebuffer( gl.FRAMEBUFFER, null )
+      }
+
       gl.drawArrays( gl.TRIANGLES, 0, 6 )
 
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS COLOR OUPTUT ***************/
-      // this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
+      //this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
       
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS DEPTH OUPTUT ***************/
       // this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )
  
-      // mergepass render
-      if( this.fx.merger !== null ) 
-        this.fx.merger.draw( total_time )
-      else
-        this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
+      // conditional mergepass render
+      if( this.fx.merger !== null ) this.fx.merger.draw( total_time )
 
     }.bind( SDF )
 

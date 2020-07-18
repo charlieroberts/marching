@@ -23,7 +23,25 @@ const ops = {
 
     return output
   },
+  Halve( __name ) {
+    let name = __name === undefined ? 'p' : __name
 
+    // XXX why?
+    this.transform.invert()
+
+    const bumpString =  `        vec4 transformBump${this.id} = ${name} * ${this.transform.emit()};\n`
+    const pointString = `        vec4 transformBump2${this.id} = (transformBump${this.id} * ${this.sdf.transform.emit()});\n`
+    const sdf = this.sdf.emit( `transformBump2${this.id}` );
+
+    let displaceString = `${sdf.out}.x = opHalve( ${sdf.out}.x, transformBump2${this.id}, int(${this.amount.emit()}) );`
+
+    const output = {
+      out: `${sdf.out}`, 
+      preface: bumpString + pointString + sdf.preface + displaceString 
+    }
+
+    return output
+  },
   Bend( __name ) {
     let name = __name === undefined ? 'p' : __name
     const sdf = this.sdf.emit( 'q'+this.id );
@@ -131,12 +149,16 @@ for( let name in ops ) {
 
     op.id = VarAlloc.alloc()
     const isArray = true 
-    
-    if( typeof b === 'number' ) {
-      b = [b,b,b]
-      b.type = 'vec3'
+
+    if( name === 'Halve' ) {
+      op.amount = param_wrap( b, float_var_gen( b ) )
+    }else{
+      if( typeof b === 'number' ) {
+        b = [b,b,b]
+        b.type = 'vec3'
+      }
     }
-    
+
     if( name !== 'Bumpz' ) {
       let __var =  param_wrap( 
         b, 
@@ -211,7 +233,7 @@ for( let name in ops ) {
   DistanceOps[name].prototype.upload_data = function(gl) {
     this.sdf.upload_data( gl )
     if( this.name !== 'Bump' ) this.amount.upload_data( gl )
-    if( this.name === 'Displace' || this.name === 'Bump') this.size.upload_data( gl )
+    if( this.name === 'Displace' || this.name === 'Bump' ) this.size.upload_data( gl )
     this.transform.upload_data( gl )
   }
 }

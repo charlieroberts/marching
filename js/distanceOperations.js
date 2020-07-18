@@ -49,7 +49,7 @@ const ops = {
   Tongue( ...args ) { return `fOpTongue( ${args.join(',')} )` },
   
   // these two do not currently have support for transforms or repeats...
-  Onion( a,b ) { return `opOnion( ${a}, ${b} )` },
+  Onion( ...args ) { return `opOnion( ${args.join(',')} )` },
   Switch( a,b,c,d,e,f ) { return `opSwitch( ${a}, ${b}, ${c} )` }
 }
 
@@ -68,6 +68,7 @@ const DistanceOps = {
   __clear() { this.__glsl.length = 0 }
 }
 
+const oneops = ['Onion','Halve']
 
 for( let name in ops ) {
 
@@ -79,7 +80,7 @@ for( let name in ops ) {
   DistanceOps[ name ] = function( a,b,c,d ) {
     const op = Object.create( DistanceOps[ name ].prototype )
     op.a = a
-    op.b = b
+    op.b = oneops.indexOf( name ) === -1 ? b : param_wrap( b, float_var_gen(.2 ) )
     op.transform = Transform( false )
     op.id = VarAlloc.alloc()
     op.type = 'distance_op'
@@ -186,14 +187,16 @@ for( let name in ops ) {
   DistanceOps[ name ].prototype.texture = function( ...args ) {
     this.__setTexture( ...args )
     this.a.texture( this.__textureObj )
-    this.b.texture( this.__textureObj )
+    if( oneops.indexOf( name ) === -1 )
+      this.b.texture( this.__textureObj )
 
     return this
   }
   DistanceOps[ name ].prototype.material = function( ...args ) {
     this.__setMaterial( ...args )
     this.a.material( this.__material )
-    this.b.material( this.__material )
+    if( oneops.indexOf( name ) === -1 )
+      this.b.material( this.__material )
 
     return this
   }
@@ -230,6 +233,7 @@ for( let name in ops ) {
   }
 
   DistanceOps[ name ].prototype.emit = function ( pname='p', transform = null ){
+    const isNotOneop = oneops.indexOf( name ) === -1 
     if( this.__bumpObj !== undefined && this.renderingBump === false) {
       this.renderingBump = true
       return this.__bumpObj.emit( pname, transform )
@@ -241,11 +245,11 @@ for( let name in ops ) {
 
     // first two args are fixed, rest are variable
     let emitters = []
-    const a = this.a.emit( pname, this.transform ), 
-          b = this.b.emit( pname, this.transform ) 
+    const a = this.a.emit( pname, this.transform ) 
+    const b = isNotOneop ? this.b.emit( pname, this.transform ) : this.b.emit()
 
     emitters[0] = a.out
-    emitters[1] = b.out
+    emitters[1] = isNotOneop ?  b.out : b
     if( this.__len > 2 ) emitters.push( this.c.emit() )
     if( this.__len > 3 ) emitters.push( this.d.emit() )
     
@@ -256,7 +260,7 @@ for( let name in ops ) {
 
     const output = {
       out: 'do'+this.id,
-      preface: (a.preface || '') + (b.preface || '') + body
+      preface: (a.preface || '') + ( isNotOneop ? b.preface || '' : '') + body
     }
 
     this.renderingBump = false
@@ -305,7 +309,9 @@ for( let name in ops ) {
     this.transform.internal()
     this.transform.upload_data( gl )
     this.a.transform.apply( this.transform )
-    this.b.transform.apply( this.transform )
+    if( oneops.indexOf( name ) === -1 )
+      this.b.transform.apply( this.transform )
+
     this.a.upload_data( gl )
     this.b.upload_data( gl )
     if( this.c !== undefined ) this.c.upload_data( gl )

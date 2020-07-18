@@ -260,6 +260,27 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return _p;
       }
 
+      // XXX this shouldn't be here...
+      float opHalve( in float sdf, vec4 p, in int dir ){
+        float _out = 0.;
+        switch( dir ) {
+          case 0:  
+            _out = max( sdf, p.y );
+            break;
+          case 1:
+            _out = max( sdf, -p.y );
+            break;
+          case 2:
+            _out = max( sdf, p.x );
+            break;
+          case 3:
+            _out = max( sdf, -p.x );
+            break;
+        }
+
+        return _out;
+      }
+
       // added k value to glsl-sdf-ops/soft-shadow
       float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){
         float res = 1.0;

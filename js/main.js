@@ -49,7 +49,7 @@ const SDF = {
       this.distanceOps,
       this.domainOps,
       this.distanceDeforms,
-      this.alterations
+      //this.alterations
     )
 
     this.fx.export( obj )

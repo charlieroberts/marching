@@ -302,11 +302,19 @@ module.exports = {
       }
       `,
   Onion:`
-      float opOnion( in float sdf, in float thickness ){
+      float opOnion( float sdf, float thickness ){
         return abs(sdf)-thickness;
       }
+      vec2 opOnion( vec2 sdf, float thickness ) {
+        float x = 0.;
 
-      float opHalve( in float sdf, vec3 p, in int dir ){
+        sdf.x = opOnion( sdf.x, thickness );
+
+        return sdf;
+      }  
+      `,
+  Halve:`
+      float opHalve( in float sdf, vec4 p, in int dir ){
         float _out = 0.;
         switch( dir ) {
           case 0:  
@@ -325,7 +333,17 @@ module.exports = {
 
         return _out;
       }
-      `,
+
+      vec2 opHalve( vec2 sdf, vec4 p, int dir ) {
+        float x = 0.;
+
+        x = opHalve( sdf.x, p, dir );
+
+        sdf.x = x;
+
+        return sdf;
+      } 
+  `,
 
   Switch:`
       vec2 opSwitch( vec2 a, vec2 b, float c ) {

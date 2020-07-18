@@ -82,6 +82,8 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
+
+
   //let preface = `         vec3 ${pName} = ${name} / ${this.amount.emit()};\n`
 
   //let sdf = this.sdf.emit( pName )

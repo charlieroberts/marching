@@ -237,6 +237,10 @@ for( let name in ops ) {
     this.transform.upload_data( gl )
   }
 }
+DistanceOps.Halve.UP = 0
+DistanceOps.Halve.DOWN = 1
+DistanceOps.Halve.LEFT = 3
+DistanceOps.Halve.RIGHT = 2
 
 module.exports = DistanceOps
 

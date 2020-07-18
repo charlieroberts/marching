@@ -779,6 +779,155 @@ This operation subtracts a fixed amount from a computer signed distance fields, 
 **sdf** &nbsp; *object* &nbsp; A signed distance field to be displaced.   
 **amount** &nbsp; *float* &nbsp; Default:.1. An amount to subtract from the computed signed distance field.
 
+# Post-Processing Effects
+Post-processing effects operate on the entire frame of video that the ray marcher outputs. In some cases effects use additional information, like the depth that was sampled from each pixel, in others they operate based on color alone. All post-processing effects are added using the `.post()` method of the scene.
+
+#### Example ####
+In the example below, the specular highlights in the scene receive the glow effect because they are above the threshold brightness level of .5.
+
+```js
+march(
+  Sphere()
+)
+.post(
+  Bloom(.5,4)
+)
+.render('med')
+```
+
+Bloom
+----
+The Bloom effect creates blurred glow effects in areas of the scene that are brighter than a specific *threshold* property.
+
+#### Constructor ####
+**threshold** &nbsp; *float* &nbsp; Default:0. Pixels with a brightness value above the threshold property will be spread their brightness to adjacent pixels, creating a glow effect. 
+**amount** &nbsp; *float* &nbsp; Default:.01. The amount to boost the brightness of pixels that this effect operates on. High values (above 2) will result in blurred offsets that create duplicate images. 
+
+Blur
+----
+The Blur effect... blurs the final image on both axes. This operation can be repeated multiple times via the `.repetitions` argument to the constructor, and the number of samples used in the blur can also be increased in the constructor. Increasing these values will create a higher quality blur at an increased computational expense. The blur can cheaply be expanded by simply using the `.amount` property, which can be freely modified at runtime.
+
+#### Constructor ####
+**amount** &nbsp; *float* &nbsp; Default:.3. The strength of the blur effect. 
+**repetitions** &nbsp; *float* &nbsp; Default: 2. How many times to apply the blur effect. This property can *only be set in the constructor; it is not runtime editable.* 
+**taps** &nbsp; *float* &nbsp; Default: 5. The number of neighboring pixels that are sampled to genereate the blur. The available options are 5,9, and 13. This property can *only be set in the constructor; it is not runtime editable.* 
+
+#### Example ####
+```js
+// high-quality blur
+march( Sphere() )
+  .post( Blur(5,10,13) )
+  .render()
+
+// comparable blur amount but lower quality
+march( Sphere() )
+  .post( Blur(15,3,5) )
+  .render()
+```
+
+Brightness
+----
+The `Brightness` effect increases/decreases the overall brightness of the scene based on the `.amount` property.
+
+#### Constructor ####
+**amount** &nbsp; *float* &nbsp; Default:.25. Values above 0 increase the original brightness of the scene, values below 0 decrease it. 
+
+Contrast
+----
+The `Contrast` effect increases/decreases the overall contrast of the scene based on the `.amount` property.
+
+#### Constructor ####
+**amount** &nbsp; *float* &nbsp; Default:.5. Values below 1 decrease the original contrast of the scene.
+
+Edge
+----
+The `Edge` effect finds the edges of images using the [sobel operator](https://en.wikipedia.org/wiki/Sobel_operator), potentially resulting in a stylized, cartoonish effect result.
+
+#### Constructor ####
+The constructor for `Edge` takes no arguments, and there are no properties available for modification.
+
+Focus
+----
+`Focus` is used to create a depth-of-field effect, where parts of the image that are currently in focus (according to the value of the `.depth` property) will appear crisp, while the rest of the image is blurred. 
+
+#### Constructor ####
+**depth** &nbsp; *float* &nbsp; Default:0. Given a value of 0, objects far from the camera will be blurred. Given a value of 1, objects close to the camera will be blurred.
+**radius** &nbsp; *float* &nbsp; Default:.01. How much of the image is in focus. Larger areas will result in mmore of the image being crisp at the specified depth level.
+
+```js
+// the front of the image shold be in focus, according to
+// the depth of .15, while the back should be blurred
+march( Julia( 3 ).scale( 2.5 ) )
+  .post( Focus( .15,.001 ) )
+  .render( 4 )
+```
+
+Godrays
+----
+`Godrays` uses depth information about objects to create the effect of light shining through holes in a scene.  
+
+#### Constructor ####
+**decay** &nbsp; *float* &nbsp; Default:1. How fast the light fades. Values higher than `1` will create a feedback that can quickly overwhelm a scene. 
+**weight** &nbsp; *float* &nbsp; Default:.01. Multiplies the original background colors (XXX clarify this). 
+**density** &nbsp; *float* &nbsp; Default:1. How close samples are together.
+**threshold** &nbsp; *float* &nbsp; Default:.9. At what depth do rays begin. 
+
+```js
+march(
+  ri = RoundIntersection(
+    s = Sphere(2).material('red'),
+    r = Repeat(
+      Box().scale(.1).material('red'),
+      .5
+    )
+  )
+)
+.post(
+  g = Godrays( 1, .02 )
+)
+.render('high')
+
+onframe = t => {
+  ri.rotate( t*15,1,.5,.25 )
+}
+```
+Hue
+----
+The `Hue` effect shifts the hue of objects below a provided depth threshold. Using the default threshold value of .99 the scene will be inverted while the background retains its original color. With a threshold value of 1 the background color will also be changed.
+
+#### Constructor ####
+**shift** &nbsp; *float* &nbsp; Default:`.5`. The amount to shift the hue in the HSV color space.   
+**threshold** &nbsp; *float* &nbsp; Default:`.99`. Object fragments with a depth below this number (where depth is normalized to be between 0–1) will have their color inverted, other parts of the scene will be unaffected. 
+
+#### Example ####
+```js
+march(
+  Sphere()
+)
+.post( h = Hue() )
+.render('med')
+
+onframe = t => {
+  h.shift = t/5
+}
+```
+
+Invert
+----
+The `Invert` effect inverts the color of objects below a provided depth threshold. Using the default threshold value of .99 (really, any value lower than 1) the scene will be inverted while the background retains its original color. With a threshold value of 1 the background color will also be changed.
+
+
+
+#### Constructor ####
+**threshold** &nbsp; *float* &nbsp; Default:.99. Object fragments with a depth below this number (where depth is normalized to be between 0–1) will have their color inverted, other parts of the scene will be unaffected. 
+
+MotionBlur
+----
+The `MotionBlur` effect can be used to create everything from subtle blurring based on movement in the scene (similiar to the blurring created by 'real-life' movement) to trippy feedback fun.
+
+#### Constructor ####
+**amount** &nbsp; *float* &nbsp; Default:.7. The amount of feedback used to create the blur effect. Values above `.9` can be quite fun and experimental, while lower values can be used to create realistic blurring around moving objectts.  
+
 # Other
 FFT
 ----

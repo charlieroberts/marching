@@ -15,4 +15,4 @@ Marching.js is a JavaScript shader compiler specifically focused on ray marching
 Marching.js builds on the [work of many other people](https://github.com/charlieroberts/marching/blob/master/CREDITS.markdown).
 
 ## Development
-The library is compiled using gulp. Run `npm install` to install all necessary dependencies, and then `gulp build` to rebuild the library.
+The library is compiled using gulp. Run `npm install` to install all necessary dependencies, and then `npm run build` to build the library.

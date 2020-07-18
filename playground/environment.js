@@ -10,7 +10,7 @@ require( '../node_modules/codemirror/addon/selection/active-line.js' )
 require( '../node_modules/codemirror/addon/display/panel.js' )
 require( '../node_modules/mousetrap/mousetrap.min.js' )
 
-const dat = require( 'dat.gui' )
+const Tweakpane = require('tweakpane')
 
 const demos = {
   introduction: require( './demos/intro.js' ),
@@ -31,6 +31,7 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
+  ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
   ['live coding']: require( './demos/livecoding.js' ),
   ['defining your own GLSL shapes']: require( './demos/constructors.js' ),
@@ -345,21 +346,25 @@ window.onload = function() {
   
   }
 
-  const hydrascript = document.createElement( 'script' )
-  hydrascript.src = 'http://localhost:12000/playground/hydra.js'
-  document.querySelector( 'head' ).appendChild( hydrascript )
+  window.use = function( lib ) {
+    if( lib === 'hydra' ) {
+      const hydrascript = document.createElement( 'script' )
+      hydrascript.src = 'https://cdn.jsdelivr.net/npm/hydra-synth@1.3.0/dist/hydra-synth.js'
+      document.querySelector( 'head' ).appendChild( hydrascript )
 
-  hydrascript.onload = function() {
-    const Hydrasynth = Hydra
+      hydrascript.onload = function() {
+        const Hydrasynth = Hydra
 
-    window.Hydra = function( w=500,h=500 ) {
-      const canvas = document.createElement('canvas')
-      canvas.width  = w
-      canvas.height = h
-      const hydra   = new Hydrasynth({ canvas })
-      return hydra
+        window.Hydra = function( w=500,h=500 ) {
+          const canvas = document.createElement('canvas')
+          canvas.width  = w
+          canvas.height = h
+          const hydra   = new Hydrasynth({ canvas })
+          return hydra
+        }
+      } 
     }
-  } 
+  }
 
   const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
 

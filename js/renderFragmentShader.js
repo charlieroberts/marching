@@ -1,5 +1,3 @@
-const glsl = require( 'glslify' )
-
 const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing ) {
   const out = `
   // adapted from https://www.shadertoy.com/view/ldfSWs
@@ -44,9 +42,11 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     return res;
   }
 
-  out vec4 col;
+  layout(location = 0) out vec4 col;
+  layout(location = 1) out vec4 depth;
   void main() {
-    vec2 pos = v_uv * 2.0 - 1.0;
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 pos = uv * 2.0 - 1.0;
 
     // not sure why I need the -y axis but without it
     // everything is flipped using perspective-camera
@@ -58,16 +58,22 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     
     vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
 
+    vec3 samplePos = vec3(100.f);
+    //float zdist = 100000.;//vec3(100000.f);
     if( t.x > -0.5 ) {
-      vec3 pos = ro + rd * t.x;
-      vec3 nor = calcNormal( pos );
+      samplePos = ro + rd * t.x;
+      //zdist = rd.z * t.x;
+      vec3 nor = calcNormal( samplePos );
 
-      color = lighting( pos, nor, ro, rd, t.y, true ); 
+      color = lighting( samplePos, nor, ro, rd, t.y, true ); 
     }
 
     ${postprocessing}
     
     col = clamp( vec4( color, 1.0 ), 0., 1. );
+
+    float normalizedDepth = t.x / ${maxDistance};  //1. - exp( -t.x );// 1. / (1. + abs(samplePos.z-ro.z) );
+    depth = abs(samplePos.z - ro.z ) < ${maxDistance} ? vec4( vec3( 1.-normalizedDepth ), 1. ) : vec4(0.);
   }`
 
   return out
@@ -117,7 +123,8 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
 
   out vec4 col;
   void main() {
-    vec2 pos = v_uv * 2.0 - 1.0;
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 pos = uv * 2.0 - 1.0;
 
     // not sure why I need the -y axis but without it
     // everything is flipped using perspective-camera
@@ -173,12 +180,12 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
     ? getMainContinuous( steps, minDistance, maxDistance, postprocessing ) 
     : getMainVoxels( steps, postprocessing, voxelSize )
 
-    const fs_source = glsl`     #version 300 es
+    const fs_source = `     #version 300 es
       precision mediump float;
 
       float PI = 3.141592653589793;
 
-      in vec2 v_uv;
+
 
       struct Light {
         vec3 position;
@@ -216,6 +223,8 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       uniform vec3 camera_normal;
       uniform float camera_rot;
       uniform mat4 camera;
+
+      
 
       ${variables}
 

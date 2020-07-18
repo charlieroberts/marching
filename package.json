@@ -3,31 +3,27 @@
   "version": "1.0.1",
   "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
   "main": "js/index.js",
-  "dependencies": {
-    "codemirror": "^5.55.0",
-    "dat.gui": "^0.7.6",
-    "first-person-camera": "^1.1.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@bandaloo/merge-pass": "^0.4.3",
+    "codemirror": "^5.5.0",
     "get-pixels": "^3.3.2",
     "gl-texture2d": "^2.1.0",
-    "glsl-camera-ray": "^1.0.0",
     "glsl-diffuse-oren-nayar": "^1.0.2",
-    "glsl-inverse": "^1.0.0",
     "glsl-noise": "0.0.0",
-    "glsl-raytrace": "^1.0.0",
-    "glsl-sdf-normal": "^1.0.0",
-    "glsl-sdf-ops": "0.0.3",
     "glsl-sdf-primitives": "0.0.1",
-    "glsl-smooth-min": "^1.0.0",
     "glsl-specular-gaussian": "^1.0.0",
     "glsl-superformula": "^1.0.3",
-    "glsl-turntable-camera": "^1.0.0",
     "glsl-voronoi-noise": "^1.2.2",
     "glsl-worley": "^1.0.2",
     "glslify": "^6.1.0",
-    "mousetrap": "^1.6.1"
-  },
-  "devDependencies": {
+    "mousetrap": "^1.6.1",
+    "tsify": "^4.0.2",
+    "tweakpane": "^1.5.3",
+    "typescript": "^3.9.6",
     "browserify": "^14.5.0",
+    "gl-mat4": "^1.2.0",
+    "gl-vec3": "^1.1.3",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",
     "vinyl-source-stream": "^2.0.0",
@@ -35,7 +31,9 @@
     "watchify": "^3.10.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx gulp build",
+    "watch": "npx gulp"
   },
   "author": "Charlie Roberts",
   "license": "MIT",

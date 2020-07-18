@@ -19,6 +19,7 @@ const demos = {
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
+  ["i've got a light inside of me"]: require( './demos/let_it_shine.js' ),
   ['snare and sticks']: require( './demos/snare.js' ),
   //['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   //['alien portal #2']: require( './demos/portal2.js' ),

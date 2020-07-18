@@ -19756,6 +19756,37 @@ march(
 `
 
 },{}],19:[function(require,module,exports){
+module.exports = `march(  
+  int = Intersection(
+    Sphere( 2 ).material(),
+    box = Mandelbox( .3,2.5,7 ).material( 'red' )
+  )
+)
+.background( 
+  Vec3(.125,0,.125) 
+)
+.light( 
+  Light( Vec3(5), Vec3(1,0,1), .1)
+)
+.post( 
+  Focus( .575 ), 
+  rays = Godrays( 1.01,.01,1,.65 ) 
+)
+.fog(
+  .2, Vec3(.125,0,.125) 
+)
+.render( 'fractal.low' )
+.camera( 0,0,3.5 )
+
+onframe = t => {
+  box.scale = 2.4 + sin(t) * .15
+  box.fold = .3 + cos(t/2) * .1
+  int.rotate(t*10,.5,.5,sin(t/5))
+} 
+
+rays.color = [1,.5,1]`
+
+},{}],20:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -19985,7 +20016,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
 Live Coding
 
@@ -20132,7 +20163,7 @@ onframe, fade, the fft, and proxies, there's
 a number of tools to get started.
 __--__--__--__--__--__--__--____ */`
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -20150,7 +20181,7 @@ march(
 .render()
 .camera( 0,0,3 )`
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
                                     
 Marching.js wraps the mergepass lib
@@ -20244,7 +20275,7 @@ onframe = t => {
  
 g.decay = 1.01`
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = `/* Marching.js lets you define your own
 procedural textures; this is a very
 similar process to defining your own
@@ -20343,7 +20374,7 @@ onframe = t => {
   s.texture.scale = t % 10
 }`
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const grey = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) ),
@@ -20399,7 +20430,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = `// a 3D superformula essentially two 2D supershapes,
 // first six coefficients govern one, second
 // six coefficients govern the other.
@@ -20436,7 +20467,7 @@ onframe = time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports =`// In this demo the important point 
 // to note is that transformations can be applied to
 // most functions, not just geometries. Here, a
@@ -20472,7 +20503,7 @@ onframe = time => {
   rpt.translate( 0,0,time/3 )
 }`
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports =`zigzag = Box(.5)
   .move( -2,1.25 )
   .texture(
@@ -20571,7 +20602,7 @@ march(
 )
 .render()`
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -20752,7 +20783,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports =`Material.default = Material.grey
 
 m = march(
@@ -20781,7 +20812,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
@@ -20803,6 +20834,7 @@ const demos = {
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
+  ["i've got a light inside of me"]: require( './demos/let_it_shine.js' ),
   ['snare and sticks']: require( './demos/snare.js' ),
   //['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   //['alien portal #2']: require( './demos/portal2.js' ),
@@ -21401,4 +21433,4 @@ window.onload = function() {
 
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":12,"./demos/audio.js":13,"./demos/constructors.js":14,"./demos/csg.js":15,"./demos/geometries.js":16,"./demos/intro.js":17,"./demos/julia.js":18,"./demos/lighting.js":19,"./demos/livecoding.js":20,"./demos/mandelbulb.js":21,"./demos/postprocessing.js":22,"./demos/procedural_textures.js":23,"./demos/snare.js":24,"./demos/superformula.js":25,"./demos/texture_transforms.js":26,"./demos/textures.js":27,"./demos/tutorial_1.js":28,"./demos/twist.js":29,"codemirror":8,"tweakpane":11}]},{},[30]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":12,"./demos/audio.js":13,"./demos/constructors.js":14,"./demos/csg.js":15,"./demos/geometries.js":16,"./demos/intro.js":17,"./demos/julia.js":18,"./demos/let_it_shine.js":19,"./demos/lighting.js":20,"./demos/livecoding.js":21,"./demos/mandelbulb.js":22,"./demos/postprocessing.js":23,"./demos/procedural_textures.js":24,"./demos/snare.js":25,"./demos/superformula.js":26,"./demos/texture_transforms.js":27,"./demos/textures.js":28,"./demos/tutorial_1.js":29,"./demos/twist.js":30,"codemirror":8,"tweakpane":11}]},{},[31]);

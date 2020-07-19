@@ -21030,6 +21030,7 @@ window.onload = function() {
   })
   cm.setOption('fullScreen', true )
 
+
   cm.on('keyup', (cm, event) => {
     if( SDF.cameraEnabled ) {
       const code = event.key//.code.slice(3).toLowerCase()
@@ -21065,6 +21066,8 @@ window.onload = function() {
       SDF.keys[ e.key ] = 0
     }
   })
+
+
 
   const sel = document.querySelector('select')
   const demoGroup = document.createElement('optgroup')
@@ -21429,8 +21432,23 @@ window.onload = function() {
   const _____s = SDF.Sphere()
   _____s.__proto__.__proto__.gui = guiForObject
 
-  eval( demos.introduction )
+  window.cm = cm
 
+  if( window.location.search !== '' ) {
+    // use slice to get rid of ?
+    const val = atob( window.location.search.slice(1) )
+    cm.setValue(val)
+    eval( val )
+  }else{
+    eval( demos.introduction )
+  }
+
+  window.getlink = function() {
+    const code = btoa( cm.getValue() )
+    const link = `https://charlieroberts.github.io/marching/playground/index.htm?${code}`
+    //const link = `http://127.0.0.1:10000/playground/index.htm?${code}`
+    console.log( link )
+  }
 }
 
 },{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":10,"./demos/alien_portal.js":12,"./demos/audio.js":13,"./demos/constructors.js":14,"./demos/csg.js":15,"./demos/geometries.js":16,"./demos/intro.js":17,"./demos/julia.js":18,"./demos/let_it_shine.js":19,"./demos/lighting.js":20,"./demos/livecoding.js":21,"./demos/mandelbulb.js":22,"./demos/postprocessing.js":23,"./demos/procedural_textures.js":24,"./demos/snare.js":25,"./demos/superformula.js":26,"./demos/texture_transforms.js":27,"./demos/textures.js":28,"./demos/tutorial_1.js":29,"./demos/twist.js":30,"codemirror":8,"tweakpane":11}]},{},[31]);

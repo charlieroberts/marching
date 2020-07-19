@@ -215,6 +215,7 @@ window.onload = function() {
   })
   cm.setOption('fullScreen', true )
 
+
   cm.on('keyup', (cm, event) => {
     if( SDF.cameraEnabled ) {
       const code = event.key//.code.slice(3).toLowerCase()
@@ -250,6 +251,8 @@ window.onload = function() {
       SDF.keys[ e.key ] = 0
     }
   })
+
+
 
   const sel = document.querySelector('select')
   const demoGroup = document.createElement('optgroup')
@@ -614,6 +617,21 @@ window.onload = function() {
   const _____s = SDF.Sphere()
   _____s.__proto__.__proto__.gui = guiForObject
 
-  eval( demos.introduction )
+  window.cm = cm
 
+  if( window.location.search !== '' ) {
+    // use slice to get rid of ?
+    const val = atob( window.location.search.slice(1) )
+    cm.setValue(val)
+    eval( val )
+  }else{
+    eval( demos.introduction )
+  }
+
+  window.getlink = function() {
+    const code = btoa( cm.getValue() )
+    const link = `https://charlieroberts.github.io/marching/playground/index.htm?${code}`
+    //const link = `http://127.0.0.1:10000/playground/index.htm?${code}`
+    console.log( link )
+  }
 }

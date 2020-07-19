@@ -220,7 +220,7 @@ const FX = {
   },
 
   Antialias( mult=1 ) {
-    return { __wrapped: MP.loop([ MP.fxaa() ], mult ) }
+    return { __wrapped__: MP.loop([ MP.fxaa() ], mult ) }
   },
 
 }

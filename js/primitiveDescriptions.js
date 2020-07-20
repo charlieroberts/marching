@@ -275,7 +275,7 @@ module.exports = {
   Mandelbox: {
     parameters:[
       { name:'fold', type:'float', default:.1 },
-      { name:'scale', type:'float', default:3., min:1, max:10 },
+      { name:'size', type:'float', default:3., min:1, max:10 },
       { name:'iterations', type:'float', default:5, min:1, max:10, step:1 },
     ],
 
@@ -293,7 +293,7 @@ module.exports = {
   }`,
 
     primitiveString( pName ) {
-      return `mandelbox( ${this.fold.emit()}, ${this.scale.emit()}, ${this.iterations.emit()}, ${pName} )`
+      return `mandelbox( ${this.fold.emit()}, ${this.size.emit()}, ${this.iterations.emit()}, ${pName} )`
     }
   },
 

@@ -1,4 +1,5 @@
-const CodeMirror = require( 'codemirror' )
+const CodeMirror = require( 'codemirror' ),
+      Toastr     = require( 'toastr' )
 
 require( '../node_modules/codemirror/mode/javascript/javascript.js' )
 require( '../node_modules/codemirror/addon/edit/matchbrackets.js' )
@@ -350,27 +351,71 @@ window.onload = function() {
   
   }
 
+  const msg = function( msg, title ) {
+    Toastr.options = {
+      "closeButton": false,
+      "debug": false,
+      "newestOnTop": false,
+      "progressBar": false,
+      "positionClass": "toast-bottom-center",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "4000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    }
+
+    Toastr.info( msg, title )
+  }
+
+  const libs = {}
   window.use = function( lib ) {
     const p = new Promise( (res,rej) => {
       if( lib === 'hydra' ) {
+        if( libs.Hydra !== undefined ) { res( libs.Hydra ); return }
+
         const hydrascript = document.createElement( 'script' )
         hydrascript.src = 'https://cdn.jsdelivr.net/npm/hydra-synth@1.3.0/dist/hydra-synth.js'
         document.querySelector( 'head' ).appendChild( hydrascript )
 
         hydrascript.onload = function() {
-          console.log( 'hydra loaded' )
+          msg( 'hydra is ready to texture', 'new module loaded' )
           const Hydrasynth = Hydra
+          let __hydra = null
 
           window.Hydra = function( w=500,h=500 ) {
             const canvas = document.createElement('canvas')
             canvas.width  = w
             canvas.height = h
-            const hydra   = new Hydrasynth({ canvas })
-            return hydra
+            const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false }) : __hydra
+
+            if( __hydra === null ) {
+              hydra.synth.canvas = canvas
+            }
+
+            hydra.synth.texture = ()=> {
+              const t = Texture('canvas', { canvas:hydra.synth.canvas })
+              Marching.postrendercallbacks.push( ()=> t.update() )
+              hydra.synth.texture = t
+              return t
+            }
+            
+            __hydra = hydra
+
+            return hydra.synth
           }
+          libs.Hydra = Hydra
+
           res( Hydra )
         } 
       }else if( lib === 'gif' ){ 
+        if( libs.GIF !== undefined ) { res( libs.GIF ); return }
+
         // first load actual script
         const script = document.createElement( 'script' )
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js'
@@ -385,14 +430,14 @@ window.onload = function() {
           .then( t => t.text() )
 
         Promise.all([ p1, p2 ]).then( values => {
-          console.log( 'gif loaded' )
+          msg( 'gifs can now be exported', 'new module loaded' )
           const workerBlob = new Blob([ values[1] ])
           const workerURL  = window.URL.createObjectURL( workerBlob )
 
           Marching.Scene.prototype.gif = function( width, height, length, delay=17, quality=10, filename='marching.gif' ) {
             const gif = new GIF({
-              workers:2,
               width, height,
+              workers:2,
               quality:10,
               workerScript: workerURL
             })
@@ -407,26 +452,33 @@ window.onload = function() {
               }
             })
 
+            let finished = false
             gif.on( 'finished', blob => {
-              //window.open( URL.createObjectURL( blob ) )
+              // prevent chrome double finish event
+              if( finished === false ) {
+                const link = window.document.createElement('a')
+                link.href = URL.createObjectURL( blob )
+                link.download = filename
 
-              const link = window.document.createElement('a')
-              link.href = URL.createObjectURL( blob )
-              link.download = filename
+                var click = new MouseEvent('click', {
+                  'view': window,
+                  'bubbles': true,
+                  'cancelable': true
+                });
 
-              var click = new MouseEvent('click', {
-                'view': window,
-                'bubbles': true,
-                'cancelable': true
-              });
+                link.dispatchEvent(click)
 
-              link.dispatchEvent(click)
+                finished = true
+                msg( '', 'download complete' )
+              }
             })
 
             return this
           }
 
-          res() 
+          libs.GIF = GIF
+
+          res( GIF ) 
         })
       }
     })
@@ -682,6 +734,36 @@ window.onload = function() {
   _____s.__proto__.__proto__.gui = guiForObject
 
   window.cm = cm
+  
+  window.getlink = function() {
+    const code = btoa( cm.getValue() )
+    const link = `https://charlieroberts.github.io/marching/playground/index.htm?${code}`
+
+    Toastr.options = {
+      "closeButton": true,
+      "debug": false,
+      "newestOnTop": false,
+      "progressBar": false,
+      "positionClass": "toast-bottom-center",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": 0,
+      "extendedTimeOut": 0,
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut",
+      "tapToDismiss": false
+    }
+
+    Toastr["info"](`<a href="${link}">short link</a><br /><br /> long link: <a href="${link}">${link}</a>`, "Your sketch:")
+
+    return link
+  }
+
+
 
   if( window.location.search !== '' ) {
     // use slice to get rid of ?
@@ -692,10 +774,4 @@ window.onload = function() {
     eval( demos.introduction )
   }
 
-  window.getlink = function() {
-    const code = btoa( cm.getValue() )
-    const link = `https://charlieroberts.github.io/marching/playground/index.htm?${code}`
-    //const link = `http://127.0.0.1:10000/playground/index.htm?${code}`
-    console.log( link )
-  }
 }

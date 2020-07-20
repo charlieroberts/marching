@@ -21204,7 +21204,7 @@ window.onload = function() {
           const workerBlob = new Blob([ values[1] ])
           const workerURL  = window.URL.createObjectURL( workerBlob )
 
-          Marching.Scene.prototype.gif = function( width, height, length, delay=17 ) {
+          Marching.Scene.prototype.gif = function( width, height, length, delay=17, quality=10, filename='marching.gif' ) {
             const gif = new GIF({
               workers:2,
               width, height,
@@ -21223,7 +21223,19 @@ window.onload = function() {
             })
 
             gif.on( 'finished', blob => {
-              window.open( URL.createObjectURL( blob ) )
+              //window.open( URL.createObjectURL( blob ) )
+
+              const link = window.document.createElement('a')
+              link.href = URL.createObjectURL( blob )
+              link.download = filename
+
+              var click = new MouseEvent('click', {
+                'view': window,
+                'bubbles': true,
+                'cancelable': true
+              });
+
+              link.dispatchEvent(click)
             })
 
             return this

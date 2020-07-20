@@ -21,6 +21,8 @@ const SDF = {
 
   // additional callbacks that are run once per frame
   callbacks: [],
+  // callbacks that are run *after* all rendering has occurred
+  postrendercallbacks: [],
   geometries: [],
 
   // the main drawing callback
@@ -70,7 +72,6 @@ const SDF = {
     this.export( this )
 
     this.canvas = canvas//document.createElement('canvas')
-    this.canvasMP = canvas
 
     this.lighting   = this.__lighting( this )
     this.Light = this.lighting.light
@@ -79,11 +80,8 @@ const SDF = {
     this.textures = this.__textures( this )
     this.Texture = this.textures.texture
 
-    this.canvas.width = this.canvasMP.width = window.innerWidth 
-    this.canvas.height = this.canvasMP.height = window.innerHeight
     this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
 
-    //this.glMP = this.canvasMP.getContext( 'webgl2', { antialias:true, alpha:true })
   },
   // generate shaders, initialize camera, start rendering loop 
   createScene( ...args ) {
@@ -230,6 +228,7 @@ const SDF = {
 
   clear() {
     if( this.callbacks !== undefined ) this.callbacks.length = 0
+    if( this.postrendercallbacks !== undefined ) this.postrendercallbacks.length = 0
     if( this.render !== null ) this.render.running = false
 
     // remove post-processing fx
@@ -342,6 +341,9 @@ const SDF = {
   },
 
   initWebGL( vs, fs, width, height,shouldAnimate=false ) {
+    this.canvas.width = width 
+    this.canvas.height = height 
+
     const gl                                = this.gl,
           programs                          = this.initShaderProgram( vs, fs, gl ),
           { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),
@@ -422,6 +424,8 @@ const SDF = {
  
       // conditional mergepass render
       if( this.fx.merger !== null ) this.fx.merger.draw( total_time )
+
+      this.postrendercallbacks.forEach( fnc => fnc( gl ) )
 
     }.bind( SDF )
 

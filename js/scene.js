@@ -27,12 +27,6 @@ const getScene = function( SDF ) {
       __followLight:null
     })
 
-    //scene.animate( shouldAnimate )
-    //  .steps( steps )
-    //  .threshold( minDistance )
-    //  .farPlane( maxDistance )
-    //  .resolution( 1 )
-
     scene.useQuality = true
     scene.useVoxels  = false
 
@@ -43,6 +37,13 @@ const getScene = function( SDF ) {
 
   Scene.prototype = {
     animate( v ) { this.__animate = v; return this },  
+    setdim( w, h ) {
+      this.width = w
+      this.height = h 
+
+      this.donotuseresolution = true
+      return this
+    },
     resolution( v ) { 
       this.width = Math.floor( this.canvas.width = window.innerWidth * v )
       this.height = Math.floor( this.canvas.height = window.innerHeight * v )
@@ -76,7 +77,7 @@ const getScene = function( SDF ) {
       this.threshold( .1 / (quality * quality * quality ) )
       this.steps( quality * 20 )
       this.farPlane( quality * 5 )
-      this.resolution( Math.min( .2 * quality, 2 ) )
+      if( this.donotuseresolution === undefined ) this.resolution( Math.min( .2 * quality, 2 ) )
 
       return this
     },
@@ -203,7 +204,7 @@ const getScene = function( SDF ) {
       const preset = this.presets[ presetName ]
       if( preset.farPlane !== undefined ) this.farPlane( this.__farPlane || preset.farPlane )
       this.steps( this.__steps || preset.steps )
-      this.resolution( this.__resolution || preset.resolution )
+      if( this.donotuseresolution === undefined ) this.resolution( this.__resolution || preset.resolution )
       this.threshold( this.__threshold || preset.threshold || .001 )
 
       return preset.animated
@@ -215,12 +216,15 @@ const getScene = function( SDF ) {
     },
 
     render( quality=10, animate=false, useQuality=true ) {
-      this.background() // adds default if none has been specified
+      // adds default if none has been specified
+      this.background() 
+
       if( typeof quality === 'string' ) {
         animate = this.applyPreset( quality )
       }else if( this.useQuality === true ) {
         this.quality( quality )
       }
+
       this.animate( animate )
 
       SDF.distanceOps.__clear()
@@ -247,6 +251,8 @@ const getScene = function( SDF ) {
         this.useVoxels ? this.__voxelSize : 0
       )
 
+      if( this.width === undefined ) this.width = window.innerWidth
+      if( this.height === undefined ) this.height = window.innerHeight
       SDF.start( this.fs, this.width, this.height, this.__animate )
 
       //SDF.materials.materials.length = 0

@@ -21002,10 +21002,10 @@ window.onload = function() {
     hidden = !hidden
   }
 
-  const toggleCamera = function() {
+  window.toggleCamera = function( shouldToggleGUI=true) {
     Marching.cameraEnabled = !Marching.cameraEnabled
     //document.querySelector('#cameratoggle').checked = Marching.cameraEnabled
-    toggleGUI()
+    if( shouldToggleGUI ) toggleGUI()
     Marching.camera.on()
   }
 
@@ -21166,23 +21166,75 @@ window.onload = function() {
   }
 
   window.use = function( lib ) {
-    if( lib === 'hydra' ) {
-      const hydrascript = document.createElement( 'script' )
-      hydrascript.src = 'https://cdn.jsdelivr.net/npm/hydra-synth@1.3.0/dist/hydra-synth.js'
-      document.querySelector( 'head' ).appendChild( hydrascript )
+    const p = new Promise( (res,rej) => {
+      if( lib === 'hydra' ) {
+        const hydrascript = document.createElement( 'script' )
+        hydrascript.src = 'https://cdn.jsdelivr.net/npm/hydra-synth@1.3.0/dist/hydra-synth.js'
+        document.querySelector( 'head' ).appendChild( hydrascript )
 
-      hydrascript.onload = function() {
-        const Hydrasynth = Hydra
+        hydrascript.onload = function() {
+          console.log( 'hydra loaded' )
+          const Hydrasynth = Hydra
 
-        window.Hydra = function( w=500,h=500 ) {
-          const canvas = document.createElement('canvas')
-          canvas.width  = w
-          canvas.height = h
-          const hydra   = new Hydrasynth({ canvas })
-          return hydra
-        }
-      } 
-    }
+          window.Hydra = function( w=500,h=500 ) {
+            const canvas = document.createElement('canvas')
+            canvas.width  = w
+            canvas.height = h
+            const hydra   = new Hydrasynth({ canvas })
+            return hydra
+          }
+          res( Hydra )
+        } 
+      }else if( lib === 'gif' ){ 
+        // first load actual script
+        const script = document.createElement( 'script' )
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js'
+        document.querySelector( 'head' ).appendChild( script )
+        const p1 = new Promise( (_res, rej) => {
+          script.onload = _res
+        })
+
+        // then load worker as text to create blob
+        // since you can't pass link to non-origin for worker
+        const p2 = fetch( 'https://cdn.jsdelivr.net/gh/jnordberg/gif.js/dist/gif.worker.js' )
+          .then( t => t.text() )
+
+        Promise.all([ p1, p2 ]).then( values => {
+          console.log( 'gif loaded' )
+          const workerBlob = new Blob([ values[1] ])
+          const workerURL  = window.URL.createObjectURL( workerBlob )
+
+          Marching.Scene.prototype.gif = function( width, height, length, delay=17 ) {
+            const gif = new GIF({
+              workers:2,
+              width, height,
+              quality:10,
+              workerScript: workerURL
+            })
+
+            this.setdim( width,height )
+
+            let framecount = 0
+            Marching.postrendercallbacks.push( ()=> {
+              gif.addFrame( Marching.canvas, { copy:true, delay }) 
+              if( framecount++ === length-1 ) {
+                gif.render()
+              }
+            })
+
+            gif.on( 'finished', blob => {
+              window.open( URL.createObjectURL( blob ) )
+            })
+
+            return this
+          }
+
+          res() 
+        })
+      }
+    })
+
+    return p
   }
 
   const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t

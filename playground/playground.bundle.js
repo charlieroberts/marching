@@ -31045,6 +31045,107 @@ march(
 .camera( 0,0, 6 )`
 
 },{}],19:[function(require,module,exports){
+module.exports=`/* __--__--__--__--__--__--__--____
+                                    
+Marching.js lets you both download 
+animated gifs and generate links.   
+Together, you can post a short clip
+on social media alongside a link    
+that enables people to easily      
+experiment with your code.          
+                                   
+Links can be generated at any time  
+but creating gifs requires a tiny  
+bit of extra wok. Both are described
+below.                             
+                                    
+If you remember, please use       
+#marchingjs when you post online!   
+                                   
+** __--__--__--__--__--__--__--__*/
+
+// First let's generate a link to this code.
+// delete the long block comment above, then
+// run the line below by highlighting it and
+// hitting control+enter
+getlink('text for link blah')
+
+// You'll notice there's a short link, for
+// copying and pasting into an email, pdf
+// or other document that suppots rich text.
+// Most browsers will also let you copy the
+// generated URL if you control-click on the
+// link. As shown above, you can specify the
+// text you'd like to use for your link. Also,
+// if your call to getlink() is on the last
+// line of your sketch, it won't appear in the
+// geneated link. So, you should probably always
+// run it at the bottom of your sketch. Finally,
+// the code in the link will automatically run
+// in the playground.
+
+// IMPORTANT: There's a maximum length in most
+// browsers for URLs. Make sure your link works
+// the way you expect it to before posting it!
+
+// OK, now let's make an animated gif. First,
+// we have to load an additional library. Run
+// the line of code below with control+enter:
+
+use('gif')
+
+// You'll see a notification when the library
+// has loaded. Now we can add a call to .gif,
+// and pass in:
+// width - default 600
+// height - default 335
+// length (in frames) - default 60
+// quality (1-10) - default 5
+// interframe delay (in ms) - default 17 (for 60 fps)
+// filename - default 'marching.gif'
+
+// Here's an example of what should be a "perfect" 
+// 400x400 loop for one second (make sure you 
+// ran use('gif') before trying this):
+
+march(
+  j = Julia().scale(1.5) 
+)
+.gif( 400,400,59 )
+.render( 'fractal.high' )
+  
+let fc = 0
+onframe = time => {
+  j.fold = 3.5 + sin(fc)
+  fc += (Math.PI*2)/60
+}
+
+// last but not least, when you make a call
+// to .use(), it will take a bit to download the
+// requested libraries. You can just wait for
+// a notification to appear that the library has
+// been loaded before running additional code, 
+// but if you'd like to publish a link that runs
+// everyhing automatically this becomes problematic.
+// use() returns a promise that will resolve when
+// the library is loaded, so you can delay execution
+// as follows:
+
+use('hydra').then( ()=> {
+  h = Hydra()
+  osc( 50,.15,.25 ).modulate( noise(15) ).out()
+  
+  march(
+    m = Box().texture( h.texture() )
+  )
+  .render('med')
+  .camera(0,0,4)
+  
+  onframe = t => m.rotate(t*5, .5,1,.5 )
+  
+  h.texture.strength = .5
+})`
+},{}],20:[function(require,module,exports){
 module.exports = `march(
   Repeat(
     StairsDifference(
@@ -31089,7 +31190,7 @@ https://atom.io/packages/atom-marching
                                     
 ** __--__--__--__--__--__--__--__*/`
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports=`mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0,.25,1) )
 tex  = Texture(  'cellular', { strength:.15, scale:20 })  
  
@@ -31107,7 +31208,7 @@ march(
 .camera(0,0,1.75)
 `
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = `march(  
   int = Intersection(
     Sphere( 2 ).material(),
@@ -31138,7 +31239,7 @@ onframe = t => {
 
 rays.color = [1,.5,1]`
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -31368,7 +31469,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
 Live Coding
 
@@ -31515,7 +31616,7 @@ onframe, fade, the fft, and proxies, there's
 a number of tools to get started.
 __--__--__--__--__--__--__--____ */`
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -31533,7 +31634,7 @@ march(
 .render()
 .camera( 0,0,3 )`
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
                                     
 Marching.js wraps the mergepass lib
@@ -31627,7 +31728,7 @@ onframe = t => {
  
 g.decay = 1.01`
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = `/* Marching.js lets you define your own
 procedural textures; this is a very
 similar process to defining your own
@@ -31726,7 +31827,7 @@ onframe = t => {
   s.texture.scale = t % 10
 }`
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const grey = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) ),
@@ -31782,7 +31883,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = `// a 3D superformula essentially two 2D supershapes,
 // first six coefficients govern one, second
 // six coefficients govern the other.
@@ -31819,7 +31920,7 @@ onframe = time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports =`// In this demo the important point 
 // to note is that transformations can be applied to
 // most functions, not just geometries. Here, a
@@ -31855,7 +31956,7 @@ onframe = time => {
   rpt.translate( 0,0,time/3 )
 }`
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports =`zigzag = Box(.5)
   .move( -2,1.25 )
   .texture(
@@ -31954,7 +32055,7 @@ march(
 )
 .render()`
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -32135,7 +32236,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports =`Material.default = Material.grey
 
 m = march(
@@ -32164,7 +32265,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' ),
       Toastr     = require( 'toastr' )
 
@@ -32201,6 +32302,7 @@ const tutorials = {
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
+  ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
   ['live coding']: require( './demos/livecoding.js' ),
   ['defining your own GLSL shapes']: require( './demos/constructors.js' ),
@@ -32601,7 +32703,7 @@ window.onload = function() {
           const workerBlob = new Blob([ values[1] ])
           const workerURL  = window.URL.createObjectURL( workerBlob )
 
-          Marching.Scene.prototype.gif = function( width, height, length, delay=17, quality=10, filename='marching.gif' ) {
+          Marching.Scene.prototype.gif = function( width=600, height=335, length=60, quality=5, delay=17, filename='marching.gif' ) {
             const gif = new GIF({
               width, height,
               workers:2,
@@ -32902,8 +33004,13 @@ window.onload = function() {
 
   window.cm = cm
   
-  window.getlink = function() {
-    const code = btoa( cm.getValue() )
+  window.getlink = function( name='link' ) {
+    const lines = cm.getValue().split('\n')
+    if( lines[ lines.length - 1].indexOf('getlink') > -1 ) {
+      lines.pop()
+    }
+
+    const code = btoa( lines.join('\n' ) )
     const link = `https://charlieroberts.github.io/marching/playground/index.htm?${code}`
 
     Toastr.options = {
@@ -32925,7 +33032,7 @@ window.onload = function() {
       "tapToDismiss": false
     }
 
-    Toastr["info"](`<a href="${link}">short link</a><br /><br /> long link: <a href="${link}">${link}</a>`, "Your sketch:")
+    Toastr["info"](`<a href="${link}">${name}</a>`, "Your sketch link:")
 
     return link
   }
@@ -32943,4 +33050,4 @@ window.onload = function() {
 
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/intro.js":19,"./demos/julia.js":20,"./demos/let_it_shine.js":21,"./demos/lighting.js":22,"./demos/livecoding.js":23,"./demos/mandelbulb.js":24,"./demos/postprocessing.js":25,"./demos/procedural_textures.js":26,"./demos/snare.js":27,"./demos/superformula.js":28,"./demos/texture_transforms.js":29,"./demos/textures.js":30,"./demos/tutorial_1.js":31,"./demos/twist.js":32,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[33]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/gifs_and_links.js":19,"./demos/intro.js":20,"./demos/julia.js":21,"./demos/let_it_shine.js":22,"./demos/lighting.js":23,"./demos/livecoding.js":24,"./demos/mandelbulb.js":25,"./demos/postprocessing.js":26,"./demos/procedural_textures.js":27,"./demos/snare.js":28,"./demos/superformula.js":29,"./demos/texture_transforms.js":30,"./demos/textures.js":31,"./demos/tutorial_1.js":32,"./demos/twist.js":33,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[34]);

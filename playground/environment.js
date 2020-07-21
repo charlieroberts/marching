@@ -34,6 +34,7 @@ const tutorials = {
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
+  ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
   ['live coding']: require( './demos/livecoding.js' ),
   ['defining your own GLSL shapes']: require( './demos/constructors.js' ),
@@ -434,7 +435,7 @@ window.onload = function() {
           const workerBlob = new Blob([ values[1] ])
           const workerURL  = window.URL.createObjectURL( workerBlob )
 
-          Marching.Scene.prototype.gif = function( width, height, length, delay=17, quality=10, filename='marching.gif' ) {
+          Marching.Scene.prototype.gif = function( width=600, height=335, length=60, quality=5, delay=17, filename='marching.gif' ) {
             const gif = new GIF({
               width, height,
               workers:2,
@@ -735,8 +736,13 @@ window.onload = function() {
 
   window.cm = cm
   
-  window.getlink = function() {
-    const code = btoa( cm.getValue() )
+  window.getlink = function( name='link' ) {
+    const lines = cm.getValue().split('\n')
+    if( lines[ lines.length - 1].indexOf('getlink') > -1 ) {
+      lines.pop()
+    }
+
+    const code = btoa( lines.join('\n' ) )
     const link = `https://charlieroberts.github.io/marching/playground/index.htm?${code}`
 
     Toastr.options = {
@@ -758,7 +764,7 @@ window.onload = function() {
       "tapToDismiss": false
     }
 
-    Toastr["info"](`<a href="${link}">short link</a><br /><br /> long link: <a href="${link}">${link}</a>`, "Your sketch:")
+    Toastr["info"](`<a href="${link}">${name}</a>`, "Your sketch link:")
 
     return link
   }

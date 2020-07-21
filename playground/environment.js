@@ -437,9 +437,8 @@ window.onload = function() {
 
           Marching.Scene.prototype.gif = function( width=600, height=335, length=60, quality=5, delay=17, filename='marching.gif' ) {
             const gif = new GIF({
-              width, height,
+              quality, width, height,
               workers:2,
-              quality:10,
               workerScript: workerURL
             })
 

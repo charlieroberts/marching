@@ -25,6 +25,18 @@ const textures = {
       { name:'strength', type:'float', default:1 },   
     ]
   },
+  feedback: {
+    name:'feedback',
+    glsl2d:`
+      vec3 feedback2d( vec2 uv, float scale, float strength ) {
+        return texture( textures[ 0 ], uv*scale ).xyz * strength;
+      }
+    `,
+    parameters:[
+      { name:'scale', type:'float', default:1 },
+      { name:'strength', type:'float', default:1 },   
+    ]
+  },
   rainbow: {
     name:'rainbow',
     parameters: [

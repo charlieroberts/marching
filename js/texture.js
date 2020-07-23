@@ -232,12 +232,26 @@ const __Textures = function( SDF ) {
         tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : props.wrap
 
         tex.update()
+      }else if( presetName === 'feedback' ) {
+        tex.canvas = tex.image = SDF.canvas 
+        tex.ctx    = tex.canvas.getContext('2d')
+
+        tex.update = function() {
+          tex.gltexture.setPixels( tex.image )
+        }
+
+        tex.gltexture = createTexture( SDF.gl, tex.image )
+        tex.gltexture.wrap = props.wrap === undefined ? Marching.gl.REPEAT : props.wrap
+
+        tex.update()
       }
 
 
       Object.defineProperty( tex, 'wrap', {
         get() { return this.gltexture.wrap },
-        set(v){ this.gltexture.wrap = v }
+        set(v){ 
+          this.gltexture.wrap = v 
+        }
       })
 
       tex.name = presetName
@@ -262,7 +276,7 @@ const __Textures = function( SDF ) {
           }
           memo.push( tex )
         }
-        if( tex.name === 'image' || tex.name === 'canvas' ) {
+        if( tex.name === 'image' || tex.name === 'canvas' || tex.name === 'feedback' ) {
           imageCount++
 
           // for some reason can't immediately call update... 
@@ -287,7 +301,7 @@ const __Textures = function( SDF ) {
                 tex.__target[ param.name ].update_location( gl,program )
             }
           }
-          if( tex.name === 'image' || tex.name === 'canvas' ) {
+          if( tex.name === 'image' || tex.name === 'canvas' || tex.name === 'feedback' ) {
             tex.loc = gl.getUniformLocation( program, `textures[${tex.id}]` )
             tex.gltexture.bind( i )
           }
@@ -314,7 +328,7 @@ const __Textures = function( SDF ) {
             if( param.type !== 'obj' && param.name !== 'material' )
               tex.__target[ param.name ].upload_data( gl )
           }
-          if( tex.name === 'image' || tex.name === 'canvas' ) {
+          if( tex.name === 'image' || tex.name === 'canvas' || tex.name === 'feedback' ) {
             gl.uniform1i( tex.loc, i )
           }
         })

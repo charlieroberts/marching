@@ -393,7 +393,7 @@ window.onload = function() {
             const canvas = document.createElement('canvas')
             canvas.width  = w
             canvas.height = h
-            const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false }) : __hydra
+            const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false, detectAudio:false }) : __hydra
 
             if( __hydra === null ) {
               hydra.synth.canvas = canvas

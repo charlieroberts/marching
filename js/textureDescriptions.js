@@ -18,7 +18,7 @@ const textures = {
     name:'canvas',
     glsl2d:`
       vec3 canvas2d( vec2 uv, float scale, vec3 mod, float strength ) {
-        return texture( textures[ 0 ], (uv+mod)*scale ).xyz * strength;
+        return texture( textures[ 0 ], (uv+mod.xy)*scale ).xyz * strength;
       }
     `,
     parameters:[

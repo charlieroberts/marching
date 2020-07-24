@@ -32755,11 +32755,69 @@ window.onload = function() {
 
     Toastr.info( msg, title )
   }
-
+  //https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js
   const libs = {}
-  window.use = function( lib ) {
+
+  window.use = function( ...libs ) {
+    if( libs.length === 1 ) { 
+      return window.__use( libs[0] ) 
+    }else{
+      return Promise.all( libs.map( l => window.__use( l ) ) )
+    }
+  }
+
+  window.__use = function( lib ) {
     const p = new Promise( (res,rej) => {
-      if( lib === 'hydra' ) {
+      if( lib.indexOf('http') > -1 ) {
+        const p5script = document.createElement( 'script' )
+        p5script.src = lib
+
+        document.querySelector( 'head' ).appendChild( p5script )
+
+        p5script.onload = function() {
+          msg( `${lib} has been loaded.`, 'new module loaded' )
+          res()
+        }
+      }else if( lib === 'p5' ) {
+        if( libs.P5 !== undefined ) { res( libs.P5 ); return }
+
+        const p5script = document.createElement( 'script' )
+        p5script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js'
+
+        document.querySelector( 'head' ).appendChild( p5script )
+
+        p5script.onload = function() {
+          msg( 'p5 is ready to texture', 'new module loaded' )
+          const __p5 = p5
+
+          window.P5 = function( w=500,h=500 ) {
+            const canvas = document.createElement('div')
+            canvas.setAttribute('id','container')
+            canvas.width  = w
+            canvas.height = h
+            const sketch = function(p) {
+              p.setup = function(){
+                p.createCanvas( w,h )
+                p.background(0)
+              }
+            }
+            const p = new p5( sketch, 'container' ) 
+
+            p.texture = ()=> {
+              const t = Texture('canvas', { canvas:p.canvas })
+              Marching.postrendercallbacks.push( ()=> t.update() )
+              p.texture = t
+              return t
+            }
+            
+            return p
+          }
+
+          libs.P5 = p5
+
+          res( p5 )
+        } 
+      } else if( lib === 'hydra' ) {
         if( libs.Hydra !== undefined ) { res( libs.Hydra ); return }
 
         const hydrascript = document.createElement( 'script' )
@@ -32796,7 +32854,7 @@ window.onload = function() {
 
           res( Hydra )
         } 
-      }else if( lib === 'gif' ){ 
+      } else if( lib === 'gif' ){ 
         if( libs.GIF !== undefined ) { res( libs.GIF ); return }
 
         // first load actual script

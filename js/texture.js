@@ -225,6 +225,7 @@ const __Textures = function( SDF ) {
         }
 
         tex.update = function() {
+          //tex.gltexture.setPixels( SDF.fx.merger === null ? tex.image : SDF.fx.merger.tex.front.tex )
           tex.gltexture.setPixels( tex.image )
         }
 
@@ -238,6 +239,7 @@ const __Textures = function( SDF ) {
 
         tex.update = function() {
           tex.gltexture.setPixels( tex.image )
+          //tex.gltexture.setPixels( SDF.fx.merger === null ? tex.image : SDF.fx.merger.tex.front.tex )
         }
 
         tex.gltexture = createTexture( SDF.gl, tex.image )

@@ -49,8 +49,8 @@ const textures = {
       { name:'scale', type:'float', default:1 },
     ],
     glsl:` 
-    vec3 rainbow( vec3 pos, float strength, vec3 mod, float shift, float scale ) {
-      pos = (pos+mod) * scale;
+    vec3 rainbow( vec3 pos, float strength, vec3 uvmod, float shift, float scale ) {
+      pos = (pos+uvmod) * scale;
       vec3 a = vec3(0.5,0.5,0.5), b = vec3(0.5,0.5,0.5), c = vec3(1.0,1.0,1.0),d = vec3(0.0,0.33,0.67);
       return a + b * cos( 6.283818 * ( c * mod(length(pos) + shift, 1. ) + d ) ) * strength;
     }` 
@@ -150,7 +150,7 @@ const textures = {
   dots: {
     name:'dots',
     glsl:`          
-        vec3 dots( vec3 pos, float count, float radius, vec3 color ) {
+        vec3 dots( vec3 pos, float count, vec3 mod, float radius, vec3 color ) {
           vec3 tex;
           tex = vec3( color - smoothstep( radius, radius+.02, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
           return tex;

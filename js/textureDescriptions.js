@@ -30,8 +30,8 @@ const textures = {
   feedback: {
     name:'feedback',
     glsl2d:`
-      vec3 feedback2d( vec2 uv, float scale, float mod, float strength ) {
-        return texture( textures[ 0 ], (uv+mod)*scale ).xyz * strength;
+      vec3 feedback2d( vec2 uv, float scale, vec3 mod, float strength ) {
+        return texture( textures[ 0 ], (uv+mod.xy)*scale ).xyz * strength;
       }
     `,
     parameters:[

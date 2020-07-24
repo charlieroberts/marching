@@ -33,6 +33,7 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
+  ['texturing']: require( './demos/textures_tutorial.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),

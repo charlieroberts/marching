@@ -32056,6 +32056,119 @@ march(
 .render()`
 
 },{}],32:[function(require,module,exports){
+module.exports=`/* __--__--__--__--__--__--__--__--
+                                    
+Marching.js provides a variety of
+ways to create procedural textures.
+In order of increasing complexity,
+they are:
+
+1. Using texture presets
+2. Using HTML <canvas> objects
+3. Using Hydra, another live coding
+   system for 2D visual chaos
+4. Writing your own shaders
+
+#4 is covered in the "defining
+procedural textures" tutorial, we'll
+cover thhe rest here.
+                                   
+** __--__--__--__--__--__--__--__*/
+
+// marching.js comes with a number 
+// of texture presets that share
+// some properties; you can see most
+// of them in theh "textures catalog"
+// demo. Let's look at "truchet" to get
+// a sense for how these presets work.
+
+tex = Texture( 'truchet' )
+march( Box().texture( tex ) ).render() 
+
+// calling Texture() makes a new texture
+// object that can be passed to the 
+// .texture() method of any geometry or
+// combinator. If you call .texture() 
+// on a combinator, the texture will be
+// applied to all it's members.
+
+tex = Texture( 'checkers' )
+march( 
+  StairsUnion(
+    Box(),
+    Box( Vec3(.5,2,.5) )
+  )
+  .texture( tex )
+  .rotate(45,1,1,1)
+).render()
+
+// while some properties are unique
+// to specific textures, others can
+// be found on all of them: scale,
+// strength, and uv. Examples of each
+// are shown below. Here we'll call
+// the .texture() method and pass in
+// names of presets instead of passing
+// in a texture object. When you do this,
+// you can also pass a dictionary of property
+// setters.
+
+// the scale property scales texture coordinates
+march( 
+  Sphere().translate(1,0,0).texture( 'checkers', { scale:5 }),
+  Sphere().translate(-1,0,0).texture( 'checkers', { scale:15 })
+).render()
+
+// you can also provide coordinate offset using
+// uv property. When you want to refer to the texture
+// of an object, you can do so with the following form:
+//
+// objvariable.texture.propertyname = value
+
+march( 
+  s1 = Sphere().translate(1,0,0).texture( 'checkers', { scale:5 }),
+  s2= Sphere().translate(-1,0,0).texture( 'checkers', { scale:15 })
+).render( 'med' )
+ 
+onframe = t => {
+  s1.texture.uv.x = t/5
+  s2.texture.uv.y = t/5
+}
+
+// last but not least, many textures (but possiibly not all)
+// have a "strength" property that blends the texture with
+// the non-textured lighting.
+
+march( 
+  Box(.5).translate(-1.1,0,0).texture( 'rainbow', { strength:0, scale:10 }),
+  Box(.5).translate(0,0,0).texture( 'rainbow', { strength:.25, scale:10 }),
+  Box(.5).translate(1.1,0,0).texture( 'rainbow', { strength:1, scale:10 })
+).render()
+
+// there's one additional preset, 'feedback', that is a special case.
+// it creates a texture of the entire scene, that you can then
+// use to texture individual objects. Try running this one twice if you
+// don't get full feedback... there's a bug I need to fix in there.
+
+t = Texture( 'feedback' )
+ 
+march(
+  RoundUnion(
+    b = Box(1).texture( t ),
+    c = Sphere().texture('dots').translate(2,0,0)
+  ),
+  Plane( Vec3(0,0,1) ).texture('stripes')
+)
+.render('low')
+.camera(0,0,3.5)
+ 
+onframe = time => {
+  t.update()
+  b.rotate(time*5, 1,.5,.25 )
+  c.rotate(time*4, .5,1,.25 )
+}`
+
+},{}],33:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -32236,7 +32349,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports =`Material.default = Material.grey
 
 m = march(
@@ -32265,7 +32378,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' ),
       Toastr     = require( 'toastr' )
 
@@ -32301,6 +32414,7 @@ const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
+  ['texturing']: require( './demos/textures_tutorial.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
@@ -33049,4 +33163,4 @@ window.onload = function() {
 
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/gifs_and_links.js":19,"./demos/intro.js":20,"./demos/julia.js":21,"./demos/let_it_shine.js":22,"./demos/lighting.js":23,"./demos/livecoding.js":24,"./demos/mandelbulb.js":25,"./demos/postprocessing.js":26,"./demos/procedural_textures.js":27,"./demos/snare.js":28,"./demos/superformula.js":29,"./demos/texture_transforms.js":30,"./demos/textures.js":31,"./demos/tutorial_1.js":32,"./demos/twist.js":33,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[34]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/gifs_and_links.js":19,"./demos/intro.js":20,"./demos/julia.js":21,"./demos/let_it_shine.js":22,"./demos/lighting.js":23,"./demos/livecoding.js":24,"./demos/mandelbulb.js":25,"./demos/postprocessing.js":26,"./demos/procedural_textures.js":27,"./demos/snare.js":28,"./demos/superformula.js":29,"./demos/texture_transforms.js":30,"./demos/textures.js":31,"./demos/textures_tutorial.js":32,"./demos/tutorial_1.js":33,"./demos/twist.js":34,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[35]);

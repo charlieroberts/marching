@@ -197,7 +197,7 @@ Mandelbox
 
 #### Constructor/Properties ####
 **fold** &nbsp; *float* &nbsp; A coefficient that controls the amount of spherical folding in the mandelbox.  
-**scale** &nbsp; *float* &nbsp; A coefficient that controls the scaling in the mandelbox equation.  
+**size** &nbsp; *float* &nbsp; A coefficient that controls the scaling in the mandelbox equation. Note that this is different from `.scale()` which controls the overall size of the mandelbox. 
 **iterations** &nbsp; *float* &nbsp; default 5. The number of times the mandelbox equation is run per frame. This number greatly influences the complexity of the final output, but higher values are computationally expensive. 
 
 Octahedron

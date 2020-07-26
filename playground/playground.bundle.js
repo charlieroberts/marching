@@ -31351,7 +31351,7 @@ module.exports = `march(
 .camera( 0,0,3.5 )
 
 onframe = t => {
-  box.scale = 2.4 + sin(t) * .15
+  box.size = 2.4 + sin(t) * .15
   box.fold = .3 + cos(t/2) * .1
   int.rotate(t*10,.5,.5,sin(t/5))
 } 

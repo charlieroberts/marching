@@ -5,7 +5,7 @@ const textures = {
     name:'image',
     glsl2d:`
       vec3 image2d( vec2 uv, float scale, vec3 mod, float strength ) {
-        return texture( textures[ 0 ], (uv+mod)*scale ).xyz * strength;
+        return texture( textures[ _id_ ], (uv+mod)*scale ).xyz * strength;
       }
     `,
     parameters:[
@@ -18,7 +18,7 @@ const textures = {
     name:'canvas',
     glsl2d:`
       vec3 canvas2d( vec2 uv, float scale, vec3 mod, float strength ) {
-        return texture( textures[ 0 ], (uv+mod.xy)*scale ).xyz * strength;
+        return texture( textures[ _id_ ], (uv+mod.xy)*scale ).xyz * strength;
       }
     `,
     parameters:[
@@ -31,7 +31,7 @@ const textures = {
     name:'feedback',
     glsl2d:`
       vec3 feedback2d( vec2 uv, float scale, vec3 mod, float strength ) {
-        return texture( textures[ 0 ], (uv+mod.xy)*scale ).xyz * strength;
+        return texture( textures[ _id_ ], (uv+mod.xy)*scale ).xyz * strength;
       }
     `,
     parameters:[

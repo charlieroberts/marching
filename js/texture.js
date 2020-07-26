@@ -53,29 +53,20 @@ const __Textures = function( SDF ) {
           pushedWrap = true
         }
 
-        const glsl = mode === '3d' ? t.glsl : t.glsl2d 
+        let glsl = mode === '3d' ? t.glsl : t.glsl2d 
+        const usesId = glsl.indexOf( '_id_' ) > -1 
+
+        let functionName = mode === '2d' ? t.name + '2d' : t.name 
+        if( usesId ) {
+          glsl = glsl.replace( /\_id\_/g, t.id )
+          glsl = glsl.replace( new RegExp( `${functionName}`, 'g'  ), functionName+t.id )
+          functionName = functionName+t.id
+        }
         if( Textures.__textureBodies.indexOf( glsl ) === -1 ) { 
           Textures.__textureBodies.push( glsl )
         }
 
         const args = t.parameters.map( p => t.__target[ p.name ].emit() ) 
-        const functionName = mode === '2d' ? t.name + '2d' : t.name 
-
-        //decl += `
-        //  case ${i}:
-        //      ${mode === '2d' 
-        //      ? `    
-        //      vec3 n = normalize( pos );
-        //      vec4 texx =  vec4(${functionName}( .5*n.yz+.5 ${ args.length > 0 ? ',' + args.join(',') : ''} ), 1.);
-        //      vec4 texy =  vec4(${functionName}( .5*n.zx+.5 ${ args.length > 0 ? ',' + args.join(',') : ''} ), 1.);
-        //      vec4 texz =  vec4(${functionName}( .5*n.xy+.5 ${ args.length > 0 ? ',' + args.join(',') : ''} ), 1.);
-        //      tex = triplanar( n, texx, texy,texz,false,false ).xyz;`
-        //      : ` 
-        //      tex = ${functionName}( pos ${ args.length > 0 ? ',' + args.join(',') : ''} );
-        //   `}
-        //    break;\n`
-
-
         decl +=`
           case ${i}:
             ${mode === '2d' ? `     pos2 = getUVCubic( pos );\n` : ''} 

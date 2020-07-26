@@ -217,8 +217,9 @@ const __Materials = function( SDF ) {
     grey    : Materials.material( 'global', Vec3(.25), Vec3(.33), Vec3(1), 2, Vec3(0) ),
 
     'white glow' : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,200,5) ),
-    glue    : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
-    inverse : Materials.material( 'phong', 1, .5, 1, 16, Vec3(1,.5,-2) ),
+    glue         : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
+    inverse      : Materials.material( 'phong', 1, .5, 1, 16, Vec3(1,.5,-2) ),
+    blackhole    : Materials.material( 'phong', Vec3(0), Vec3(0), Vec3(0), 32 ),
 
     normal  : Materials.material( 'normal' ),
     noise   : Materials.material( 'noise',  Vec3( .15 ), Vec3(1,0,0), Vec3(1), 8, Vec3( 0, 1, .5 ))

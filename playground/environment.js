@@ -34,6 +34,8 @@ const tutorials = {
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['texturing']: require( './demos/textures_tutorial.js' ),
+  ['texturing with hydra']: require( './demos/hydra.js' ),
+  ['texturing with p5.js']: require( './demos/p5.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
@@ -353,26 +355,32 @@ window.onload = function() {
   
   }
 
+  let __mute = false
+  window.mute = function() {
+    __mute = !__mute
+  }
   const msg = function( msg, title ) {
-    Toastr.options = {
-      "closeButton": false,
-      "debug": false,
-      "newestOnTop": false,
-      "progressBar": false,
-      "positionClass": "toast-bottom-center",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "4000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
-    }
+    if( __mute === false ) {
+      Toastr.options = {
+        "closeButton": false,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": false,
+        "positionClass": "toast-bottom-center",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "4000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+      }
 
-    Toastr.info( msg, title )
+      Toastr.info( msg, title )
+    }
   }
   //https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js
   const libs = {}
@@ -450,9 +458,10 @@ window.onload = function() {
 
           window.Hydra = function( w=500,h=500 ) {
             const canvas = document.createElement('canvas')
-            canvas.width  = w
+            canvas.width = w
             canvas.height = h
             const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false, detectAudio:false }) : __hydra
+            //hydra.setResolution(w,h)
 
             if( __hydra === null ) {
               hydra.synth.canvas = canvas

@@ -31146,6 +31146,125 @@ use('hydra').then( ()=> {
   h.texture.strength = .5
 })`
 },{}],20:[function(require,module,exports){
+module.exports = `/* __--__--__--__--__--__--__--__--
+                                    
+It's **highly** recommended that you
+complete the "texturing" tutorial
+before beginning this one.
+
+Marching.js can use Hydra as a 
+texture generator for its 3D forms.
+Once you've created a texture using
+Hydra, you can live code with it
+in a similar fashion to any other
+Hydra sketch.
+
+If you've never tried Hydra before,
+go here for more info + tons of fun: 
+http://hydra.ojack.xyz
+                                   
+** __--__--__--__--__--__--__--__*/
+
+// the first step is to load Hydra,
+// which isn't included in marching.js
+// by default. The use() function lets
+// us do this. Run the code below by
+// hitting ctrl+enter
+use('hydra')
+
+// you should see a notification appear
+// at the bottom of your screen when
+// hydra is ready to go. Use the Hydra()
+// constructor to make a new hydra object.
+// When you make calls to hydra functions
+// they will draw to a canvas stored in
+// this hydra object.
+hydra = Hydra()
+osc(50, .05, 10).modulate( noise(15) ).out()
+
+// ok, next we need to texture a marching.js
+// object with the hydra object we created.
+
+march( 
+  box = Box(1.5).texture( hydra.texture() ) 
+).render('med')
+ 
+onframe = t => box.rotate(t*5,1,1,1)
+
+// note that you can easily live code
+// the texture by simply re-running the
+// osc().modulate().out() line after
+// making changes. or here's a different
+// idea from Hydra creator @_ojack_ (slightly modded).
+// you can run the whole block by placing
+// your cursor in it and hitting alt+enter
+
+pattern = () => osc(150, 0).kaleid(200).scale(1, 0.4)
+pattern()
+  .scrollX(0.5, 0.05)
+  .mult(pattern())
+  .out()
+
+// ok, let's use this in a more complex scene. Again,
+// you can execute the
+hydra = Hydra()
+pattern = () => osc(50, 0).kaleid(200).scale(1, 0.4)
+pattern()
+  .scrollX(0.5, 0.05)
+  .mult(pattern())
+  .out()
+ 
+march(
+  rpt = Repeat(
+    box = Box(.35).texture( hydra.texture() ),
+    2
+  )
+)
+.fog(.1,Vec3(0))
+.render('med')
+ 
+onframe = t => {
+  box.rotate(t*5,1,1,1)
+  rpt.distance = 1.5+ sin(t)*.35
+}
+
+// from the texture tutorial, we know
+// we can scale the texture
+
+box.tex.scale = 3
+
+// or...
+
+box.tex.scale = .5
+
+// and we can also change the strength
+// of the texture, which determines
+// how much it overrides the default
+// lighting of the material
+box.tex.strength = .25
+
+/* finally, fractals + hydra === _ _ 
+                                ( v )
+                                 \\ / 
+                                  v  
+*/
+ 
+hydra = Hydra()
+osc(50, .05, .5).modulate( noise(15) ).out()
+ 
+march( 
+  m = Mandelbox(1.25,1.1,3).texture( hydra.texture() ).scale(.5)
+).render('fractal.med')
+ 
+m.tex.strength = .5
+m.tex.wrap = Texture.mirror
+m.tex.scale = 4
+ 
+onframe = t => { 
+  m.rotate(t*15,1,1,1) 
+  m.size = 1 + sin(t/2) * .125
+}`
+},{}],21:[function(require,module,exports){
 module.exports = `march(
   Repeat(
     StairsDifference(
@@ -31190,7 +31309,7 @@ https://atom.io/packages/atom-marching
                                     
 ** __--__--__--__--__--__--__--__*/`
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports=`mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0,.25,1) )
 tex  = Texture(  'cellular', { strength:.15, scale:20 })  
  
@@ -31208,7 +31327,7 @@ march(
 .camera(0,0,1.75)
 `
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports = `march(  
   int = Intersection(
     Sphere( 2 ).material(),
@@ -31239,7 +31358,7 @@ onframe = t => {
 
 rays.color = [1,.5,1]`
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -31469,7 +31588,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
 Live Coding
 
@@ -31616,7 +31735,7 @@ onframe, fade, the fft, and proxies, there's
 a number of tools to get started.
 __--__--__--__--__--__--__--____ */`
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -31634,7 +31753,117 @@ march(
 .render()
 .camera( 0,0,3 )`
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+module.exports=`/* __--__--__--__--__--__--__--__--
+                                    
+It's **highly** recommended that you
+complete the "texturing" tutorial
+before beginning this one.
+
+Marching.js can use p5.js as a 
+texture generator for its 3D forms.
+Once you've created a texture using
+p5, you can use live code what is
+drawn to it by changing the onframe()
+method, which is equivalent to draw()
+in p5.js.
+
+Never played with p5.js before?
+https://p5js.org/
+                                   
+** __--__--__--__--__--__--__--__*/
+
+// the first step is to load p5,
+// which isn't included in marching.js
+// by default. The use() function lets
+// us do this. Run the code below by
+// hitting ctrl+enter
+use('p5')
+
+// you should see a notification appear
+// at the bottom of your screen when
+// p5 is ready to go. Use the P5()
+// constructor to make a new p5 object.
+// All the p5 drawing functions will then
+// be found in ths object, we'll use them
+// to create a red/white texture;
+pfive = P5()
+pfive.background(255,255,255)
+pfive.fill(255,0,0)
+pfive.rect(0,0,pfive.width/2,pfive.height)
+
+// ok, next we need to texture a marching.js
+// object with the p5 object we created.
+
+march( 
+  box = Box(1.5).texture( pfive.texture() ) 
+).render('med')
+ 
+onframe = t => box.rotate(t*5,1,1,1)
+
+// we can make this more fun by animating
+// inside of our onframe() method:
+
+onframe = t => {
+  pfive.background(255,255,255)
+  pfive.rect(0,0,(.5+sin(t)*.5)*pfive.width,pfive.height)
+  box.rotate(t*5,1,1,1)
+}
+
+// scale the texture
+box.tex.scale = 4
+
+// we can load external p5 libraries from 
+// content delivery networks like jsdelivr. Let's
+// load p5.Polar by Liz Peng (https://github.com/liz-peng/p5.Polar)
+// which is a fun library for creating circular patterns 
+// using polar coordinates.
+
+use( 'https://cdn.jsdelivr.net/gh/liz-peng/p5.Polar/p5.Polar.js' )
+
+// you should see a notification appear at the bottom
+// once the library has loaded. We can now run some drawing
+// code... doing it outside of onframe() would be roughly
+// the same as doing it in setup() in a normal p5 sketch:
+pfive = P5(600,600) 
+pfive.setCenter( pfive.width/2, pfive.height/2)
+pfive.stroke( 255,255,255,64 )
+pfive.colorMode( pfive.HSB, 255 )
+ 
+// we'll create a more complex scene below. The use of
+// the 'blackhole' material causes the spheres to ignore
+// much of the lighting information in the scene in favor
+// of the p5 texture.
+march(
+  rpt = Repeat(
+    box = Sphere(1).material('blackhole').texture( pfive.texture() ),
+    3
+  )
+)
+.fog(.1,Vec3(0))
+.render('repeat.med')
+ 
+onframe = t => {
+  box.rotate(t*5,1,1,1)
+  pfive.background(0)
+  for( let i = 0; i < 10; i++ ) {
+    pfive.fill( pfive.color( i * 25, i * 25, 255, 32 ) )
+    pfive.polarEllipses( 
+      i*6, 80 - i*6.5, 80-i*6.5, 30 * i * (.85 +(sin(t) * .15)),
+       (...args) => {
+        args[1] = (t*2)/(i+1)
+        return args
+      }
+    )
+  }
+}
+
+// we can also change the strength
+// of the texture, which determines
+// how much it overrides the default
+// lighting of the material
+box.tex.strength = .5`
+},{}],28:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
                                     
 Marching.js wraps the mergepass lib
@@ -31728,7 +31957,7 @@ onframe = t => {
  
 g.decay = 1.01`
 
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = `/* Marching.js lets you define your own
 procedural textures; this is a very
 similar process to defining your own
@@ -31827,7 +32056,7 @@ onframe = t => {
   s.texture.scale = t % 10
 }`
 
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const grey = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) ),
@@ -31883,7 +32112,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = `// a 3D superformula essentially two 2D supershapes,
 // first six coefficients govern one, second
 // six coefficients govern the other.
@@ -31920,7 +32149,7 @@ onframe = time => {
 
 // thanks to https://github.com/Softwave/glsl-superformula`
 
-},{}],30:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports =`// In this demo the important point 
 // to note is that transformations can be applied to
 // most functions, not just geometries. Here, a
@@ -31956,7 +32185,7 @@ onframe = time => {
   rpt.translate( 0,0,time/3 )
 }`
 
-},{}],31:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports =`zigzag = Box(.5)
   .move( -2,1.25 )
   .texture(
@@ -32055,7 +32284,7 @@ march(
 )
 .render()`
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports=`/* __--__--__--__--__--__--__--__--
                                     
 Marching.js provides a variety of
@@ -32168,7 +32397,7 @@ onframe = time => {
   c.rotate(time*4, .5,1,.25 )
 }`
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -32349,7 +32578,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 module.exports =`Material.default = Material.grey
 
 m = march(
@@ -32378,7 +32607,7 @@ onframe = time => {
   t.amount = Math.sin(time/4)*5
 }`
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' ),
       Toastr     = require( 'toastr' )
 
@@ -32415,6 +32644,8 @@ const tutorials = {
   ['constructive solid geometry']: require( './demos/csg.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['texturing']: require( './demos/textures_tutorial.js' ),
+  ['texturing with hydra']: require( './demos/hydra.js' ),
+  ['texturing with p5.js']: require( './demos/p5.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
@@ -32734,26 +32965,32 @@ window.onload = function() {
   
   }
 
+  let __mute = false
+  window.mute = function() {
+    __mute = !__mute
+  }
   const msg = function( msg, title ) {
-    Toastr.options = {
-      "closeButton": false,
-      "debug": false,
-      "newestOnTop": false,
-      "progressBar": false,
-      "positionClass": "toast-bottom-center",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "4000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
-    }
+    if( __mute === false ) {
+      Toastr.options = {
+        "closeButton": false,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": false,
+        "positionClass": "toast-bottom-center",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "4000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+      }
 
-    Toastr.info( msg, title )
+      Toastr.info( msg, title )
+    }
   }
   //https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js
   const libs = {}
@@ -32831,9 +33068,10 @@ window.onload = function() {
 
           window.Hydra = function( w=500,h=500 ) {
             const canvas = document.createElement('canvas')
-            canvas.width  = w
+            canvas.width = w
             canvas.height = h
             const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false, detectAudio:false }) : __hydra
+            //hydra.setResolution(w,h)
 
             if( __hydra === null ) {
               hydra.synth.canvas = canvas
@@ -33221,4 +33459,4 @@ window.onload = function() {
 
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/gifs_and_links.js":19,"./demos/intro.js":20,"./demos/julia.js":21,"./demos/let_it_shine.js":22,"./demos/lighting.js":23,"./demos/livecoding.js":24,"./demos/mandelbulb.js":25,"./demos/postprocessing.js":26,"./demos/procedural_textures.js":27,"./demos/snare.js":28,"./demos/superformula.js":29,"./demos/texture_transforms.js":30,"./demos/textures.js":31,"./demos/textures_tutorial.js":32,"./demos/tutorial_1.js":33,"./demos/twist.js":34,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[35]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/gifs_and_links.js":19,"./demos/hydra.js":20,"./demos/intro.js":21,"./demos/julia.js":22,"./demos/let_it_shine.js":23,"./demos/lighting.js":24,"./demos/livecoding.js":25,"./demos/mandelbulb.js":26,"./demos/p5.js":27,"./demos/postprocessing.js":28,"./demos/procedural_textures.js":29,"./demos/snare.js":30,"./demos/superformula.js":31,"./demos/texture_transforms.js":32,"./demos/textures.js":33,"./demos/textures_tutorial.js":34,"./demos/tutorial_1.js":35,"./demos/twist.js":36,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[37]);

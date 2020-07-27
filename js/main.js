@@ -402,6 +402,7 @@ const SDF = {
         if( typeof window.onframe === 'function' ) window.onframe( total_time )
       }
 
+      this.textures.update_location( gl, this.program )
       // transfer all data associated with uniforms in marching.js
       this.uploadData( gl )
 

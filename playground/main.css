@@ -7,7 +7,7 @@ canvas {
 body { 
   margin:0;
   background:black;
-  font-family:sans-serif
+  font-family:monospace
 }
 
 .CodeMirror{
@@ -27,7 +27,7 @@ body {
   background-color: rgba( 0,0,0,.75 ) !important;
   float:left !important;
   clear:left !important;
-  font-family:Menlo, sans-serif !important;
+  font-family:Menlo, Courier New, monospace !important;
 }
 
 .CodeMirror-linenumber {

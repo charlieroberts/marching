@@ -33167,27 +33167,35 @@ window.onload = function() {
   const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t
 
   window.fade = ( objname, propname, target, seconds ) => {
+    const objsplit = objname.indexOf('.') === -1 ? null : objname.split('.')
     const split = propname.indexOf('.') === -1 ? null : propname.split('.')
     const startValue = [], diff = []
     const inc  = 1 / ( seconds * 60 )   
-    const isVec = split === null && window[ objname ][ propname ].type.indexOf( 'vec' ) !== -1
+    let obj
+    if( objsplit === null ) {
+      obj = window[ objname ]
+    }else{
+      obj = window
+      objsplit.forEach( v => obj = obj[ v ] )
+    }
+    const isVec = split === null && obj[ propname ].type.indexOf( 'vec' ) !== -1
 
-    let vecCount = isVec === true ? parseInt( window[ objname ][ propname ].type.slice(3) ) : null
+    let vecCount = isVec === true ? parseInt( obj[ propname ].type.slice(3) ) : null
     let t = 0
 
+ 
     if( isVec ) {
-      startValue[0] = window[ objname ][ propname ].x 
-      startValue[1] = window[ objname ][ propname ].y
-      if( vecCount > 2 ) startValue[2] = window[ objname ][ propname ].z
+      startValue[0] = obj[ propname ].x 
+      startValue[1] = obj[ propname ].y
+      if( vecCount > 2 ) startValue[2] = obj[ propname ].z
 
       diff[0] = target - startValue[0] 
       diff[1] = target - startValue[1]
       if( vecCount > 2 ) diff[2] = target - startValue[2]
     }else{
       if( split === null ) { 
-        startValue[0] = window[ objname ][ propname ].value 
+        startValue[0] = obj[ propname ].value 
       }else{
-        let obj = window[ objname ]
         for( let i = 0; i < split.length; i++ ) {
           //split.forEach( (v,i) => obj = isVec ? : obj[ v ] )
           obj = obj[ split[ i ] ] 
@@ -33199,21 +33207,19 @@ window.onload = function() {
     }
 
     const fnc = () => {
-      let obj = null
       const easeValue = ease( t )
       if( split === null ) {
         if( isVec === false ) {
-          window[ objname ][ propname ]   = startValue[0] + easeValue * diff[0]
+          obj[ propname ]   = startValue[0] + easeValue * diff[0]
         }else{
-          window[ objname ][ propname ].x = startValue[0] + easeValue * diff[0]
-          window[ objname ][ propname ].y = startValue[1] + easeValue * diff[1]
+          obj[ propname ].x = startValue[0] + easeValue * diff[0]
+          obj[ propname ].y = startValue[1] + easeValue * diff[1]
 
           if( vecCount > 2 ) {
-            window[ objname ][ propname ].z = startValue[2] + easeValue * diff[2]
+            obj[ propname ].z = startValue[2] + easeValue * diff[2]
           }
         }
       }else{
-        obj = window[ objname ]
         for( let i = 0; i < split.length - 1; i++ ) {
           //split.forEach( (v,i) => obj = isVec ? : obj[ v ] )
           obj = obj[ split[ i ] ] 
@@ -33225,7 +33231,7 @@ window.onload = function() {
         if( split !== null ) {
           obj[ split[ split.length - 1 ] ] = target 
         }else{
-          window[ objname ][ propname ] = target
+          obj[ propname ] = target
         }
 
         fnc.cancel()

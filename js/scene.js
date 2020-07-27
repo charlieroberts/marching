@@ -202,7 +202,11 @@ const getScene = function( SDF ) {
 
     applyPreset( presetName ) {
       const preset = this.presets[ presetName ]
-      if( preset.farPlane !== undefined ) this.farPlane( this.__farPlane || preset.farPlane )
+      if( preset.farPlane !== undefined ) {
+        this.farPlane( this.__farPlane || preset.farPlane )
+      }else{
+        this.__farPlane = 0
+      }
       this.steps( this.__steps || preset.steps )
       if( this.donotuseresolution === undefined ) this.resolution( this.__resolution || preset.resolution )
       this.threshold( this.__threshold || preset.threshold || .001 )

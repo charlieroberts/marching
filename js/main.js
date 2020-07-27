@@ -417,7 +417,7 @@ const SDF = {
       gl.drawArrays( gl.TRIANGLES, 0, 6 )
 
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS COLOR OUPTUT ***************/
-      //this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
+      // this.runCopyShader( gl, width, height, aPos, programs, colorTexture, vbo )
       
       /********* UNCOMMENT THIS LINE TO CHECK MARCHING.JS DEPTH OUPTUT ***************/
       // this.runCopyShader( gl, width, height, aPos, programs, depthTexture, vbo )

@@ -121,7 +121,8 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     return vd;
   }
 
-  out vec4 col;
+  layout(location = 0) out vec4 col;
+  layout(location = 1) out vec4 depth;
   void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
     vec2 pos = uv * 2.0 - 1.0;
@@ -155,20 +156,25 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     }
     
     float modAmount = ${(1./voxelSize).toFixed(1)};
+    vec3 t;
+    bool hit = false;
     if( color != bg ) {
       vec3 pos = vd.distance; 
+      t = pos * modAmount;
       //vec3 pos = ro + rd * vd.fogCoeff;
 
       color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
       //color *= lighting( pos, nor, ro, rd, float(vd.id), false ); 
       //color = min(color,1.);
       //color = getTexture( 0, pos );
-      
+      hit = true;
     }
     
-    vec2 t = vec2( vd.fogCoeff, vd.id );
   ${postprocessing}; 
     col = vec4( color, 1. ); 
+
+    float normalizedDepth = length( (vd.distance-ro) * ${voxelSize.toFixed(1)} ); 
+    depth = hit == true ? vec4( vec3(1.-normalizedDepth), 1. ) : vec4(0.);
   }`
 
   return out

@@ -24,7 +24,8 @@ const getScene = function( SDF ) {
       canvas,
       postprocessing:[],
       __shadow:8,
-      __followLight:null
+      __followLight:null,
+      __postprocessingFlag:false
     })
 
     scene.useQuality = true
@@ -215,6 +216,8 @@ const getScene = function( SDF ) {
     },
 
     post( ...fx ) {
+      this.__postprocessingFlag = true
+      SDF.fx.clear()
       SDF.fx.post( ...fx )
       return this
     },
@@ -222,6 +225,7 @@ const getScene = function( SDF ) {
     render( quality=10, animate=false, useQuality=true ) {
       // adds default if none has been specified
       this.background() 
+      if( this.__postprocessingFlag === false ) { SDF.fx.clear() }
 
       if( typeof quality === 'string' ) {
         animate = this.applyPreset( quality )
@@ -262,6 +266,8 @@ const getScene = function( SDF ) {
       //SDF.materials.materials.length = 0
 
       this.useQuality = true
+
+      this.__postprocessingFlag = false
 
       return this
     },

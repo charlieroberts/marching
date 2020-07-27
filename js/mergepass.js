@@ -5,12 +5,15 @@ const FX = {
   chain: [],
   MP,
   clear() {
+    this.deleteMerger()  
+    this.chain.length = 0
+  },
+
+  deleteMerger() {
     if( this.merger !== null ) {
        this.merger.delete()
        this.merger = null
     }
-
-    this.chain.length = 0
   },
 
   init( colorTexture, depthTexture, gl ) {

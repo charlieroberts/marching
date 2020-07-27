@@ -156,17 +156,10 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     }
     
     float modAmount = ${(1./voxelSize).toFixed(1)};
-    vec3 t;
     bool hit = false;
     if( color != bg ) {
       vec3 pos = vd.distance; 
-      t = pos * modAmount;
-      //vec3 pos = ro + rd * vd.fogCoeff;
-
       color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
-      //color *= lighting( pos, nor, ro, rd, float(vd.id), false ); 
-      //color = min(color,1.);
-      //color = getTexture( 0, pos );
       hit = true;
     }
     
@@ -190,9 +183,7 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
       precision mediump float;
 
       float PI = 3.141592653589793;
-
-
-
+      
       struct Light {
         vec3 position;
         vec3 color;

@@ -344,6 +344,8 @@ const SDF = {
     this.canvas.width = width 
     this.canvas.height = height 
 
+    this.fx.deleteMerger()
+
     const gl                                = this.gl,
           programs                          = this.initShaderProgram( vs, fs, gl ),
           { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),

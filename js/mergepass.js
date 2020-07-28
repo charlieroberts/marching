@@ -73,7 +73,7 @@ const FX = {
     return primitive
   },
 
-  Bloom( __threshold=0, __boost=.01 ) {
+  Bloom( __threshold=0, __boost=.5 ) {
     const fx = {},
           threshold  = FX.wrapProperty( fx, 'threshold',  __threshold ),
           boost      = FX.wrapProperty( fx, 'amount', __boost ) 

@@ -16,15 +16,16 @@ const Tweakpane = require('tweakpane')
 const demos = {
   introduction: require( './demos/intro.js' ),
   ['textured transformations']: require('./demos/texture_transforms.js'),
-  ['the superformula']: require('./demos/superformula.js' ),
+  //['the superformula']: require('./demos/superformula.js' ),
   ['mandelbulb fractal']: require( './demos/mandelbulb.js' ),
   ['julia fractal']: require( './demos/julia.js' ),
+  ['voxels and edges']: require( './demos/voxels_and_edges.js' ),
   ['alien portal']: require( './demos/alien_portal.js' ),
   ["i've got a light inside of me"]: require( './demos/let_it_shine.js' ),
   ['snare and sticks']: require( './demos/snare.js' ),
   //['kaleidoscopic fractals']: require( './demos/kifs.js' ),
   //['alien portal #2']: require( './demos/portal2.js' ),
-  ['twist deformation']: require( './demos/twist.js' ),
+  //['twist deformation']: require( './demos/twist.js' ),
   ['geometry catalog']: require( './demos/geometries.js' ),
   ['textures catalog']: require( './demos/textures.js' ),
 }
@@ -290,6 +291,7 @@ window.onload = function() {
     }
 
     SDF.clear()
+    window.onframe = null
     if( isDemo === true ) {
       eval( code )
     }

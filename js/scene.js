@@ -25,7 +25,11 @@ const getScene = function( SDF ) {
       postprocessing:[],
       __shadow:8,
       __followLight:null,
-      __postprocessingFlag:false
+      __postprocessingFlag:false,
+      __steps:null,
+      __thresold:null,
+      __farPlane:null,
+      __resolution:null
     })
 
     scene.useQuality = true
@@ -50,7 +54,6 @@ const getScene = function( SDF ) {
       this.height = Math.floor( this.canvas.height = window.innerHeight * v )
       
       this.__resolution = v;
-      this.useQuality = false
       return this 
     },  
     voxel( v = .1 ) { 
@@ -58,9 +61,9 @@ const getScene = function( SDF ) {
       this.__voxelSize = v
       return this
     },
-    threshold( v ) { this.__threshold = v; this.useQuality = false; return this },  
-    steps( v ) { this.__steps = v; this.useQuality = false; return this },  
-    farPlane( v ) { this.__farPlane = v; this.useQuality = false;  return this },  
+    threshold( v ) { this.__threshold = v; return this },  
+    steps( v ) { this.__steps = v; return this },  
+    farPlane( v ) { this.__farPlane = v; return this },  
     camera( x=0, y=0, z=5, speed=1 ) {
       SDF.camera.__camera.position[0] = x
       SDF.camera.__camera.position[1] = y
@@ -75,10 +78,10 @@ const getScene = function( SDF ) {
       return this;
     },
     quality( quality=10 ) {
-      this.threshold( .1 / (quality * quality * quality ) )
-      this.steps( quality * 20 )
-      this.farPlane( quality * 5 )
-      if( this.donotuseresolution === undefined ) this.resolution( Math.min( .2 * quality, 2 ) )
+      if( this.__thresold === null ) this.threshold( .1 / (quality * quality * quality ) )
+      if( this.__steps === null ) this.steps( quality * 20 )
+      if( this.__farPlane === null ) this.farPlane( quality * 5 )
+      if( this.donotuseresolution === undefined && this.__resolultion === null ) this.resolution( Math.min( .2 * quality, 2 ) )
 
       return this
     },
@@ -102,6 +105,81 @@ const getScene = function( SDF ) {
     fog: getFog( Scene, SDF ),
     vignette: vignette( Scene, SDF ),
     background: require( './background.js' )( Scene, SDF ),
+    
+    applyPreset( presetName ) {
+      const preset = this.presets[ presetName ]
+      if( preset.farPlane !== undefined ) {
+        this.farPlane( this.__farPlane || preset.farPlane )
+      }else{
+        this.__farPlane = 0
+      }
+      this.steps( this.__steps || preset.steps )
+      if( this.donotuseresolution === undefined ) this.resolution( this.__resolution || preset.resolution )
+      this.threshold( this.__threshold || preset.threshold || .001 )
+
+      return preset.animated
+    },
+
+    post( ...fx ) {
+      this.__postprocessingFlag = true
+      SDF.fx.clear()
+      SDF.fx.post( ...fx )
+      return this
+    },
+
+    render( quality=10, animate=false, useQuality=true ) {
+      // adds default if none has been specified
+      this.background() 
+      if( this.__postprocessingFlag === false ) { SDF.fx.clear() }
+
+      if( typeof quality === 'string' ) {
+        animate = this.applyPreset( quality )
+      }else if( this.useQuality === true ) {
+        this.quality( quality )
+      }
+
+      this.animate( animate )
+
+      SDF.distanceOps.__clear()
+      SDF.alterations.__clear()
+      SDF.textures.clear()
+      const geometries = SDF.primitives.emit_geometries()
+
+      let [ variablesDeclaration, sceneRendering, postprocessing ] = SDF.generateSDF( this )
+
+      const lighting = SDF.lighting.gen( this.__shadow, geometries )
+      variablesDeclaration += SDF.materials.emit_decl() 
+      variablesDeclaration += SDF.textures.emit_decl() 
+      variablesDeclaration += SDF.lighting.emit_decl() 
+
+      this.fs = SDF.renderFragmentShader( 
+        variablesDeclaration, 
+        sceneRendering.out, 
+        sceneRendering.preface,
+        SDF.requiredGeometries.join('\n') + SDF.requiredOps.join('\n'),
+        lighting,
+        postprocessing, 
+        this.__steps, this.__threshold, this.__farPlane.toFixed(1),
+        SDF.distanceOps.__getGLSL() + SDF.alterations.__getGLSL(),
+        this.useVoxels ? this.__voxelSize : 0
+      )
+
+      if( this.width === undefined ) this.width = window.innerWidth
+      if( this.height === undefined ) this.height = window.innerHeight
+      SDF.start( this.fs, this.width, this.height, this.__animate )
+
+      //SDF.materials.materials.length = 0
+
+      this.useQuality = true
+
+      this.__postprocessingFlag = false
+      this.__threshold = null
+      this.__farPlane = null
+      this.__steps = null
+      this.__resolution = null
+
+      return this
+    },
     presets: {
       'fractal.close': {
         farPlane:1,
@@ -199,77 +277,6 @@ const getScene = function( SDF ) {
         resolution:1,
         animated:true
       }
-    },
-
-    applyPreset( presetName ) {
-      const preset = this.presets[ presetName ]
-      if( preset.farPlane !== undefined ) {
-        this.farPlane( this.__farPlane || preset.farPlane )
-      }else{
-        this.__farPlane = 0
-      }
-      this.steps( this.__steps || preset.steps )
-      if( this.donotuseresolution === undefined ) this.resolution( this.__resolution || preset.resolution )
-      this.threshold( this.__threshold || preset.threshold || .001 )
-
-      return preset.animated
-    },
-
-    post( ...fx ) {
-      this.__postprocessingFlag = true
-      SDF.fx.clear()
-      SDF.fx.post( ...fx )
-      return this
-    },
-
-    render( quality=10, animate=false, useQuality=true ) {
-      // adds default if none has been specified
-      this.background() 
-      if( this.__postprocessingFlag === false ) { SDF.fx.clear() }
-
-      if( typeof quality === 'string' ) {
-        animate = this.applyPreset( quality )
-      }else if( this.useQuality === true ) {
-        this.quality( quality )
-      }
-
-      this.animate( animate )
-
-      SDF.distanceOps.__clear()
-      SDF.alterations.__clear()
-      SDF.textures.clear()
-      const geometries = SDF.primitives.emit_geometries()
-
-      let [ variablesDeclaration, sceneRendering, postprocessing ] = SDF.generateSDF( this )
-
-      const lighting = SDF.lighting.gen( this.__shadow, geometries )
-      variablesDeclaration += SDF.materials.emit_decl() 
-      variablesDeclaration += SDF.textures.emit_decl() 
-      variablesDeclaration += SDF.lighting.emit_decl() 
-
-      this.fs = SDF.renderFragmentShader( 
-        variablesDeclaration, 
-        sceneRendering.out, 
-        sceneRendering.preface,
-        SDF.requiredGeometries.join('\n') + SDF.requiredOps.join('\n'),
-        lighting,
-        postprocessing, 
-        this.__steps, this.__threshold, this.__farPlane.toFixed(1),
-        SDF.distanceOps.__getGLSL() + SDF.alterations.__getGLSL(),
-        this.useVoxels ? this.__voxelSize : 0
-      )
-
-      if( this.width === undefined ) this.width = window.innerWidth
-      if( this.height === undefined ) this.height = window.innerHeight
-      SDF.start( this.fs, this.width, this.height, this.__animate )
-
-      //SDF.materials.materials.length = 0
-
-      this.useQuality = true
-
-      this.__postprocessingFlag = false
-
-      return this
     },
 
   }

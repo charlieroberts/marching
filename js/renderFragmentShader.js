@@ -162,7 +162,8 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
       color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
       hit = true;
     }
-    
+
+    vec3 t = vec3( length(vd.distance-ro) );
   ${postprocessing}; 
     col = vec4( color, 1. ); 
 

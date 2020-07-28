@@ -206,9 +206,8 @@ const FX = {
           depth = MP.channel(0),
           threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v )
 
-    fx.__wrapped__ = MP.setcolor( 
-      MP.cvec4( MP.tag `length(${depth}.rgb) >= ${threshold} ? (1. - vec4(${frag}.rgb, 0.)) : ${frag}`  )
-    ) 
+    fx.__wrapped__ = MP.cvec4( MP.tag `length(${depth}.rgb) >= ${threshold} ? (1. - vec4(${frag}.rgb, 0.)) : ${frag}`  )
+     
 
     return fx
   },

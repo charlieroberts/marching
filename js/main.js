@@ -344,6 +344,8 @@ const SDF = {
     this.canvas.width = width 
     this.canvas.height = height 
 
+    this.fx.MP.settings.offset = this.textures.textures.length 
+
     const gl                                = this.gl,
           programs                          = this.initShaderProgram( vs, fs, gl ),
           { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),
@@ -402,7 +404,7 @@ const SDF = {
         if( typeof window.onframe === 'function' ) window.onframe( total_time )
       }
 
-      this.textures.update_location( gl, this.program )
+      //this.textures.update_location( gl, this.program )
       // transfer all data associated with uniforms in marching.js
       this.uploadData( gl )
 

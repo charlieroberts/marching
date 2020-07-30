@@ -37,6 +37,7 @@ const tutorials = {
   ['texturing']: require( './demos/textures_tutorial.js' ),
   ['texturing with hydra']: require( './demos/hydra.js' ),
   ['texturing with p5.js']: require( './demos/p5.js' ),
+  ['texturing with dwitter']: require( './demos/dwitter.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
@@ -416,6 +417,7 @@ window.onload = function() {
                   const draw = new Function( 't', json.code )
                   Marching.postrendercallbacks.push( t => { draw( t ); tex.update() })
                         
+                  msg( `a dweet from ${json.author.username} has been loaded.` )
                   res( tex )
                 })
             })
@@ -431,6 +433,7 @@ window.onload = function() {
          
         }
 
+        msg( 'dwitter is ready to texture', 'new module loaded' )
         res()
       } else if( lib.indexOf('http') > -1 ) {
         const p5script = document.createElement( 'script' )

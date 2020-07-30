@@ -30963,6 +30963,107 @@ march(
 callbacks.push( t => obj.rotate( t * 25 ) )`
 
 },{}],18:[function(require,module,exports){
+module.exports = `/* __--__--__--__--__--__--__--__--
+                                    
+It's **highly** recommended that you
+complete the "texturing" tutorial
+before beginning this one.
+
+Marching.js can use dwitter dweets 
+as textures for its 3D forms.
+
+If you've never explored dwitter before,
+go here for more info + tons of fun: 
+https://dwiter.net
+                                   
+** __--__--__--__--__--__--__--__*/
+
+// the first step is to initialized
+// a small chunk of code used to access
+// and interpret dweets; this
+// isn't included in marching.js
+// by default. The use() function lets
+// us do this. Run the code below by
+// hitting ctrl+enter with your cursor
+// on the line:
+use('dwitter')
+
+// you should see a notification appear
+// at the bottom of your screen when
+// hydra is ready to go. Use the Dwitter()
+// constructor to make a texture from either
+// a draw function from dwitter or an
+// identifying sketch number. We'll show
+// examples of both.
+
+// first, let's load a dweet using its id #.
+// this tweet is from @bandaloo on dwitter,
+// who is also the author of the post-processing
+// lilbrary used in marching.js. You can see all
+// his tweets at https://www.dwitter.net/u/bandaloo
+
+// highlight all the code below and hit ctrl+enter,
+// or place your cursor inside of it and hit alt+enter:
+Dwitter( 19544, { scale:2, wrap:Texture.mirror })
+  .then( tex => {
+ 
+  march(
+    Repeat(
+      box = Box(.5).texture( tex ),
+      2
+    )
+  )
+  .fog( .2, Vec3(0) )
+  .post( Edge(), Invert(1), b = Bloom(.5,4) )
+  .render('repeat.low')
+ 
+  onframe = t => {
+    box.rotate(t*10,1,1,1)
+  }
+  
+})
+
+// When you pass it an id # as the first
+// arugment, the Dwitter() function returns a 
+// JavaScript promise that resolves to a texture
+// when the dweet has been downloaded. You can
+// then use that texture with marching.js objects.
+
+// Alternatively, if you want play around with the
+// functtions used by dwitter, you can instead pass
+// such a function as the first argument:
+
+tex = Dwitter( t => {
+  for(let i=2e3; i--; x.fillStyle=\`hsl(\${i/9+99*C(t)},90%,\${20*~~(1+S(i/20)+T(t+S(t+i/99)))}%\`) {
+    x.fillRect(i, 0,1,1)
+  }
+  x.drawImage(c,0,1)
+},
+{
+  scale:2,
+  wrap:Texture.mirror
+})
+ 
+march(
+  Sphere(1.5).texture( tex ) 
+)
+.post( Antialias(2) )
+.render('med')
+
+// you can execute the above code by hitting
+// alt+return with your cursor anywhere in
+// the code block. Thihs makes it easy to
+// change the dwitter draw function and quickly
+// see the results... try changing some of the numbers! 
+// In the above example I've
+// added some antialiasing to smooth out the
+// texturing... trying comenting out that line
+// and re-evaluating the code to see the difference
+// this makes. You can also try changing the render
+// preset from 'med' to 'high' to get better
+// rendering quality.`
+
+},{}],19:[function(require,module,exports){
 module.exports = `v3 = Vec3, v2 = Vec2
 
 mat1 = Material( 'phong', .05, 1, .5 )
@@ -31046,7 +31147,7 @@ march(
 .render()
 .camera( 0,0, 6 )`
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports=`/* __--__--__--__--__--__--__--____
                                     
 Marching.js lets you both download 
@@ -31147,7 +31248,7 @@ use('hydra').then( ()=> {
   
   h.texture.strength = .5
 })`
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 It's **highly** recommended that you
@@ -31266,7 +31367,7 @@ onframe = t => {
   m.rotate(t*15,1,1,1) 
   m.size = 1 + sin(t/2) * .125
 }`
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = `march(
   Repeat(
     StairsDifference(
@@ -31311,7 +31412,7 @@ https://atom.io/packages/atom-marching
                                     
 ** __--__--__--__--__--__--__--__*/`
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports=`mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0,.25,1) )
 tex  = Texture(  'cellular', { strength:.15, scale:20 })  
  
@@ -31329,7 +31430,7 @@ march(
 .camera(0,0,1.75)
 `
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = `march(  
   int = Intersection(
     Sphere( 2 ).material(),
@@ -31360,7 +31461,7 @@ onframe = t => {
 
 rays.color = [1,.5,1]`
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports =`/* __--__--__--__--__--__--__--__--
                                     
 By default, marching.js uses a
@@ -31590,7 +31691,7 @@ march(
 .shadow(2)
 .render()`
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
 Live Coding
 
@@ -31737,7 +31838,7 @@ onframe, fade, the fft, and proxies, there's
 a number of tools to get started.
 __--__--__--__--__--__--__--____ */`
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = `mat1 = Material( 'phong', Vec3(.0),Vec3(.5),Vec3(1), 32, Vec3(0) )
  
 march(
@@ -31755,7 +31856,7 @@ march(
 .render()
 .camera( 0,0,3 )`
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports=`/* __--__--__--__--__--__--__--__--
                                     
 It's **highly** recommended that you
@@ -31865,7 +31966,7 @@ onframe = t => {
 // how much it overrides the default
 // lighting of the material
 box.tex.strength = .5`
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--____
                                     
 Marching.js wraps the mergepass lib
@@ -31959,7 +32060,7 @@ onframe = t => {
  
 g.decay = 1.01`
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = `/* Marching.js lets you define your own
 procedural textures; this is a very
 similar process to defining your own
@@ -32058,7 +32159,7 @@ onframe = t => {
   s.texture.scale = t % 10
 }`
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = `// because, like, marching.js, snare drums, marching...
  
 const grey = Material( 'phong', Vec3(0), Vec3(3), Vec3(2), 32, Vec3(0,0,2) ),
@@ -32114,7 +32215,7 @@ march(
 .render()
 .camera( 0,0,7 )`
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports =`// In this demo the important point 
 // to note is that transformations can be applied to
 // most functions, not just geometries. Here, a
@@ -32150,7 +32251,7 @@ onframe = time => {
   rpt.translate( 0,0,time/3 )
 }`
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports =`zigzag = Box(.5)
   .move( -2,1.25 )
   .texture(
@@ -32249,7 +32350,7 @@ march(
 )
 .render()`
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports=`/* __--__--__--__--__--__--__--__--
                                     
 Marching.js provides a variety of
@@ -32362,7 +32463,7 @@ onframe = time => {
   c.rotate(time*4, .5,1,.25 )
 }`
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = `/* __--__--__--__--__--__--__--__--
                                     
 let's start by making a simple     
@@ -32543,7 +32644,7 @@ march(
 // and animate
 .render(null, true)*/
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 module.exports = `// this uses a voxelized scene with
 // a procedural texture generated by hydra
 // alongside of various post-processing effects,
@@ -32579,7 +32680,7 @@ use('hydra').then( ()=> {
  
 })`
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 const CodeMirror = require( 'codemirror' ),
       Toastr     = require( 'toastr' )
 
@@ -32619,6 +32720,7 @@ const tutorials = {
   ['texturing']: require( './demos/textures_tutorial.js' ),
   ['texturing with hydra']: require( './demos/hydra.js' ),
   ['texturing with p5.js']: require( './demos/p5.js' ),
+  ['texturing with dwitter']: require( './demos/dwitter.js' ),
   ['post-processing effects']: require( './demos/postprocessing.js' ),
   ['exporting gifs and links']: require( './demos/gifs_and_links.js' ),
   ['audio input / fft']: require( './demos/audio.js' ),
@@ -32998,6 +33100,7 @@ window.onload = function() {
                   const draw = new Function( 't', json.code )
                   Marching.postrendercallbacks.push( t => { draw( t ); tex.update() })
                         
+                  msg( `a dweet from ${json.author.username} has been loaded.` )
                   res( tex )
                 })
             })
@@ -33013,6 +33116,7 @@ window.onload = function() {
          
         }
 
+        msg( 'dwitter is ready to texture', 'new module loaded' )
         res()
       } else if( lib.indexOf('http') > -1 ) {
         const p5script = document.createElement( 'script' )
@@ -33474,4 +33578,4 @@ window.onload = function() {
 
 }
 
-},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/geometries.js":18,"./demos/gifs_and_links.js":19,"./demos/hydra.js":20,"./demos/intro.js":21,"./demos/julia.js":22,"./demos/let_it_shine.js":23,"./demos/lighting.js":24,"./demos/livecoding.js":25,"./demos/mandelbulb.js":26,"./demos/p5.js":27,"./demos/postprocessing.js":28,"./demos/procedural_textures.js":29,"./demos/snare.js":30,"./demos/texture_transforms.js":31,"./demos/textures.js":32,"./demos/textures_tutorial.js":33,"./demos/tutorial_1.js":34,"./demos/voxels_and_edges.js":35,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[36]);
+},{"../node_modules/codemirror/addon/display/fullscreen.js":1,"../node_modules/codemirror/addon/display/panel.js":2,"../node_modules/codemirror/addon/edit/closebrackets.js":3,"../node_modules/codemirror/addon/edit/matchbrackets.js":4,"../node_modules/codemirror/addon/hint/javascript-hint.js":5,"../node_modules/codemirror/addon/hint/show-hint.js":6,"../node_modules/codemirror/addon/selection/active-line.js":7,"../node_modules/codemirror/mode/javascript/javascript.js":9,"../node_modules/mousetrap/mousetrap.min.js":11,"./demos/alien_portal.js":14,"./demos/audio.js":15,"./demos/constructors.js":16,"./demos/csg.js":17,"./demos/dwitter.js":18,"./demos/geometries.js":19,"./demos/gifs_and_links.js":20,"./demos/hydra.js":21,"./demos/intro.js":22,"./demos/julia.js":23,"./demos/let_it_shine.js":24,"./demos/lighting.js":25,"./demos/livecoding.js":26,"./demos/mandelbulb.js":27,"./demos/p5.js":28,"./demos/postprocessing.js":29,"./demos/procedural_textures.js":30,"./demos/snare.js":31,"./demos/texture_transforms.js":32,"./demos/textures.js":33,"./demos/textures_tutorial.js":34,"./demos/tutorial_1.js":35,"./demos/voxels_and_edges.js":36,"codemirror":8,"toastr":12,"tweakpane":13}]},{},[37]);

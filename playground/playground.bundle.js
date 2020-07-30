@@ -32995,7 +32995,6 @@ window.onload = function() {
                   const tex = Texture( 'canvas', props )
                   window.c = tex.canvas
                   window.x = tex.ctx
-                  console.log( json )
                   const draw = new Function( 't', json.code )
                   Marching.postrendercallbacks.push( t => { draw( t ); tex.update() })
                         

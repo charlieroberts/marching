@@ -15,7 +15,7 @@ m = march(
     .25
   ),
   Plane( Vec3(0,.5,0) )
-    .bump( Texture('noise', { strength:.5, scale:20 }) )
+    .bump( Texture('noise', { strength:1.5, scale:13 }) )
 )
 .fog( .15, Vec3(0) )
 .light( Light( Vec3(0,.25,0), Vec3(1,.5,.25), .125 ) )

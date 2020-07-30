@@ -398,19 +398,38 @@ window.onload = function() {
   window.__use = function( lib ) {
     const p = new Promise( (res,rej) => {
       if( lib === 'dwitter' ) {
-        window.Dwitter = function( draw, __props ) {
+        window.Dwitter = function( fncOrLink, __props ) {
           const props = Object.assign( {}, { width:1920, height:1080, scale:1, mirror:Texture.repeat }, __props )
-          const tex = Texture( 'canvas', props )
-          window.c = tex.canvas
-          window.x = tex.ctx
           window.C = Math.cos
           window.S = Math.sin
           window.T = Math.tan
           window.R = (r, g, b, a = 1) => `rgba(${r | 0},${g | 0},${b | 0},${a})`;
 
-          Marching.postrendercallbacks.push( t => { draw( t ); tex.update() })
+          if( typeof fncOrLink === 'number' ) {
+            const loader = new Promise( (res,rej) => {
+              fetch(`https://www.dwitter.net/apiv2beta/dweets/${fncOrLink}`)
+                .then( d=>d.json() )
+                .then( json => {
+                  const tex = Texture( 'canvas', props )
+                  window.c = tex.canvas
+                  window.x = tex.ctx
+                  console.log( json )
+                  const draw = new Function( 't', json.code )
+                  Marching.postrendercallbacks.push( t => { draw( t ); tex.update() })
+                        
+                  res( tex )
+                })
+            })
 
-          return tex
+            return loader
+          }else{
+            const tex = Texture( 'canvas', props )
+            window.c = tex.canvas
+            window.x = tex.ctx
+            Marching.postrendercallbacks.push( t => { fncOrLink( t ); tex.update() })
+            return tex
+          }
+         
         }
 
         res()

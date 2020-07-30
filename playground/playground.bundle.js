@@ -32979,7 +32979,24 @@ window.onload = function() {
 
   window.__use = function( lib ) {
     const p = new Promise( (res,rej) => {
-      if( lib.indexOf('http') > -1 ) {
+      if( lib === 'dwitter' ) {
+        window.Dwitter = function( draw, __props ) {
+          const props = Object.assign( {}, { width:1920, height:1080, scale:1, mirror:Texture.repeat }, __props )
+          const tex = Texture( 'canvas', props )
+          window.c = tex.canvas
+          window.x = tex.ctx
+          window.C = Math.cos
+          window.S = Math.sin
+          window.T = Math.tan
+          window.R = (r, g, b, a = 1) => `rgba(${r | 0},${g | 0},${b | 0},${a})`;
+
+          Marching.postrendercallbacks.push( t => { draw( t ); tex.update() })
+
+          return tex
+        }
+
+        res()
+      } else if( lib.indexOf('http') > -1 ) {
         const p5script = document.createElement( 'script' )
         p5script.src = lib
 

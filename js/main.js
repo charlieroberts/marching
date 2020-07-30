@@ -428,7 +428,7 @@ const SDF = {
       // conditional mergepass render
       if( this.fx.merger !== null ) this.fx.merger.draw( total_time )
 
-      this.postrendercallbacks.forEach( fnc => fnc( gl ) )
+      this.postrendercallbacks.forEach( fnc => fnc( total_time ) )
 
     }.bind( SDF )
 

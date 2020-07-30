@@ -210,10 +210,17 @@ const __Textures = function( SDF ) {
       }else if( presetName === 'canvas' ) {
         if( props.canvas === undefined ) {
           tex.canvas = tex.image = document.createElement('canvas')
-          tex.ctx    = tex.canvas.getContext('2d')
         }else{
-          tex.image = props.canvas
+          tex.image = tex.canvas = props.canvas
         }
+        if( props.height !== undefined ) {
+          tex.canvas.height = props.height
+        }
+        if( props.width !== undefined ) {
+          tex.canvas.width = props.width
+        }
+
+        tex.ctx    = tex.canvas.getContext('2d')
 
         tex.update = function() {
           //tex.gltexture.setPixels( SDF.fx.merger === null ? tex.image : SDF.fx.merger.tex.front.tex )

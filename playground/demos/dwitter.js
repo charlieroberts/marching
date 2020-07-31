@@ -34,7 +34,7 @@ use('dwitter')
 // first, let's load a dweet using its id #.
 // this tweet is from @bandaloo on dwitter,
 // who is also the author of the post-processing
-// lilbrary used in marching.js. You can see all
+// library used in marching.js. You can see all
 // his tweets at https://www.dwitter.net/u/bandaloo
 
 // highlight all the code below and hit ctrl+enter,

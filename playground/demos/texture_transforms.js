@@ -26,7 +26,7 @@ march(
   )
 )
 .fog( .5, Vec3( 0 ) )
-.render( 2,true )
+.render( 'repeat.low' )
   
 onframe = time => {
   union.rotate( time*65,1,.5,.5 )

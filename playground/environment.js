@@ -33,6 +33,7 @@ const demos = {
 const tutorials = {
   ['start here']: require( './demos/tutorial_1.js' ),
   ['constructive solid geometry']: require( './demos/csg.js' ),
+  ['rendering quality and performance']: require( './demos/rendering.js' ),
   ['lighting and materials']: require( './demos/lighting.js' ),
   ['texturing']: require( './demos/textures_tutorial.js' ),
   ['texturing with hydra']: require( './demos/hydra.js' ),

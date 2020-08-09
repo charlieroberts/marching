@@ -173,10 +173,10 @@ const Camera = {
     let prevTime = 0
     let k  = Marching.keys
     Camera.__framefnc = t => {
-      if( k.ArrowLeft ) camera.rotation[1] += camera.rotationSpeed
-      if( k.ArrowRight ) camera.rotation[1] -= camera.rotationSpeed
-      if( k.ArrowUp && !k.Shift ) camera.rotation[0] -= camera.rotationSpeed
-      if( k.ArrowDown && !k.Shift) camera.rotation[0] += camera.rotationSpeed
+      if( k.ArrowLeft ) camera.rotation[1] += camera.rotationSpeed * (Marching.keys.Alt ? 4 : 1 )
+      if( k.ArrowRight ) camera.rotation[1] -= camera.rotationSpeed * (Marching.keys.Alt ? 4 : 1 )
+      if( k.ArrowUp && !k.Shift ) camera.rotation[0] -= camera.rotationSpeed * (Marching.keys.Alt ? 4 : 1 )
+      if( k.ArrowDown && !k.Shift) camera.rotation[0] += camera.rotationSpeed * (Marching.keys.Alt ? 4 : 1 )
       
       if( Marching.cameraEnabled ) { 
         camera.control( 

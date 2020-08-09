@@ -1,4 +1,4 @@
-const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing ) {
+const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing, sdfs ) {
   const out = `
   // adapted from https://www.shadertoy.com/view/ldfSWs
   vec3 calcNormal(vec3 pos, float eps) {
@@ -59,10 +59,8 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
 
     vec3 samplePos = vec3(100.f);
-    //float zdist = 100000.;//vec3(100000.f);
     if( t.x > -0.5 ) {
       samplePos = ro + rd * t.x;
-      //zdist = rd.z * t.x;
       vec3 nor = calcNormal( samplePos );
 
       color = lighting( samplePos, nor, ro, rd, t.y, true ); 
@@ -79,7 +77,7 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
   return out
 }
 
-const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
+const getMainVoxels = function( steps, postprocessing, voxelSize = .1, sdfs ) {
   const out = `
   struct VoxelDistance {
     bvec3 mask;
@@ -103,7 +101,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     bvec3 mask;
     vec3 d = vec3(-100000.);
     float fogCoeff = 0.;
-
+    
     for (int i = 0; i < ${Math.round(steps*1/voxelSize)} ; i++) {
       result = scene(mapPos*m);
       if( result.x <= 0. ) {
@@ -174,11 +172,11 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
   return out
 }
 
-module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops, voxelSize=0 ) {
+module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops, voxelSize=0, sdfs ) {
 
   const main = voxelSize === 0
-    ? getMainContinuous( steps, minDistance, maxDistance, postprocessing ) 
-    : getMainVoxels( steps, postprocessing, voxelSize )
+    ? getMainContinuous( steps, minDistance, maxDistance, postprocessing, sdfs ) 
+    : getMainVoxels( steps, postprocessing, voxelSize, sdfs )
 
     const fs_source = `     #version 300 es
       precision mediump float;

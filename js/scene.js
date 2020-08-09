@@ -161,7 +161,8 @@ const getScene = function( SDF ) {
         postprocessing, 
         this.__steps, this.__threshold, this.__farPlane.toFixed(1),
         SDF.distanceOps.__getGLSL() + SDF.alterations.__getGLSL(),
-        this.useVoxels ? this.__voxelSize : 0
+        this.useVoxels ? this.__voxelSize : 0,
+        geometries
       )
 
       if( this.width === undefined ) this.width = window.innerWidth

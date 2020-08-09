@@ -10,7 +10,7 @@ march(
 .light( 
   Light( Vec3(5,5,8), Vec3(1), .025 ) 
 )
-.fog( 1, Vec3(0) )
+.fog( .75, Vec3(0) )
 .render()
 .camera(0,0,1.75)
 `

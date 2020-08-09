@@ -171,7 +171,7 @@ window.onload = function() {
     }
   }
 
-  const toggleToolbar = function() {
+  window.toggleToolbar = function() {
     if( hidden === false ) {
       document.querySelector('select').style.display = 'none'
       document.querySelector('#help').style.display = 'none'
@@ -502,14 +502,15 @@ window.onload = function() {
             canvas.width = w
             canvas.height = h
             const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false, detectAudio:false }) : __hydra
-            //hydra.setResolution(w,h)
+            hydra.setResolution(w,h)
 
             if( __hydra === null ) {
               hydra.synth.canvas = canvas
             }
 
-            hydra.synth.texture = ()=> {
-              const t = Texture('canvas', { canvas:hydra.synth.canvas })
+            hydra.synth.texture = __tp => {
+              const tp = Object.assign( { canvas:hydra.synth.canvas }, __tp )
+              const t = Texture('canvas', tp )
               Marching.postrendercallbacks.push( ()=> t.update() )
               hydra.synth.texture = t
               return t

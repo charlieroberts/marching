@@ -19,7 +19,7 @@ m = march(
 )
 .fog( .15, Vec3(0) )
 .light( Light( Vec3(0,.25,0), Vec3(1,.5,.25), .125 ) )
-.post( Antialias(2), Bloom(.35,1.2,4,4), Focus(.05, .005 ))
+.post( Antialias(2), Bloom(.35,1.25,4,4), Focus(.05, .005 ))
 .resolution(1)
 .render()
 .camera( 0, 0, 10 )`

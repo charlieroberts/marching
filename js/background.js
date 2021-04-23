@@ -10,7 +10,8 @@ const BG = function( Scene, SDF ) {
     if( SDF.memo.background === undefined ) {
       const bg = Object.create( Background.prototype )
 
-      const __color = param_wrap( Vec3(color), vec3_var_gen( 0,0,0, 'bg' ), 'bg' )  
+      if( color !== undefined && color.type === 'vec3' ) color = Vec4( color.x, color.y, color.z, 1 )
+      const __color = param_wrap( Vec4( color ), vec4_var_gen( 0,0,0,1, 'bg' ), 'bg' )  
       
       Object.defineProperty( bg, 'color', {
         get() { return __color },

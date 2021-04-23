@@ -3,11 +3,6 @@ module.exports =`// In this demo the important point
 // most functions, not just geometries. Here, a
 // rotation is applied to a Union while translation
 // is applied to the domain created by Repeat().
-//
-// Note that the quality argument in the call to
-// .render() is set quite low; if you have
-// a nice graphics card try raising this
-// value to obtain prettier results.
  
 march(
   rpt = Repeat(
@@ -26,7 +21,7 @@ march(
   )
 )
 .fog( .5, Vec3( 0 ) )
-.render( 2,true )
+.render( 'repeat.low' )
   
 onframe = time => {
   union.rotate( time*65,1,.5,.5 )

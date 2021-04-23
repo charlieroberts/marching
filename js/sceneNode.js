@@ -2,6 +2,8 @@ const SceneNode = ()=> Object.create( SceneNode.prototype )
 const Matrix = require( './external/matrix.js' )
 
 SceneNode.prototype = {
+  active: 1,
+
 	emit() { return "#NotImplemented#"; },
 
 	emit_decl() { return ""; },

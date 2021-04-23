@@ -21,7 +21,7 @@ const __out = {
   Subtraction,
   Scale,
   Repeat,
-	SmoothUnion: SmoothUnion
+	SmoothUnion
 }
 
 Object.assign( __out, require( './primitives.js' ) )

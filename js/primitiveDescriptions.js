@@ -439,10 +439,10 @@ module.exports = {
       { name:'v3', type:'vec3', default:[.5,.0,0] },
     ],
 
-    primitivestring( pname ) { 
-      return `udtriangle( ${pname}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
+    primitiveString( pname ) { 
+      return `udTriangle( ${pname}, ${this.v1.emit()}, ${this.v2.emit()}, ${this.v3.emit()} )`
     },
-    glslify:glsl`    #pragma glslify: udtriangle	= require('glsl-sdf-primitives/udtriangle')`
+    glslify:glsl`    #pragma glslify: udTriangle	= require('glsl-sdf-primitives/udtriangle')`
   }, 
 
   TriPrism: {

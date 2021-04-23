@@ -45,6 +45,7 @@ const Audio = {
 
     let __windowSize = 512
     Object.defineProperty( Audio, 'windowSize', {
+      configurable:true,
       get() { return __windowSize },
       set(v){
         __windowSize = v

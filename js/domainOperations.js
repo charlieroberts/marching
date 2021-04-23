@@ -6,7 +6,7 @@ const Transform = require( './transform.js' )
 
 const descriptions = {
   Elongation: {
-    parameters:[ { name:'distance', type:'vec3', default:Vec3(0) } ],
+    parameters:[ { name:'active', type:'float', default:1. },{ name:'distance', type:'vec3', default:Vec3(0) } ],
     func:`
       vec4 opElongate( in vec3 p, in vec3 h ) {
         //return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
@@ -34,18 +34,19 @@ const descriptions = {
     parameters:[ 
       { name:'count', type:'float', default:5 },
       { name:'distance', type:'vec3', default:Vec3(.25) },
-
+      { name:'active', type:'float', default:1. }
     ],
     emit( name='p', transform=null) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
-      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
 
       if( transform !== null ) this.transform.apply( transform, false )
       this.transform.invert()
 
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
+
       let preface =`
-          vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.__target.count.emit() } ), 1. ); 
+          vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.__target.count.emit() } ) * ${this.transform.emit_scale()}, 1. ); 
           ${pName} -= vec4(${this.__target.distance.emit()}.x,0.,0.,0.);\n`
 
       const sdf = this.sdf.emit( pName )
@@ -56,7 +57,7 @@ const descriptions = {
     }
   },
   Mirror: {
-    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },{ name:'active', type:'float', default:1. }  ],
     extra:[{ name:'dims', type:'local', default:'xyz' }],
 
     emit( name='p', transform=null, notused=null, scale=null ) {
@@ -93,7 +94,7 @@ const descriptions = {
 
   //if( typeof sdf.preface === 'string' ) preface += sdf.preface
   Repetition: {
-    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) } ],
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },  { name:'active', type:'float', default:1. }],
     emit( name='p', transform=null ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
@@ -114,8 +115,77 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
+  // https://www.shadertoy.com/view/wlyBWm
+  // https://www.shadertoy.com/view/NdS3Dh
+  SmoothRepetition: {
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },  { name:'smoothness', type:'float', default:.5 }],
+    emit( name='p', transform=null ) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      if( transform !== null ) this.transform.apply( transform, false )
+      
+      this.transform.invert()
+     
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;
+
+//    vec2 smoothrepeat_asin_sin(vec2 p,float smooth_size,float size){
+//    p/=size;
+//    p=asin(sin(p)*(1.0-smooth_size));
+//    return p*size;
+
+      let preface =`
+        vec3 ${pName}Mod = ${pointString}/${this.__target.distance.emit()};
+        ${pName}Mod = asin( sin( ${pName}Mod ) * (1.0 - ${this.__target.smoothness.emit()} ) );
+        vec4 ${pName} = vec4( ${pName}Mod * ${this.__target.distance.emit()} * ${this.transform.emit_scale()}, 1. );\n`
+
+      const sdf = this.sdf.emit( pName )//, this.transform )//, 1, this.__target.distance )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
+  SmoothPolar: {
+    parameters:[ 
+      { name:'count', type:'float', default:5 },
+      { name:'distance', type:'vec3', default:Vec3(.25) },
+      { name:'active', type:'float', default:1. }
+    ],
+    emit( name='p', transform=null) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.invert()
+
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
+
+      //s repetitions
+      ////m smoothness (0-1)
+      ////c correction (0-1)
+      ////d object displace from center
+/*vec2 smoothRot(vec2 p,float s,float m,float c,float d){
+  s*=0.5;
+  float k=length(p);
+  float x=asin(sin(atan(p.x,p.y)*s)*(1.0-m))*k;
+  float ds=k*s;
+  float y=mix(ds,2.0*ds-sqrt(x*x+ds*ds),c);
+  return vec2(x/s,y/s-d);
+}*/ 
+      let preface =`
+          vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.__target.count.emit() } ) * ${this.transform.emit_scale()}, 1. ); 
+          ${pName} -= vec4(${this.__target.distance.emit()}.x,0.,0.,0.);\n`
+
+      const sdf = this.sdf.emit( pName )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface
+
+      return { out:sdf.out, preface }
+    }
+  },
 }
-  
+
 const getDomainOps = function( SDF ) {
   const ops = {}
 
@@ -232,7 +302,7 @@ const getDomainOps = function( SDF ) {
           op[ extra.name ] = args[ count - 1 ] || extra.default
         }
       }
-
+      op.sdf.active = op.active
       op.__setTexture = function(tex,props) {
         if( typeof tex === 'string' ) {
           this.texture = op.texture.bind( this )

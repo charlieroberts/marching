@@ -21,7 +21,9 @@ const FX = {
       this.chain,
       colorTexture, 
       gl, 
-      { channels: [ depthTexture, null ] }
+      // pass null to create second scratch channel
+      // this is the samplerNum for arguments
+      { channels: [ depthTexture, null, null ] }
     )
   }, 
 
@@ -46,6 +48,7 @@ const FX = {
     obj.Antialias  = FX.Antialias
     obj.Blur       = FX.Blur
     obj.Bloom      = FX.Bloom
+    obj.BloomOld   = FX.BloomOld
     obj.Brightness = FX.Brightness
     obj.Contrast   = FX.Contrast
     obj.Edge       = FX.Edge
@@ -73,7 +76,19 @@ const FX = {
     return primitive
   },
 
-  Bloom( __threshold=0, __boost=.5 ) {
+  Bloom( __threshold=0, __boost = .5, __horizontal=1, __vertical=1, taps = 9, reps = 3, num=1 ) {
+    const fx = {},
+          threshold  = FX.wrapProperty( fx, 'threshold',  __threshold ),
+          horizontal = FX.wrapProperty( fx, 'vertical',  __vertical ),
+          vertical   = FX.wrapProperty( fx, 'horizontal',  __horizontal ),
+          boost      = FX.wrapProperty( fx, 'amount', __boost ) 
+
+    fx.__wrapped__ = MP.bloom( threshold, horizontal, vertical, boost, num, taps, reps ) 
+
+    return fx
+  },
+
+  BloomOld( __threshold=0, __boost=.5 ) {
     const fx = {},
           threshold  = FX.wrapProperty( fx, 'threshold',  __threshold ),
           boost      = FX.wrapProperty( fx, 'amount', __boost ) 
@@ -110,9 +125,14 @@ const FX = {
     return fx
   },
 
-  Edge() {
+  Edge( mode=0, color=1 ) {
     const fx = {}
-    fx.__wrapped__ = MP.sobel()
+
+    switch( mode ) {
+      case 0: fx.__wrapped__ = MP.sobel(); break;
+      case 1: fx.__wrapped__ = MP.edge( color,0 ); break;
+      case 2: fx.__wrapped__ = MP.edgecolor( MP.vec4(...color) ); break;
+    }
 
     return fx 
   },
@@ -216,7 +236,8 @@ const FX = {
     const fx = {},
           amount = FX.wrapProperty( fx, 'amount', __amount, v => 1-v )
 
-    fx.__wrapped__ = MP.motionblur( 1, amount ) 
+    // 1 is the sampler for blur, and 2 is for motionbblur
+    fx.__wrapped__ = MP.motionblur( 2, amount ) 
 
     return fx
   },

@@ -30609,7 +30609,7 @@ m = march(
 )
 .fog( .15, Vec3(0) )
 .light( Light( Vec3(0,.25,0), Vec3(1,.5,.25), .125 ) )
-.post( Antialias(2), Bloom(.25,3), Focus(.05, .005 ))
+.post( Antialias(2), Bloom(.35,1.2,4,4), Focus(.05, .005 ))
 .resolution(1)
 .render()
 .camera( 0, 0, 10 )`
@@ -32120,11 +32120,6 @@ module.exports =`// In this demo the important point
 // most functions, not just geometries. Here, a
 // rotation is applied to a Union while translation
 // is applied to the domain created by Repeat().
-//
-// Note that the quality argument in the call to
-// .render() is set quite low; if you have
-// a nice graphics card try raising this
-// value to obtain prettier results.
  
 march(
   rpt = Repeat(
@@ -32143,7 +32138,7 @@ march(
   )
 )
 .fog( .5, Vec3( 0 ) )
-.render( 2,true )
+.render( 'repeat.low' )
   
 onframe = time => {
   union.rotate( time*65,1,.5,.5 )

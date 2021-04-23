@@ -36,7 +36,7 @@ const Fogger = function( Scene, SDF ) {
  
   Object.assign( Fog.prototype, {
     emit() {
-      return `  color = applyFog( color, t.x, ${this.amount.emit()} );`
+      return `  color.rgb = applyFog( color.rgb, t.x, ${this.amount.emit()} );`
     },
    
     emit_decl() {

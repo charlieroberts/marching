@@ -52,7 +52,7 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     // everything is flipped using perspective-camera
     pos.x *= ( resolution.x / -resolution.y );
 
-    vec3 color = bg; 
+    vec4 color = bg; 
     vec3 ro = camera_pos;
     vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
     
@@ -65,12 +65,12 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
       //zdist = rd.z * t.x;
       vec3 nor = calcNormal( samplePos );
 
-      color = lighting( samplePos, nor, ro, rd, t.y, true ); 
+      color = vec4( lighting( samplePos, nor, ro, rd, t.y, true ), 1. ); 
     }
 
     ${postprocessing}
     
-    col = clamp( vec4( color, 1.0 ), 0., 1. );
+    col = clamp( vec4( color ), 0., 1. );
 
     float normalizedDepth = t.x / ${maxDistance};  //1. - exp( -t.x );// 1. / (1. + abs(samplePos.z-ro.z) );
     depth = abs(samplePos.z - ro.z ) < ${maxDistance} ? vec4( vec3( 1.-normalizedDepth ), 1. ) : vec4(0.);
@@ -131,7 +131,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     // everything is flipped using perspective-camera
     pos.x *= ( resolution.x / -resolution.y );
     
-    vec3 color = bg; 
+    vec4 color = bg; 
     vec3 ro = camera_pos;
     vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
                  
@@ -140,15 +140,15 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     
     vec3 nor;
     if (mask.x) {
-      color = vec3(0.5);
+      color = vec4(vec3(0.5), 1.);
       nor = vec3(1.,0.,0.);
     }
     if (mask.y) {
-      color = vec3(1.0);
+      color = vec4( vec3(1.0), 1. );
       nor = vec3(0.,1.,0.);
     }
     if (mask.z) {
-      color = vec3(0.75);
+      color = vec4( vec3(0.75), 1. );
       nor = vec3(0.,0.,1.);
     }
     if( vd.distance.x == -100000. ) {
@@ -159,13 +159,13 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     bool hit = false;
     if( color != bg ) {
       vec3 pos = vd.distance; 
-      color *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
+      color.xyz *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
       hit = true;
     }
 
     vec3 t = vec3( length(vd.distance-ro) );
   ${postprocessing}; 
-    col = vec4( color, 1. ); 
+    col = color;//vec4( color, 1. ); 
 
     float normalizedDepth = length( (vd.distance-ro) * ${voxelSize.toFixed(1)} ); 
     depth = hit == true ? vec4( vec3(1.-normalizedDepth), 1. ) : vec4(0.);

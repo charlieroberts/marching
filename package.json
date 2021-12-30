@@ -18,7 +18,7 @@
     "glsl-superformula": "^1.0.3",
     "glsl-voronoi-noise": "^1.2.2",
     "glsl-worley": "^1.0.2",
-    "glslify": "^6.1.0",
+    "glslify": "^6.4.1",
     "gulp": "^4.0.2",
     "gulp-util": "^3.0.8",
     "mousetrap": "^1.6.1",

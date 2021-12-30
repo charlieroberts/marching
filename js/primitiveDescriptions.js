@@ -433,7 +433,7 @@ module.exports = {
       }\n`
   },
   
- 	Triangle: {
+	Triangle: {
     parameters:[
       { name:'v1', type:'vec3', default:[0,-.5,0] },
       { name:'v2', type:'vec3', default:[-.5,.0,0] },

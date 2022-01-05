@@ -1,6 +1,6 @@
 {
   "name": "marching",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Marching.js is a JavaScript library that compiles GLSL ray marchers.",
   "main": "js/index.js",
   "devDependencies": {

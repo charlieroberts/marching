@@ -1,4 +1,4 @@
-const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing ) {
+const getMainContinuous = function( steps, minDistance, maxDistance, postprocessing, bg='vec4(0.,0.,0.,1.)' ) {
   const out = `
   // adapted from https://www.shadertoy.com/view/ldfSWs
   vec3 calcNormal(vec3 pos, float eps) {
@@ -52,27 +52,25 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     // everything is flipped using perspective-camera
     pos.x *= ( resolution.x / -resolution.y );
 
-    vec4 color = bg; 
+    vec4 color = bg;  
     vec3 ro = camera_pos;
     vec3 rd = normalize( mat3(camera) * vec3( pos, 2. ) ); 
     
     vec2 t = calcRayIntersection( ro, rd, ${maxDistance}, ${minDistance} );
 
     vec3 samplePos = vec3(100.f);
-    //float zdist = 100000.;//vec3(100000.f);
     if( t.x > -0.5 ) {
       samplePos = ro + rd * t.x;
-      //zdist = rd.z * t.x;
       vec3 nor = calcNormal( samplePos );
 
-      color = vec4( lighting( samplePos, nor, ro, rd, t.y, true ), 1. ); 
+      color = vec4( lighting( samplePos, nor, ro, rd, t.y, true ), 1. );
+      ${postprocessing}
     }
 
-    ${postprocessing}
     
     col = clamp( vec4( color ), 0., 1. );
 
-    float normalizedDepth = t.x / ${maxDistance};  //1. - exp( -t.x );// 1. / (1. + abs(samplePos.z-ro.z) );
+    float normalizedDepth = t.x / ${maxDistance}; 
     depth = abs(samplePos.z - ro.z ) < ${maxDistance} ? vec4( vec3( 1.-normalizedDepth ), 1. ) : vec4(0.);
   }`
 
@@ -157,14 +155,14 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     
     float modAmount = ${(1./voxelSize).toFixed(1)};
     bool hit = false;
+    vec3 t = vec3( length(vd.distance-ro) );
     if( color != bg ) {
       vec3 pos = vd.distance; 
       color.xyz *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
       hit = true;
+      ${postprocessing}; 
     }
 
-    vec3 t = vec3( length(vd.distance-ro) );
-  ${postprocessing}; 
     col = color;//vec4( color, 1. ); 
 
     float normalizedDepth = length( (vd.distance-ro) * ${voxelSize.toFixed(1)} ); 

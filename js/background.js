@@ -21,7 +21,9 @@ const BG = function( Scene, SDF ) {
       })
       
       // this refers to the current scene via implicit binding in scene.js
-      this.postprocessing.push( bg )
+      //this.postprocessing.push( bg )
+      bg.__backgroundColor = color
+      this.__background = bg
 
       SDF.memo.background = true
     }
@@ -32,14 +34,18 @@ const BG = function( Scene, SDF ) {
  
   Object.assign( Background.prototype, {
     emit() {
-      return ''//this.color.emit()
+      return ''// this.color.emit()
     },
    
     emit_decl() {
-      let str = this.color.emit_decl()
-      SDF.memo.background = true
+      //let str = this.color.emit_decl()
+      //SDF.memo.background = true
+        
+      const out = this.__backgroundColor === undefined
+        ? 'vec4 bg = vec4(0.,0.,0.,1.);'
+        : `vec4 bg = vec4(${ this.__backgroundColor.x }, ${this.__backgroundColor.y}, ${this.__backgroundColor.z}, 1.);`
 
-      return str
+      return out
     },
 
     update_location( gl, program ) {

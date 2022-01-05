@@ -151,6 +151,7 @@ const getScene = function( SDF ) {
       variablesDeclaration += SDF.materials.emit_decl() 
       variablesDeclaration += SDF.textures.emit_decl() 
       variablesDeclaration += SDF.lighting.emit_decl() 
+      variablesDeclaration += this.__background.emit_decl()
 
       this.fs = SDF.renderFragmentShader( 
         variablesDeclaration, 

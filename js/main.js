@@ -149,7 +149,6 @@ const SDF = {
     let variablesDeclaration = scene.output.emit_decl()
     const sceneRendering = scene.output.emit()
 
-    // fog etc. maybe msaa?
     let pp = ''
     for( let processor of __scene.postprocessing ) {
       pp += processor.emit()
@@ -369,6 +368,7 @@ const SDF = {
       if( render.running === true && shouldAnimate === true ) {
         window.requestAnimationFrame( render )
       }else if( render.running === false ) {
+        gl.bindFramebuffer( gl.FRAMEBUFFER, framebuffer )
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
         return
       }

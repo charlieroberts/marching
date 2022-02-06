@@ -209,7 +209,7 @@ window.onload = function() {
   delete CodeMirror.keyMap.default[ 'Ctrl-H' ]
 
   const cm = CodeMirror( document.body, { 
-    value:demos.introduction,
+    value:localStorage.getItem( 'marching_lastcontent' ) || demos.introduction,
     mode:'javascript',
     fullScreen:true,
     keyMap:'playground',
@@ -221,6 +221,9 @@ window.onload = function() {
   })
   cm.setOption('fullScreen', true )
 
+  cm.on('change', (cm, change) => {
+    localStorage.setItem( 'marching_lastcontent', cm.getDoc().getValue() )
+  })
 
   cm.on('keyup', (cm, event) => {
     if( SDF.cameraEnabled ) {

@@ -14,6 +14,7 @@ const SDF = {
   Var:              require( './var.js' ).Var,
   //Color:            require( './color.js' ),
   FFT:              require( './audio.js' ),
+  OSC:              require( './osc.js' ),
   fx:               require( './mergepass.js' ),
 
   // a function that generates the fragment shader
@@ -62,6 +63,7 @@ const SDF = {
     obj.camera = this.camera
     obj.callbacks = this.callbacks // XXX remove once API stops using callbacks
     obj.FFT = this.FFT
+    obj.OSC = this.OSC
   },
 
   init( canvas, shouldInit = false ) {

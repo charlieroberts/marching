@@ -77,7 +77,7 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
   return out
 }
 
-const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
+const getMainVoxels = function( steps, postprocessing, voxelSize = .05 ) {
   const out = `
   struct VoxelDistance {
     bvec3 mask;
@@ -156,6 +156,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
     float modAmount = ${(1./voxelSize).toFixed(1)};
     bool hit = false;
     vec3 t = vec3( length(vd.distance-ro) );
+
     if( color != bg ) {
       vec3 pos = vd.distance; 
       color.xyz *= lighting( pos * modAmount, nor, ro, rd, float(vd.id), false ); 
@@ -163,7 +164,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
       ${postprocessing}; 
     }
 
-    col = color;//vec4( color, 1. ); 
+    col = color;
 
     float normalizedDepth = length( (vd.distance-ro) * ${voxelSize.toFixed(1)} ); 
     depth = hit == true ? vec4( vec3(1.-normalizedDepth), 1. ) : vec4(0.);
@@ -172,9 +173,9 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .1 ) {
   return out
 }
 
-module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops, voxelSize=0 ) {
+module.exports = function( variables, scene, preface, geometries, lighting, postprocessing, steps=90, minDistance=.001, maxDistance=20, ops, useVoxels=false, voxelSize=0 ) {
 
-  const main = voxelSize === 0
+  const main = useVoxels === false
     ? getMainContinuous( steps, minDistance, maxDistance, postprocessing ) 
     : getMainVoxels( steps, postprocessing, voxelSize )
 

@@ -3,7 +3,7 @@ module.exports = `// this uses a voxelized scene with
 // alongside of various post-processing effects,
 // inclulding edge detection and depth-of-field.
 
-// hit shift+ctrl+c to hide the code editor
+// hit alt+c to hide the code editor
 // and take control of the camera using the WASD
 // and arrow keys. if your graphics card can handle
 // it, try changing the quality variable to 'med' or

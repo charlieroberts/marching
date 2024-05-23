@@ -32,7 +32,7 @@ const processVec3 = function( val ) {
   if( typeof val === 'number' ) 
     val = Vec3( val )
   else if( Array.isArray( val ) ) 
-    val = Vec3( val[0], val[1], val[2] )
+    val = Vec3( val[0], val[1] || val[0], val[2] || val[0] )
 
   return val
 }

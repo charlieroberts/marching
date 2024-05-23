@@ -4,8 +4,7 @@
 [Atom plugin](https://atom.io/packages/atom-marching)   
 [Reference](https://charlieroberts.github.io/marching/docs/index.html)   
 
-![Screenshot](https://raw.github.com/charlieroberts/marching/screenshots/crazyball.png) 
-
+[![Screenshot](https://i.postimg.cc/P5HWp4bm/Screen-Shot-2022-02-08-at-8-55-03-PM.png)](https://postimg.cc/vcPgC5NB)
 Marching.js is a JavaScript shader compiler specifically focused on ray marching via signed distance functions. The goals of this project are:
 
 - Expose beginning programmers to constructive solid geometry (CSG) concepts

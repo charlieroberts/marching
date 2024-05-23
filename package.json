@@ -33,7 +33,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx gulp build",
-    "watch": "npx gulp"
+    "watch": "npx gulp",
+    "playground": "npx browserify playground/environment.js -o playground/playground.bundle.js"
   },
   "author": "Charlie Roberts",
   "license": "MIT",
@@ -61,5 +62,6 @@
       "glslify"
     ]
   },
-  "homepage": "https://github.com/charlieroberts/marching#readme"
+  "homepage": "https://github.com/charlieroberts/marching#readme",
+  "dependencies": {}
 }

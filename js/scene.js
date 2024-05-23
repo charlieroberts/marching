@@ -29,7 +29,8 @@ const getScene = function( SDF ) {
       __steps:null,
       __thresold:null,
       __farPlane:null,
-      __resolution:null
+      __resolution:null,
+      __voxelSize:.1
     })
 
     scene.useQuality = true
@@ -116,6 +117,7 @@ const getScene = function( SDF ) {
       this.steps( this.__steps || preset.steps )
       if( this.donotuseresolution === undefined ) this.resolution( this.__resolution || preset.resolution )
       this.threshold( this.__threshold || preset.threshold || .001 )
+      this.useVoxels = presetName.indexOf( 'voxel' ) !== -1
 
       return preset.animated
     },
@@ -162,7 +164,8 @@ const getScene = function( SDF ) {
         postprocessing, 
         this.__steps, this.__threshold, this.__farPlane.toFixed(1),
         SDF.distanceOps.__getGLSL() + SDF.alterations.__getGLSL(),
-        this.useVoxels ? this.__voxelSize : 0
+        this.useVoxels,
+        this.__voxelSize
       )
 
       if( this.width === undefined ) this.width = window.innerWidth

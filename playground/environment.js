@@ -104,13 +104,13 @@ window.onload = function() {
         console.log( e )
       }
     },
-    'Shift-Ctrl-H'() { 
+    'Alt-Ctrl-H'() { 
       toggleGUI() 
     },
-    'Shift-Ctrl-G'() { 
+    'Alt-Ctrl-G'() { 
       toggleGUI() 
     },
-    'Shift-Ctrl-C'() { 
+    'Alt-C'() { 
       toggleCamera() 
     },
     'Alt-W'( cm ) {
@@ -202,7 +202,7 @@ window.onload = function() {
 
   // have to bind to window for when editor is hidden
   Mousetrap.bind('ctrl+shift+g', toggleGUI )
-  Mousetrap.bind('ctrl+shift+c', e => {
+  Mousetrap.bind('alt+c', e => {
     toggleCamera()
   })
 

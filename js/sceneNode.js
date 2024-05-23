@@ -4,6 +4,22 @@ const Matrix = require( './external/matrix.js' )
 SceneNode.prototype = {
   active: 1,
 
+  // register functions passed as property values
+  // to callbacks, and assign initial value by
+  // running the function
+  __processFunction( value, name ) {
+    if( typeof value === 'function' ) {
+      const __value = value
+      Marching.postrendercallbacks.push( t => {
+        this.transform[ name ] = __value( t ) 
+      })
+
+      value = value( 0 )
+    }
+
+    return value
+  },
+
 	emit() { return "#NotImplemented#"; },
 
 	emit_decl() { return ""; },
@@ -63,6 +79,7 @@ SceneNode.prototype = {
   },
 
   scale( amount ) {
+    amount = this.__processFunction( amount, 'scale' )
     if( amount !== undefined ) this.transform.scale = amount
     return this
   },

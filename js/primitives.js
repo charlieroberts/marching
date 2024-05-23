@@ -1,6 +1,6 @@
 const { Var, float_var_gen, vec2_var_gen, vec3_var_gen, vec4_var_gen, int_var_gen, VarAlloc }  = require( './var.js' )
 const SceneNode = require( './sceneNode.js' )
-const { param_wrap, MaterialID } = require( './utils.js' )
+const { param_wrap, MaterialID, processVec3, processVec2 } = require( './utils.js' )
 const { Vec2, Vec3, Vec4 } = require( './vec.js' )
 const Transform = require( './transform.js' )
 
@@ -95,6 +95,17 @@ const createPrimitives = function( SDF ) {
           p.color = args[ count ] === undefined ? param.default : args[ count++ ]
           continue
         }
+        // setup to enable passing functions 
+        // to set values
+        if( typeof args[count] === 'function' ) {
+          const func = args[ count ]
+          Marching.postrendercallbacks.push( t => {
+            p[ param.name ] = func( t ) 
+          })
+
+          // set initial value with t=0
+          args[ count ] = func( 0 )
+        }
         if( param.type === 'obj' ) {
           let __value = args[ count++ ]
           p[ param.name ] = {
@@ -143,6 +154,12 @@ const createPrimitives = function( SDF ) {
           })
 
         }else{
+          // a bit of santization...
+          if( Array.isArray( args[ count ] ) ) {
+            args[ count ] = defaultValues.length === 3 
+              ? processVec3( args[ count ] )
+              : processVec2( args[ count ] )
+          }
           let __var  = param_wrap( 
             args[ count++ ], 
             gens[ param.type ]( defaultValues ) 
@@ -254,7 +271,6 @@ const createPrimitives = function( SDF ) {
       let decl = ''
       decl += this.transform.emit_decl()
 
-      //debugger
       if( this.__repeat !== undefined ) decl += this.__repeat.emit_decl( false )
       if( this.__polarRepeat !== undefined ) decl += this.__polarRepeat.emit_decl( false )
 

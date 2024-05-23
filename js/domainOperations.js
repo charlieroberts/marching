@@ -206,6 +206,16 @@ const getDomainOps = function( SDF ) {
 
         let arg = args[ count ]
         let __var
+        
+        if( typeof args[count] === 'function' ) {
+          const func = args[ count ]
+          Marching.postrendercallbacks.push( t => {
+            op[ prop.name ] = func( t ) 
+          })
+
+          // set initial value with t=0
+          args[ count ] = arg = func( 0 )
+        }
 
         switch( prop.type ) {
           case 'vec2':

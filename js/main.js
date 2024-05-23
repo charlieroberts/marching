@@ -16,6 +16,7 @@ const SDF = {
   FFT:              require( './audio.js' ),
   fx:               require( './mergepass.js' ),
 
+  gl:               null,
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),
 
@@ -64,7 +65,7 @@ const SDF = {
     obj.FFT = this.FFT
   },
 
-  init( canvas, shouldInit = false ) {
+  init( canvas, shouldInit = true ) {
     this.primitives = this.__primitives( this )
     this.Scene      = this.__scene( this )
     this.domainOps  = this.__domainOps( this )
@@ -80,8 +81,13 @@ const SDF = {
     this.textures = this.__textures( this )
     this.Texture = this.textures.texture
 
-    this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
+    if( shouldInit ) this.initGL()
+     
 
+  },
+
+  initGL() {
+    this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
   },
   // generate shaders, initialize camera, start rendering loop 
   createScene( ...args ) {
@@ -96,6 +102,9 @@ const SDF = {
 
   start( fs, width, height, shouldAnimate ) {
     if( this.render !== null ) this.render.running = false
+
+    if( this.gl === null ) 
+      this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
 
     this.fs = fs
     this.callbacks.length = 0
@@ -236,7 +245,8 @@ const SDF = {
     this.geometries.length = 0
 
     const gl = this.gl
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
+    if( gl !== null )
+      gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
 
   pause() {
@@ -244,6 +254,7 @@ const SDF = {
   },
 
   initBuffers( width, height, colorTexture, depthTexture ) {
+    if( this.gl === null ) this.initGL()
     const gl = this.gl
     gl.clearColor( 0.0, 0.0, 0.0, 0.0 )
     gl.clear(gl.COLOR_BUFFER_BIT)

@@ -56,6 +56,14 @@ SceneNode.prototype = {
     return this.translate( ...args )
   },
 
+  moveBy( x,y,z ) {
+    if( x !== undefined && x !== null ) this.transform.translation.x += x
+    if( y !== undefined && y !== null ) this.transform.translation.y += y
+    if( z !== undefined && z !== null ) this.transform.translation.z += z
+
+    return this
+  },
+  
   rotate( angle, x,y,z ) {
     this.transform.rotation.angle = angle
     if( x !== undefined ) this.transform.rotation.axis.x = x

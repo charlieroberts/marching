@@ -47,7 +47,7 @@ const descriptions = {
 
       let preface =`
           vec4 ${pName} = vec4( polarRepeat( ${pointString}, ${this.__target.count.emit() } ) * ${this.transform.emit_scale()}, 1. ); 
-          ${pName} -= vec4(${this.__target.distance.emit()}.x,0.,0.,0.);\n`
+          ${pName} -= vec4(${this.__target.distance.emit()}.x * ${this.transform.emit_scale()},0.,0.,0.);\n`
 
       const sdf = this.sdf.emit( pName )
 
@@ -100,7 +100,6 @@ const descriptions = {
       const pName = 'p' + pId
 
       if( transform !== null ) this.transform.apply( transform, false )
-      
       this.transform.invert()
      
       const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`;

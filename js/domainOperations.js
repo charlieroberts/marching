@@ -57,7 +57,7 @@ const descriptions = {
     }
   },
   Mirror: {
-    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },{ name:'active', type:'float', default:1. }  ],
+    parameters: [{ name:'active', type:'float', default:1. }  ],
     extra:[{ name:'dims', type:'local', default:'xyz' }],
 
     emit( name='p', transform=null, notused=null, scale=null ) {

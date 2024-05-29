@@ -7,12 +7,20 @@ SceneNode.prototype = {
   // register functions passed as property values
   // to callbacks, and assign initial value by
   // running the function
-  __processFunction( value, name ) {
+  __processFunction( obj, value, name, shouldAdd=false ) {
     if( typeof value === 'function' ) {
       const __value = value
-      Marching.postrendercallbacks.push( t => {
-        this.transform[ name ] = __value( t ) 
-      })
+      let fnc = null
+
+      if( typeof obj[ name ] === 'function' ) {
+        fnc = t => obj[ name ]( __value( t ) ) 
+      }else{
+        fnc = shouldAdd 
+          ? t => obj[ name ] += __value( t )
+          : t => obj[ name ] =__value( t )  
+      }
+
+      Marching.postrendercallbacks.push( fnc )
 
       value = value( 0 )
     }
@@ -57,6 +65,10 @@ SceneNode.prototype = {
   },
 
   moveBy( x,y,z ) {
+    x = this.__processFunction( this.transform.translation, x, 'x', true )
+    y = this.__processFunction( this.transform.translation, y, 'y', true )
+    z = this.__processFunction( this.transform.translation, z, 'z', true )
+
     if( x !== undefined && x !== null ) this.transform.translation.x += x
     if( y !== undefined && y !== null ) this.transform.translation.y += y
     if( z !== undefined && z !== null ) this.transform.translation.z += z
@@ -65,12 +77,24 @@ SceneNode.prototype = {
   },
   
   rotate( angle, x,y,z ) {
+    angle = this.__processFunction( this.transform.rotation, angle, 'angle' )
     this.transform.rotation.angle = angle
+
+    x = this.__processFunction( this.transform.rotation.axis, x, 'x' )
+    y = this.__processFunction( this.transform.rotation.axis, y, 'y' )
+    z = this.__processFunction( this.transform.rotation.axis, z, 'z' )
     if( x !== undefined ) this.transform.rotation.axis.x = x
     if( y !== undefined ) this.transform.rotation.axis.y = y
     if( z !== undefined ) this.transform.rotation.axis.z = z
   
     return this
+  },
+
+  rotateX( angle ) {
+    angle = this.__processFunction( this.transform.rotation, angle, 'angle' )
+    this.transform.rotation.angle = angle
+
+
   },
 
   rotateBy( angle,x,y,z ) {
@@ -79,6 +103,9 @@ SceneNode.prototype = {
   },
 
   translate( x,y,z ) {
+    x = this.__processFunction( this.transform.translation, x, 'x' )
+    y = this.__processFunction( this.transform.translation, y, 'y' )
+    z = this.__processFunction( this.transform.translation, z, 'z' )
     if( x !== undefined && x !== null ) this.transform.translation.x = x
     if( y !== undefined && y !== null ) this.transform.translation.y = y
     if( z !== undefined && z !== null ) this.transform.translation.z = z
@@ -87,8 +114,14 @@ SceneNode.prototype = {
   },
 
   scale( amount ) {
-    amount = this.__processFunction( amount, 'scale' )
+    amount = this.__processFunction( this, amount, 'scale' )
     if( amount !== undefined ) this.transform.scale = amount
+    return this
+  },
+
+  scaleBy( amount ) {
+    amount = this.__processFunction( this, amount, 'scaleBy' )
+    if( amount !== undefined ) this.transform.scale += amount
     return this
   },
 

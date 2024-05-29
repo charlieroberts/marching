@@ -24,7 +24,6 @@ const Audio = {
     console.log( 'connecting audio input...' )
     
     const p = new Promise( resolve => {
-      console.log( 'start?' )
       navigator.mediaDevices.getUserMedia({ audio:true, video:false })
         .then( stream => {
           console.log( 'audio input connected' )

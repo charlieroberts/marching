@@ -233,6 +233,7 @@ for( let name in ops ) {
   }
 
   DistanceOps[ name ].prototype.emit = function ( pname='p', transform = null ){
+    this.__dirty()
     const isNotOneop = oneops.indexOf( name ) === -1 
     if( this.__bumpObj !== undefined && this.renderingBump === false) {
       this.renderingBump = true

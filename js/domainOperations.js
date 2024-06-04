@@ -17,6 +17,7 @@ const descriptions = {
     emit( name='p' ) {
       const pId = this.getID()
       const pName = 'p' + pId
+      this.__dirty()
 
       let preface =
         `        vec4 ${pName}_xyzw = opElongate( ${name}, ${this.distance.emit()} );\n
@@ -40,6 +41,7 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
+      this.__dirty()
       if( transform !== null ) this.transform.apply( transform, false )
       this.transform.invert()
 
@@ -64,6 +66,7 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
+      this.__dirty()
       if( transform !== null ) {
         this.transform.apply( transform, false )
       }
@@ -93,12 +96,90 @@ const descriptions = {
   //sdf.preface += `      ${out}.x = ${out}.x * ${this.amount.emit()};\n`
 
   //if( typeof sdf.preface === 'string' ) preface += sdf.preface
+
+  RepeatX: {
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },  { name:'active', type:'float', default:1. }],
+    emit( name='p', transform=null ) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      this.__dirty()
+      if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.invert()
+     
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
+      const dist = this.__target.distance.emit() + '.x'
+
+      let preface =`
+        vec3 pp = ${pointString};
+        float x = mod( pp.x, ${dist} ) - .5 * ${dist};
+        vec4 ${pName} = vec4( vec3(x, pp.y, pp.z) * ${this.transform.emit_scale()}, 1.);\n`
+
+      const sdf = this.sdf.emit( pName )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
+  RepeatY: {
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },  { name:'active', type:'float', default:1. }],
+    emit( name='p', transform=null ) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      this.__dirty()
+      if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.invert()
+     
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
+      const dist = this.__target.distance.emit() + '.y'
+
+      let preface =`
+        vec3 pp${pId} = ${pointString};
+        float y = mod( pp${pId}.y, ${dist} ) - .5 * ${dist};
+        vec4 ${pName} = vec4( vec3(pp${pId}.x, y, pp${pId}.z) * ${this.transform.emit_scale()}, 1.);\n`
+
+      const sdf = this.sdf.emit( pName )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
+  RepeatZ: {
+    parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },  { name:'active', type:'float', default:1. }],
+    emit( name='p', transform=null ) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      this.__dirty()
+      if( transform !== null ) this.transform.apply( transform, false )
+      this.transform.invert()
+     
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`
+      const dist = this.__target.distance.emit() + '.z'
+
+      let preface =`
+        vec3 pp${pId} = ${pointString};
+        float z = mod( pp${pId}.z, ${dist} ) - .5 * ${dist};
+        vec4 ${pName} = vec4( vec3(pp${pId}.x, pp${pId}.y, z) * ${this.transform.emit_scale()}, 1.);\n`
+
+      const sdf = this.sdf.emit( pName )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
+ 
   Repetition: {
     parameters: [ { name:'distance', type:'vec3', default:Vec3(0) },  { name:'active', type:'float', default:1. }],
     emit( name='p', transform=null ) {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
+      this.__dirty()
       if( transform !== null ) this.transform.apply( transform, false )
       this.transform.invert()
      
@@ -122,6 +203,7 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
+      this.__dirty()
       if( transform !== null ) this.transform.apply( transform, false )
       
       this.transform.invert()
@@ -155,6 +237,7 @@ const descriptions = {
       const pId = VarAlloc.alloc()
       const pName = 'p' + pId
 
+      this.__dirty()
       if( transform !== null ) this.transform.apply( transform, false )
       this.transform.invert()
 

@@ -36,6 +36,19 @@ SceneNode.prototype = {
 
   upload_data(gl) {},
 
+  __dirty() {
+    const params = this.params || this.parameters
+    params.forEach( v => {
+      if( this[ v.name ] !== undefined ) {
+        this[ v.name ].dirty = true
+      }
+    })
+
+    if( this.transform !== undefined ) {
+      this.transform.dirty = true
+    }
+  },
+
   getID() {
     let id = this.id
 

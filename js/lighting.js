@@ -89,6 +89,10 @@ const Lights = function( SDF ) {
       let str = `Light lights[${this.lights.length}] = Light[${this.lights.length}](`
 
       for( let light of this.lights ) {
+        light.color.dirty = true
+        light.__attenuation.dirty = true
+        light.pos.dirty = true
+
         str += `\n        Light( ${light.pos.emit()}, ${light.color.emit()}, ${light.__attenuation.emit()}),` 
       }
       

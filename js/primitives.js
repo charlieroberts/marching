@@ -106,7 +106,7 @@ const createPrimitives = function( SDF ) {
           // set initial value with t=0
           args[ count ] = func( 0 )
         }
-        if( param.type === 'obj' ) {
+        if( param.type === 'obj' ) {error
           let __value = args[ count++ ]
           p[ param.name ] = {
             get value() { return __value },
@@ -230,6 +230,13 @@ const createPrimitives = function( SDF ) {
 
 
     Primitives[ name ].prototype.emit = function ( __name, transform = null, bump=null, scale=null ) {
+      // XXX after the first time a primitive is rendered, all its 
+      // properties / transform are set to not be dirty, which means that
+      // the next time it is rendered, none of it's data is uploaded
+      // correctly. The next few lines set all the properties to be
+      // dirty as well as the transform
+      this.__dirty() 
+
       if( SDF.memo[ this.id ] !== undefined ) return { preface:'', out:name+this.matId }
       if( this.__bumpObj !== undefined && this.renderingBump === false) {
         this.renderingBump = true
@@ -290,11 +297,11 @@ const createPrimitives = function( SDF ) {
       }
 
       for( let param of params ) {
-        if( param.type !== 'obj' ) {
-          if( param.name !== 'material' ) 
-            this[ param.name ].update_location( gl,program )
+        if( param.type !== 'obj' && param.name !== 'material' ) { 
+          this[ param.name ].update_location( gl,program )
         }
       }
+     
 
       if( this.__repeat !== undefined ) this.__repeat.update_location( gl, program, false )
       if( this.__polarRepeat !== undefined ) this.__polarRepeat.update_location( gl, program, false )
@@ -308,8 +315,9 @@ const createPrimitives = function( SDF ) {
         return this.__bumpObj.upload_data( gl )
       }
       for( let param of params ) {
-        if( param.type !== 'obj' && param.name !== 'material' )
+        if( param.type !== 'obj' && param.name !== 'material' ) {
           this[ param.name ].upload_data( gl )
+        }
       }
 
       if( this.__polarRepeat !== undefined ) this.__polarRepeat.upload_data( gl, false )

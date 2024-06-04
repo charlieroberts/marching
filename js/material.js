@@ -11,6 +11,7 @@ const __Materials = function( SDF ) {
   const Materials = {
     materials:[],
     __materials:[],
+    __clearOnEmit: true,
     modeConstants : [
       'global',
       'normal',
@@ -139,16 +140,12 @@ const __Materials = function( SDF ) {
     },
    
     emit_materials() {
-      if( this.materials.length === 0 ) {
-        console.log( 'returning undefined?', this.defaultMaterials )
-        return this.defaultMaterials//this.addMaterial() 
-      }
-
       let str = `Material materials[${this.materials.length}] = Material[${this.materials.length}](`
 
       this.materials.sort( (a,b) => a.id > b.id ? 1 : -1 ) 
 
       for( let mat of this.materials ) {
+        Materials.dirty( mat )
         const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
 
         const texid = 0//SDF.textures.textures.indexOf( mat.texture )
@@ -162,7 +159,9 @@ const __Materials = function( SDF ) {
       str += '\n      );'
 
       this.__materials = this.materials.slice( 0 )
-      this.materials.length = 0
+      this.__str = str
+      if( this.__clearOnEmit )
+        this.materials.length = 0
 
       return str
     },

@@ -11,6 +11,7 @@ const SDF = {
   __lighting:       require( './lighting.js' ),
   __materials:      require( './material.js' ),
   __textures:       require( './texture.js' ),
+  __transform:      require( './transform.js' ),
   Var:              require( './var.js' ).Var,
   //Color:            require( './color.js' ),
   FFT:              require( './audio.js' ),
@@ -143,16 +144,19 @@ const SDF = {
 
     // create an fancy emit() function that wraps the scene
     // with an id #.
+    
+    if( scene.output.emit_modified === undefined ) {
+      scene.output.__emit = scene.output.emit.bind( scene.output )
+      scene.output.emit = function( ...args ) {
+        const emitted = scene.output.__emit(...args)
+        const output = {
+          out:     emitted.out,
+          preface: emitted.preface || '' 
+        }
 
-    scene.output.__emit = scene.output.emit.bind( scene.output )
-    scene.output.emit = function( ...args ) {
-      const emitted = scene.output.__emit(...args)
-      const output = {
-        out:     emitted.out,
-        preface: emitted.preface || '' 
+        return output 
       }
-
-      return output 
+      scene.output.emit_modified = true
     }
 
     this.scene = scene.output

@@ -142,7 +142,7 @@ const getScene = function( SDF ) {
 
       this.animate( animate )
 
-      SDF.distanceOps.__clear()
+      //SDF.distanceOps.__clear()
       SDF.alterations.__clear()
       SDF.textures.clear()
       const geometries = SDF.primitives.emit_geometries()

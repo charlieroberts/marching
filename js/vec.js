@@ -1,12 +1,29 @@
+// add functions to animation callback if needed
+const process = function( vec, dim, arg ) {
+
+  if( typeof arg === 'function' ) {
+    const fnc = arg
+    Marching.postrendercallbacks.push( t => {
+      vec[ dim ] = fnc( t ) 
+    })
+
+    // set initial value with t=0
+    arg = fnc( 0 )
+  }
+  
+  return arg
+}
+
 const Vec2 = function (x=0, y=0) {
   if( x.type === 'vec2' ) return x  
   const v = Object.create( Vec2.prototype )
   if( Array.isArray( x ) ) {
-    v.x = x[0]; v.y = x[1]; 
+    v.x = process(v, 'x', x[0]); v.y = process(v, 'y', x[1]); 
   } else if( y === undefined ) {
-    v.x = v.y = x
+    v.x = process(v, 'x', x)
+    v.y = process(v, 'y', x)
   }else{
-    v.x = x; v.y = y; 
+    v.x = process(v,'x',x); v.y = process(v,'y',y); 
   }
 
   return v
@@ -58,11 +75,13 @@ const Vec3 = function (x=0, y, z) {
   })
 
   if( Array.isArray( x ) ) {
-    v.x = x[0]; v.y = x[1]; v.z = x[2]; 
-  } else if( y === undefined && z === undefined) {
-    v.x = v.y = v.z = x
+    v.x = process(v,'x',x[0]); v.y = process(v,'y',x[1]); v.z = process(v,'z',x[2]); 
+   } else if( y === undefined ) {
+    v.x = process(v, 'x', x)
+    v.y = process(v, 'y', x)
+    v.z = process(v, 'z', x)
   }else{
-    v.x = x; v.y = y; v.z = z;
+    v.x = process(v,'x',x); v.y = process(v,'y',y); v.z=process(v,'z',z) 
   }
  
   v.isGen = v.x.type === 'string' || v.y.type === 'string' || v.z.type === 'string'

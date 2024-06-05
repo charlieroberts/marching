@@ -8,6 +8,7 @@ const MatrixWrap = function ( shouldInvert = false ) {
   m.translation = {}
   m.scale = {}
   m.shouldInvert = shouldInvert
+  m.shouldRotate = true
   m.rotation = {
     axis: {}
   }
@@ -184,10 +185,14 @@ MatrixWrap.prototype = {
     this.__data = this.__data.multiply( Matrix.translate( this.translation.x, this.translation.y, this.translation.z ) ) 
 
     // handle cumulative rotations via .rotateBy() method
-    this.__rotations.forEach( r => this.__data = this.__data.multiply( r ) )
+    this.__rotations.forEach( r => {
+      this.__data = this.__data.multiply( r )
+    })
 
     // handle absolute rotations via .rotate() method... should this be aliased to rotateTo() ?
-    this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
+    if( this.shouldRotate ) {
+      this.__data = this.__data.multiply( Matrix.rotate( this.rotation.angle, this.rotation.axis.x, this.rotation.axis.y, this.rotation.axis.z ) )
+    }
 
     this.__data = this.__data.multiply( Matrix.scale( this.scale, this.scale, this.scale ) )
   },

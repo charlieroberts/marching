@@ -58,8 +58,9 @@ const ops = {
     return { preface, out:sdf.out }
   },
 
-  Twist( __name ) {
+  __Twist( __name ) {
     let name = __name === undefined ? 'p' : __name
+
     const sdf = this.sdf.emit( 'q'+this.id );
 
     let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
@@ -73,6 +74,34 @@ const ops = {
 
     return { preface, out:sdf.out }
   },
+
+  Twist( __name ) {
+    let name = __name === undefined ? 'p' : __name
+    this.transform.invert()
+
+    const bumpString =  `        vec4 twist${this.id} = ${name} * ${this.transform.emit()};\n`
+    const bumpString2 = `        vec4 twist2${this.id} = (twist${this.id} * ${this.sdf.transform.emit()});\n`
+    //const sdf = this.sdf.emit( 'q'+this.id );
+
+    //let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
+    //    float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
+    //    mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
+    //    vec4  q${this.id} = vec4( m${this.id} * ${name}.xz, ${name}.y, 1. );\n`
+  
+    name = `twist2${this.id}`
+    let preface=`        float c${this.id} = cos( ${this.amount.emit()}.x * ${name}.y );
+        float s${this.id} = sin( ${this.amount.emit()}.x * ${name}.y );
+        mat2  m${this.id} = mat2( c${this.id},-s${this.id},s${this.id},c${this.id} );
+        vec4  q${this.id} = vec4( m${this.id} * ${name}.xz, ${name}.y, 1. );\n`
+
+    const sdf = this.sdf.emit( `q${this.id}` );
+    if( typeof sdf.preface === 'string' ) {
+      preface += sdf.preface
+    }
+
+    return { preface:bumpString + bumpString2 + preface, out:sdf.out }
+  },
+
   __Bump( __name ) {
     let name = __name === undefined ? 'p' : __name
 

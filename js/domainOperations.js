@@ -58,6 +58,37 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
+  SmoothMirror: {
+    parameters: [
+      { name:'smooth', type:'float', default:.03 },
+      { name:'active', type:'float', default:1. } 
+    ],
+    extra:[{ name:'dims', type:'local', default:'xyz' }],
+
+    emit( name='p', transform=null, notused=null, scale=null ) {
+      const pId = VarAlloc.alloc()
+      const pName = 'p' + pId
+
+      this.__dirty()
+      if( transform !== null ) {
+        this.transform.apply( transform, false )
+      }
+      this.transform.invert()
+     
+      const pointString =  `( ${name} * ${this.transform.emit()} ).xyz`,
+            s = scale === null ? this.transform.emit_scale() : `${this.transform.emit_scale()} * ${scale}`
+//return sqrt(x * x + k); 
+      let preface =`
+        vec4 ${pName} = vec4( ( ${pointString} ) , 1.);\n
+        ${pName}.${this.dims} = sqrt( ${pName}.${this.dims} * ${pName}.${this.dims} + ${this.smooth.emit()} );\n`
+
+      const sdf = this.sdf.emit( pName, null, null, s )
+
+      if( typeof sdf.preface === 'string' ) preface += sdf.preface 
+
+      return { out:sdf.out, preface }
+    }
+  },
   Mirror: {
     parameters: [{ name:'active', type:'float', default:1. }  ],
     extra:[{ name:'dims', type:'local', default:'xyz' }],
@@ -86,7 +117,6 @@ const descriptions = {
       return { out:sdf.out, preface }
     }
   },
-
 
   //let preface = `         vec3 ${pName} = ${name} / ${this.amount.emit()};\n`
 
@@ -411,7 +441,7 @@ const getDomainOps = function( SDF ) {
       }
       op.__desc = opDesc
 
-      if( key !== 'Mirror' ) op.sdf.repeat = op
+      if( key !== 'Mirror' && key !== 'SmoothMirror' ) op.sdf.repeat = op
       return op
     }
 

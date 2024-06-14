@@ -109,6 +109,9 @@ const getScene = function( SDF ) {
     
     applyPreset( presetName ) {
       const preset = this.presets[ presetName ]
+      if( preset === undefined ) {
+        throw ReferenceError(`The render preset ${presetName} doesn't exist.`)
+      }
       if( preset.farPlane !== undefined ) {
         this.farPlane( this.__farPlane || preset.farPlane )
       }else{

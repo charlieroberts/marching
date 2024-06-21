@@ -89,7 +89,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .05 ) {
   VoxelDistance calcRayIntersection( vec3 rayOrigin, vec3 rayDir ) {
     vec2 result;
 
-    float m = ${voxelSize};
+    float m = ${voxelSize.toFixed(2)};
     rayOrigin *= 1./m;
     vec3 mapPos = vec3(floor(rayOrigin));
     vec3 diff = mapPos - rayOrigin;
@@ -153,7 +153,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .05 ) {
       color = bg;
     }
     
-    float modAmount = ${(1./voxelSize).toFixed(1)};
+    float modAmount = ${(1./voxelSize).toFixed(2)};
     bool hit = false;
     vec3 t = vec3( length(vd.distance-ro) );
 
@@ -166,7 +166,7 @@ const getMainVoxels = function( steps, postprocessing, voxelSize = .05 ) {
 
     col = color;
 
-    float normalizedDepth = length( (vd.distance-ro) * ${voxelSize.toFixed(1)} ); 
+    float normalizedDepth = length( (vd.distance-ro) * ${voxelSize.toFixed(2)} ); 
     depth = hit == true ? vec4( vec3(1.-normalizedDepth), 1. ) : vec4(0.);
   }`
 

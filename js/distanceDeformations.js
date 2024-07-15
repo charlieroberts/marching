@@ -146,7 +146,7 @@ const ops = {
     Marching.textures.addTexture( this.amount.value )
 
     let preface=`  vec3 tex${this.id} = getTexture( ${this.amount.value.id}, ${pointString}) * ${this.size.emit()};
-        ${sdf.out}.x = (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z)/3. + ${sdf.out}.x;\n`
+        ${sdf.out}.x += (tex${this.id}.x + tex${this.id}.y + tex${this.id}.z)/3.;\n` 
 
     if( typeof sdf.preface === 'string' ) {
       preface = sdf.preface + preface

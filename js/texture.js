@@ -143,6 +143,7 @@ const __Textures = function( SDF ) {
       if( target === null ) target = tex
       tex.__target = target
 
+      if( tex.parameters === undefined ) tex.parameters = []
       for( let param of tex.parameters ) {
         const defaultValues = param.default
         const isArray = Array.isArray( defaultValues )

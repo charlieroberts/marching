@@ -79,9 +79,9 @@ const FX = {
   Bloom( __threshold=0, __boost = .5, __horizontal=1, __vertical=1, taps = 9, reps = 3, num=1 ) {
     const fx = {},
           threshold  = FX.wrapProperty( fx, 'threshold',  __threshold ),
+          boost      = FX.wrapProperty( fx, 'amount', __boost ), 
           horizontal = FX.wrapProperty( fx, 'vertical',  __vertical ),
-          vertical   = FX.wrapProperty( fx, 'horizontal',  __horizontal ),
-          boost      = FX.wrapProperty( fx, 'amount', __boost ) 
+          vertical   = FX.wrapProperty( fx, 'horizontal',  __horizontal )
 
     fx.__wrapped__ = MP.bloom( threshold, horizontal, vertical, boost, num, taps, reps ) 
 
@@ -202,10 +202,10 @@ const FX = {
 
   Hue( __shift=.5, __threshold = .99 )  {
     const fx = {},
-          frag = MP.fcolor(), 
+          frag  = MP.fcolor(), 
           depth = MP.channel(0),
-          threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v ),
-          shift= FX.wrapProperty( fx, 'shift', __shift )
+          shift = FX.wrapProperty( fx, 'shift', __shift ),
+          threshold = FX.wrapProperty( fx, 'threshold', __threshold, v => 1 - v )
 
     let control
     fx.__wrapped__ = MP.hsv2rgb( 

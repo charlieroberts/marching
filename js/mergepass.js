@@ -162,7 +162,7 @@ const FX = {
         MP.contrast( contrast),
       ], loops ),
       MP.brightness( adjust ),
-      MP.setcolor( MP.op( MP.fcolor(), "+", MP.input() ) )
+      MP.op( MP.fcolor(), "+", MP.input() )
     ]
 
     return fx

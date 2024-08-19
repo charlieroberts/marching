@@ -42,7 +42,9 @@ const __Materials = function( SDF ) {
         Materials.dirty( mat )
 
         Materials.materials.push( mat )
-      } 
+      }else{
+        mat.id = Materials.materials.indexOf( mat ) 
+      }
 
       return mat
     },
@@ -138,6 +140,29 @@ const __Materials = function( SDF ) {
       mat.fresnel.dirty = true
       if( mat.texture !== null ) mat.texture.dirty = true
     },
+    
+    walk( branch ) {
+      if( branch === null ) return
+      if( branch.__material ) {
+        branch.mat = branch.__material = this.addMaterial( branch.__material )
+      }
+      
+      if( 'a' in branch ) {
+        // combinators
+        this.walk( branch.a )
+        this.walk( branch.b )
+      }else if( 'sdf' in branch ) {
+        // repeat etc.
+        this.walk( branch.sdf )
+      }
+    },
+
+    generate() {
+      this.materials = []
+      MaterialID.clear()
+      const head = Array.isArray( SDF.__scene.__prerender ) ? SDF.__scene.__prerender[0] : SDF.__scene.__prerender
+      this.walk( head )  
+    },
    
     emit_materials() {
       let str = `Material materials[${this.materials.length}] = Material[${this.materials.length}](`
@@ -146,12 +171,7 @@ const __Materials = function( SDF ) {
 
       for( let mat of this.materials ) {
         Materials.dirty( mat )
-        const fresnel = `Fresnel( ${f(mat.fresnel.x)}, ${f(mat.fresnel.y)}, ${f(mat.fresnel.z)} )`
-
-        const texid = 0//SDF.textures.textures.indexOf( mat.texture )
-        str += mat.texture === null 
-          ? `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, ${ texid } ),` 
-          : `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, ${ texid } ),` 
+        str += `\n        Material( ${this.modeConstants.indexOf( mat.mode )}, ${mat.ambient.emit()}, ${mat.diffuse.emit()}, ${mat.specular.emit()}, ${mat.shininess.emit()}, ${mat.fresnel.emit()}, 0 ),` 
       }
       
       str = str.slice(0,-1) // remove trailing comma
@@ -160,8 +180,9 @@ const __Materials = function( SDF ) {
 
       this.__materials = this.materials.slice( 0 )
       this.__str = str
-      if( this.__clearOnEmit )
-        this.materials.length = 0
+      if( this.__clearOnEmit ) {
+        //this.materials.length = 0
+      }
 
       return str
     },
@@ -198,13 +219,12 @@ const __Materials = function( SDF ) {
         if( mat.fresnel.dirty === true )   mat.fresnel.upload_data( gl, program )
       }
     }
-
   }
 
   const f = value => value % 1 === 0 ? value.toFixed(1) : value 
 
   Object.assign( Materials.material, {
-    default : Materials.material( 'global', Vec3( .15 ), Vec3(0), Vec3(1), 8, Vec3( 0, 1, .5 ) ),  
+    default : Materials.material( 'global', Vec3( .15 ), Vec3(0), Vec3(1), 8, Vec3( 0 ) ),  
     red     : Materials.material( 'global', Vec3(.25,0,0), Vec3(1,0,0), Vec3(0), 2, Vec3(0) ),
     green   : Materials.material( 'global', Vec3(0,.25,0), Vec3(0,1,0), Vec3(0), 2, Vec3(0) ),
     blue    : Materials.material( 'global', Vec3(0,0,.25), Vec3(0,0,1), Vec3(0), 2, Vec3(0) ),
@@ -219,6 +239,7 @@ const __Materials = function( SDF ) {
     glue         : Materials.material( 'phong',  Vec3(.015), Vec3(1), Vec3(1), 16, Vec3(0,15,-.1) ),
     inverse      : Materials.material( 'phong', 1, .5, 1, 16, Vec3(1,.5,-2) ),
     blackhole    : Materials.material( 'phong', Vec3(0), Vec3(0), Vec3(0), 32 ),
+    redp         : Materials.material( 'phong', Vec3(1,0,0), Vec3(1,0,0), Vec3(1), 128, Vec3(0) ),
 
     normal  : Materials.material( 'normal' ),
     noise   : Materials.material( 'noise',  Vec3( .15 ), Vec3(1,0,0), Vec3(1), 8, Vec3( 0, 1, .5 ))

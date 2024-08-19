@@ -148,9 +148,14 @@ const getScene = function( SDF ) {
       //SDF.distanceOps.__clear()
       SDF.alterations.__clear()
       SDF.textures.clear()
+
+      // MATERIALS MUST BE GENERATED BEFORE GEOMETRIES,
+      // SO THAT GEOMETRIES CAN PROPERLY REFERENCE THEM
+      SDF.materials.generate() 
       const geometries = SDF.primitives.emit_geometries()
 
       let [ variablesDeclaration, sceneRendering, postprocessing ] = SDF.generateSDF( this )
+      //SDF.materials.generate( Marching.scene )
 
       const lighting = SDF.lighting.gen( this.__shadow, geometries )
       variablesDeclaration += SDF.materials.emit_decl() 

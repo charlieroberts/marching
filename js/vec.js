@@ -5,6 +5,8 @@ const process = function( vec, dim, arg ) {
     const fnc = arg
     Marching.postrendercallbacks.push( t => {
       vec[ dim ] = fnc( t ) 
+      vec.dirty = true
+      vec.var.dirty = true
     })
 
     // set initial value with t=0

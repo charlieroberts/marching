@@ -160,7 +160,11 @@ const __Materials = function( SDF ) {
     generate() {
       this.materials = []
       MaterialID.clear()
-      const head = Array.isArray( SDF.__scene.__prerender ) ? SDF.__scene.__prerender[0] : SDF.__scene.__prerender
+
+      const head = Array.isArray( SDF.__scene.__prerender ) 
+        ? SDF.__scene.__prerender[0] 
+        : SDF.__scene.__prerender
+
       this.walk( head )  
     },
    

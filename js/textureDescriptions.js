@@ -58,7 +58,7 @@ const textures = {
   checkers: {
     name:'checkers',
     glsl:`          
-        vec3 checkers( vec3 pos, float size, vec3 mod, vec3 color1, vec3 color2 ) {
+        vec3 checkers( vec3 pos, float size, vec3 mod, vec3 color1, vec3 color2, float strength ) {
           vec3 tex;
           pos  = (pos+mod) * size;
           if ((int(floor(pos.x) + floor(pos.y) + floor(pos.z)) & 1) == 0) {
@@ -67,21 +67,22 @@ const textures = {
             tex = color2;
           }
 
-          return tex;
+          return tex * strength;
         }`,
     glsl2d:`
-        vec3 checkers2d( vec2 uv, float size, vec3 mod, vec3 color1, vec3 color2 ) {
+        vec3 checkers2d( vec2 uv, float size, vec3 mod, vec3 color1, vec3 color2, float strength ) {
           float fmodResult = mod(floor(size * (uv.x+mod.x)) + floor(size * (uv.y+mod.y)), 2.0);
           float fin = max(sign(fmodResult), 0.0); 
 
-          return vec3(fin);
+          return vec3(fin) * strength;
         }
     `,
     parameters: [
       { name:'scale',  type:'float', default:5 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'color1', type:'vec3', default:[1,1,1] },
-      { name:'color2', type:'vec3', default:[0,0,0] }
+      { name:'color2', type:'vec3', default:[0,0,0] },
+      { name:'strength', type:'float', default:1 },
     ],
   },
   noise: {
@@ -129,7 +130,7 @@ const textures = {
             return _st;
         }
 
-        vec3 truchet2d( vec2 st, float scale, vec3 mod, vec3 color ) {
+        vec3 truchet2d( vec2 st, float scale, vec3 mod, vec3 color, float strength ) {
             st = (st+mod.xy) * scale;
             vec2 ipos = floor(st);  // integer
             vec2 fpos = fract(st);  // fraction
@@ -137,23 +138,24 @@ const textures = {
             vec2 tile = truchetPattern(fpos, random_truchet( ipos ));
 
             float col = smoothstep(tile.x-0.3,tile.x,tile.y)-smoothstep(tile.x,tile.x+.3,tile.y);
-            return color * col;
+            return color * col * strength;
         }
 
 ` ,
     parameters: [
       { name:'scale', type:'float', default:10 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
-      { name:'color', type:'vec3', default:[1,1,1] }
+      { name:'color', type:'vec3', default:[1,1,1] },
+      { name:'strength', type:'float', default:.1 },
     ],
   },
   dots: {
     name:'dots',
     glsl:`          
-        vec3 dots( vec3 pos, float count, vec3 mod, float radius, vec3 color ) {
+        vec3 dots( vec3 pos, float count, vec3 mod, float radius, vec3 color, float strength ) {
           vec3 tex;
           tex = vec3( color - smoothstep( radius, radius+.02, length(fract(pos*(round(count/2.)+.5)) -.5 )) );
-          return tex;
+          return tex * strength;
         }` ,
     glsl2d:`
       vec2 tile(vec2 _st, float _zoom){
@@ -167,23 +169,25 @@ const textures = {
         return 1.-smoothstep(_radius-(_radius*0.05),_radius+(_radius*0.05),dot(pos,pos)*3.14);
       }
     
-      vec3 dots2d( vec2 _st, float scale, vec3 mod, float radius, vec3 color ) {
+      vec3 dots2d( vec2 _st, float scale, vec3 mod, float radius, vec3 color, float strength ) {
         vec2 st = tile((_st+mod.xy,scale);
         vec3 fin = vec3(circle(st, radius)) * color;
-        return fin;
+        return fin * strength;
       }
     `,
     parameters: [
       { name:'scale', type:'float', default:5 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'radius', type:'float', default:.3 },
-      { name:'color', type:'vec3', default:[1,1,1] }
+      { name:'color', type:'vec3', default:[1,1,1] },
+      { name:'strength', type:'float', default:.1 },
+
     ],
   },
   stripes: {
     name:'stripes',
     glsl:`          
-        vec3 stripes( vec3 pos, float scale, vec3 mod, vec3 color ) {
+        vec3 stripes( vec3 pos, float scale, vec3 mod, vec3 color, float strength ) {
           vec3 tex;
           pos = pos + mod;
           tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
@@ -192,7 +196,8 @@ const textures = {
     parameters: [
       { name:'scale', type:'float', default:5 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
-      { name:'color', type:'vec3', default:[1,1,1] }
+      { name:'color', type:'vec3', default:[1,1,1] },
+      { name:'strength', type:'float', default:.1 },
     ],
   },
   cellular: {
@@ -252,7 +257,8 @@ const textures = {
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'res', type:'float', default:100 },
       { name:'time', type:'float', default:1 },
-      { name:'mode', type:'float', default:0 }
+      { name:'mode', type:'float', default:0 },
+      { name:'strength', type:'float', default:.1 }
     ],
     glsl:`
     vec3 voronoi_hash(vec3 p) {
@@ -292,14 +298,14 @@ const textures = {
       return vec3(sqrt(res), abs(id));
     }
 
-    vec3 voronoi( vec3 pos, float scale, vec3 mod, float res, float time, float mode ) {
+    vec3 voronoi( vec3 pos, float scale, vec3 mod, float res, float time, float mode, float strength ) {
       vec3 v = voronoi_3d( (pos+mod) * scale, res );
       vec3 fin;
       if( mode == 0. ) fin = vec3(v.x);
       if( mode == 1. ) fin = vec3(v.y);
       if( mode == 2. ) fin = vec3(v.y - v.x); 
 
-      return fin;
+      return fin * strength;
     }
 `,
     glsl2d:glsl`    
@@ -339,14 +345,14 @@ const textures = {
       return vec3(sqrt(res), abs(id));
     }
 
-    vec3 voronoi2d( vec2 st, float scale, vec3 mod, float res, float time, float mode ) {
+    vec3 voronoi2d( vec2 st, float scale, vec3 mod, float res, float time, float mode, float strength ) {
       vec3 v = voronoi_3d( vec3((st+mod.xy) * scale, time), res );
       vec3 fin;
       if( mode == 0. ) fin = vec3(v.x);
       if( mode == 1. ) fin = vec3(v.y);
       if( mode == 2. ) fin = vec3(v.y - v.x); 
 
-      return fin;
+      return fin * strength;
     }
 
 ` ,
@@ -368,7 +374,7 @@ const textures = {
          return smoothstep( _pct-_antia, _pct, _st.y);
        }
 
-       vec3 zigzag2d( vec2 st, float scale, vec3 mod, float time ) {
+       vec3 zigzag2d( vec2 st, float scale, vec3 mod, float time, float strength ) {
          st = mirrorTile((st+mod.xy)*vec2(1.,2.),scale);
          float x = st.x*2.;
          float a = floor(1.+sin(x*3.14));
@@ -377,13 +383,14 @@ const textures = {
 
          vec3 color = vec3( fillY(st,mix(a,b,f),0.01) ); 
 
-         return vec3(color);
+         return vec3(color) * strength;
        }
 ` ,
     parameters: [
       { name:'scale', type:'float', default:5 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
-      { name:'time', type:'float', default:1 }
+      { name:'time', type:'float', default:1 },
+      { name:'strength', type:'float', default:.1 }
     ],
   }
 }

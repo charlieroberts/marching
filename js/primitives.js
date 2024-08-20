@@ -29,7 +29,6 @@ const createPrimitives = function( SDF ) {
     textureMemo: [],
 
     emit_geometries() {
-      console.log( 'geometries' )
       const head = Array.isArray( SDF.__scene.__prerender ) ? SDF.__scene.__prerender[0] : SDF.__scene.__prerender
       const geos = Primitives.crawlNode( head, [] )
 

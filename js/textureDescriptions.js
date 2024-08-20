@@ -146,7 +146,7 @@ const textures = {
       { name:'scale', type:'float', default:10 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'color', type:'vec3', default:[1,1,1] },
-      { name:'strength', type:'float', default:.1 },
+      { name:'strength', type:'float', default:1 },
     ],
   },
   dots: {
@@ -180,7 +180,7 @@ const textures = {
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'radius', type:'float', default:.3 },
       { name:'color', type:'vec3', default:[1,1,1] },
-      { name:'strength', type:'float', default:.1 },
+      { name:'strength', type:'float', default:1 },
 
     ],
   },
@@ -191,13 +191,13 @@ const textures = {
           vec3 tex;
           pos = pos + mod;
           tex = vec3( color - smoothstep(0.3, 0.32, length(fract((pos.x+pos.y+pos.z)*scale) -.5 )) );
-          return tex;
+          return tex * strength;
         }` ,
     parameters: [
       { name:'scale', type:'float', default:5 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'color', type:'vec3', default:[1,1,1] },
-      { name:'strength', type:'float', default:.1 },
+      { name:'strength', type:'float', default:1 },
     ],
   },
   cellular: {
@@ -258,7 +258,7 @@ const textures = {
       { name:'res', type:'float', default:100 },
       { name:'time', type:'float', default:1 },
       { name:'mode', type:'float', default:0 },
-      { name:'strength', type:'float', default:.1 }
+      { name:'strength', type:'float', default:1 }
     ],
     glsl:`
     vec3 voronoi_hash(vec3 p) {
@@ -390,7 +390,7 @@ const textures = {
       { name:'scale', type:'float', default:5 },
       { name:'uv',  type:'vec3', default:[0,0,0] },
       { name:'time', type:'float', default:1 },
-      { name:'strength', type:'float', default:.1 }
+      { name:'strength', type:'float', default:1 }
     ],
   }
 }

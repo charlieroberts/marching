@@ -278,19 +278,20 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         return _out;
       }
 
-      // added k value to glsl-sdf-ops/soft-shadow
-      float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float k ){
-        float res = 1.0;
-        float t = mint;
-
-        for( int i = 0; i < 12; i++ ) {
-          float h = scene( ro + rd * t ).x;
-          res = min( res, k * h / t );
-          t += clamp( h, 0.02, 0.10 );
-          if( h<0.001 || t>tmax ) break;
-        }
-
-        return clamp( res, 0.0, 1.0 );
+      // taken from https://iquilezles.org/articles/rmshadows/
+      float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
+      {
+          float res = 1.0;
+          float t = mint;
+          for( int i=0; i<256 && t<maxt; i++ )
+          {
+              float h = scene(ro + t*rd).x;
+              res = min( res, h/(w*t) );
+              t += clamp(h, 0.005, 0.50);
+              if( res<-1.0 || t>maxt ) break;
+          }
+          res = max(res,-1.0);
+          return 0.25*(1.0+res)*(1.0+res)*(2.0-res);
       }
 
 ${lighting}

@@ -265,8 +265,8 @@ const Lights = function( SDF ) {
           float fre = pow( clamp( 1.0 + dot( nor,rd ),0.0,1.0 ), 3.0);
           float spe = pow( clamp( dot( ref, lig ), 0.0, 1.0 ), 8.0 );
 
-          dif *= softshadow( pos, lig, 0.02, 2.5, ${shadow.toFixed(1)} );
-          dom *= softshadow( pos, ref, 0.02, 2.5, ${shadow.toFixed(1)} );
+          dif *= softshadow( pos, lig, 0.02, 2.5, ${shadow} );
+          dom *= softshadow( pos, ref, 0.02, 2.5, ${shadow} );
 
           vec3 brdf = textureColor;//vec3( 0.0 );
           brdf += 1.20 * dif * vec3( 1.00,0.90,0.60 ) * mat.diffuse * light.color;
@@ -287,7 +287,7 @@ const Lights = function( SDF ) {
         const shadow = SDF.__scene.__shadow
 
         const __shadow = shadow > 0
-          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow} );` 
           : ''
 
         const str = glsl`  
@@ -306,7 +306,7 @@ const Lights = function( SDF ) {
             vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );
             
             // get similarity between normal and direction to light
-            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); 
+            float diffuseCoefficient = clamp( dot( normal, surfaceToLightDirection ), 0., 1.); 
 
             // get reflection angle for light striking surface
             vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );
@@ -350,7 +350,8 @@ const Lights = function( SDF ) {
         const shadow = SDF.__scene.__shadow
 
         const __shadow = shadow > 0
-          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+          ? `diffuseCoefficient -= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, 4. ); // ${shadow} );` 
+
           : ''
 
         const str = glsl`  
@@ -381,7 +382,7 @@ const Lights = function( SDF ) {
             vec3 surfaceToLightDirection = normalize( light.position - surfacePosition );
             
             // get similarity between normal and direction to light
-            float diffuseCoefficient = dot( normal, surfaceToLightDirection ); 
+            float diffuseCoefficient = clamp( dot( normal, surfaceToLightDirection ), 0., 1. ); 
 
             // get reflection angle for light striking surface
             vec3 angleOfReflection = reflect( -surfaceToLightDirection, normal );
@@ -426,7 +427,7 @@ const Lights = function( SDF ) {
       orenn( numlights, lights, materials ) {
         const shadow = SDF.__scene.__shadow
         const __shadow = shadow > 0
-          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow.toFixed(1)} );` 
+          ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow} );` 
           : ''
 
         const str = glsl`  

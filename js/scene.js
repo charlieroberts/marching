@@ -23,7 +23,7 @@ const getScene = function( SDF ) {
       objs, 
       canvas,
       postprocessing:[],
-      __shadow:8,
+      __shadow:.2,
       __followLight:null,
       __postprocessingFlag:false,
       __steps:null,

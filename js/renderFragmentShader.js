@@ -214,14 +214,12 @@ module.exports = function( variables, scene, preface, geometries, lighting, post
         mat4 repeatTransform;
       };
 
-      uniform float time;
-      uniform vec2 resolution;
       uniform vec3 camera_pos;
       uniform vec3 camera_normal;
       uniform float camera_rot;
       uniform mat4 camera;
 
-      
+      vec2 resolution = vec2( ${ Marching.__scene.width }., ${Marching.__scene.height}. );
 
       ${variables}
 

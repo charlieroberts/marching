@@ -116,7 +116,9 @@ Var.prototype = {
       this.value.update_location( gl, program )
       return
     }
-		this.loc = gl.getUniformLocation(program, this.varName)
+    
+    //if( this.loc === -1 )
+		  this.loc = gl.getUniformLocation(program, this.varName)
 	},	
 
 	upload_data(gl) {

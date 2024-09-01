@@ -32728,7 +32728,7 @@ window.onload = function() {
       }
     },
     'Ctrl-.'( cm ) {
-      SDF.clear() 
+      SDF.clear( true ) 
       guis.forEach( g => { if( g.containerElem_ !== null ) { g.dispose() } } )
       guis.length = 0
       proxies.length = 0

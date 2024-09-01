@@ -19,8 +19,22 @@ const SDF = {
   fx:               require( './mergepass.js' ),
 
   gl:               null,
+  // store for reuse
+  vs:               null,
+  // store so it can be detached from running shader programs when recompiling
+  fs:               null,
+  program:          null,
+  copyProgram:      null,
+  uTime:            null,
+  uResolution:      null,
+  aPos:             null,
+
   // a function that generates the fragment shader
   renderFragmentShader: require( './renderFragmentShader.js' ),
+
+  // if true, log shader error messages
+  // however, this will greatly slow down compilation
+  debug: false,
 
   // additional callbacks that are run once per frame
   callbacks: [],
@@ -103,23 +117,24 @@ const SDF = {
     return scene
   },
 
-  start( fs, width, height, shouldAnimate ) {
+  start( fs, width, height, shouldAnimate, time=0 ) {
     if( this.render !== null ) this.render.running = false
 
     if( this.gl === null ) 
       this.gl = this.canvas.getContext( 'webgl2', { antialias:true, alpha:true })
 
-    this.fs = fs
+    this.text = fs
     this.callbacks.length = 0
 
-    this.render = this.initWebGL( this.defaultVertexSource, fs, width, height, shouldAnimate )
+    this.render = this.initWebGL( this.defaultVertexSource, fs, width, height, shouldAnimate, time )
     this.render.running = true
 
     this.camera.init( this.gl, this.program, cb => { 
       this.callbacks.push( cb )
     })
 
-    setTimeout( ()=> this.render( 0.0 ), 0 )
+    this.callbacks.forEach( fnc => fnc( time ) )
+    setTimeout( ()=> this.render( time ), 0 )
   },
 
   generateSDF( __scene ) {
@@ -182,65 +197,81 @@ const SDF = {
 		gl.shaderSource( shader, source )
 		gl.compileShader( shader )
 
-		if( gl.getShaderParameter( shader, gl.COMPILE_STATUS) !== true ) {
-			let log = gl.getShaderInfoLog( shader )
-			gl.deleteShader( shader )
+    if( this.debug === true ) {
+      if( gl.getShaderParameter( shader, gl.COMPILE_STATUS) !== true ) {
+        let log = gl.getShaderInfoLog( shader )
+        gl.deleteShader( shader )
 
-			console.log( source )
-			console.log( log )
+        console.log( source )
+        console.log( log )
 
-			return null
-		}
+        return null
+      }
+    }
 
 		return shader
 	},
 
   createProgram( vs_source, fs_source ) {
     const gl = this.gl
-		const vs = this.compile( gl.VERTEX_SHADER, vs_source )
-		const fs = this.compile( gl.FRAGMENT_SHADER, fs_source )
 
-		if( null === vs || null === fs ) return null
+    if( this.vs === null ) {
+		  this.vs = this.compile( gl.VERTEX_SHADER, vs_source )
+    }
+    if( this.fs !== null && this.program !== null ) {
+      gl.detachShader( this.program, this.fs )
+    }
 
-		const program = gl.createProgram()
-		gl.attachShader( program, vs )
-		gl.attachShader( program, fs )
-		gl.linkProgram( program )
+		this.fs = this.compile( gl.FRAGMENT_SHADER, fs_source )
 
-		if( gl.getProgramParameter( program, gl.LINK_STATUS ) !== true ){
-			const log = gl.getProgramInfoLog( program )
-			gl.deleteShader(vs)
-			gl.deleteShader(fs)
-			gl.deleteProgram(program)
+		if( null === this.vs || null === this.fs ) return null
 
-			console.error( log )
-			return null
-		}
+    if( this.program === null ) {
+      this.program = gl.createProgram()
+      gl.attachShader( this.program, this.vs )
+    }
+		gl.attachShader( this.program, this.fs )
+		gl.linkProgram( this.program )
 
-    const drawProgram = gl.createProgram()
-    const fragSource = ` #version 300 es
-  precision mediump float;
+    if( this.debug === true ) {
+      if( gl.getProgramParameter( this.program, gl.LINK_STATUS ) !== true ){
+        const log = gl.getProgramInfoLog( this.program )
+        gl.deleteShader( this.vs )
+        gl.deleteShader( this.fs )
+        gl.deleteProgram( this.program )
 
-  uniform sampler2D uSampler;
-  uniform vec2 resolution;
+        console.error( log )
+        return null
+      }
+    }
 
-  out vec4 col;
-  void main() {
-    // copy color info from texture
-    col = vec4( texture( uSampler, gl_FragCoord.xy / resolution ).rgb, 1. );
-  }`
+    if( this.copyProgram === null ) {
+      this.copyProgram = gl.createProgram()
+      const fragSource = ` #version 300 es
+    precision mediump float;
 
-    const fs_draw = this.compile( gl.FRAGMENT_SHADER, fragSource )
-    const vs_draw = this.compile( gl.VERTEX_SHADER, vs_source )
+    uniform sampler2D uSampler;
+    //uniform vec2 resolution;
 
-    gl.attachShader( drawProgram, vs_draw )
-		gl.attachShader( drawProgram, fs_draw )
-		gl.linkProgram( drawProgram )
+    out vec4 col;
+    void main() {
+      vec2 resolution = vec2( ${this.canvas.width}., ${this.canvas.height}. );
+      // copy color info from texture
+      col = vec4( texture( uSampler, gl_FragCoord.xy / resolution ).rgb, 1. );
+    }`
 
-    return [ program, drawProgram ]
+      const fs_draw = this.compile( gl.FRAGMENT_SHADER, fragSource )
+      const vs_draw = this.compile( gl.VERTEX_SHADER, vs_source )
+
+      gl.attachShader( this.copyProgram, vs_draw )
+      gl.attachShader( this.copyProgram, fs_draw )
+      gl.linkProgram( this.copyProgram )
+    }
+
+    return [ this.program, this.copyProgram ]
   },
 
-  clear() {
+  clear( shouldClearScreen=false ) {
     if( this.callbacks !== undefined ) this.callbacks.length = 0
     if( this.postrendercallbacks !== undefined ) this.postrendercallbacks.length = 0
     if( this.render !== null ) this.render.running = false
@@ -251,7 +282,7 @@ const SDF = {
     this.geometries.length = 0
 
     const gl = this.gl
-    if( gl !== null )
+    if( shouldClearScreen === true && gl !== null )
       gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT )
   },
 
@@ -292,12 +323,12 @@ const SDF = {
   },
 
   initUniforms( gl, program ) {
-    const aPos = this.gl.getAttribLocation( this.program, "a_pos" )
+    if( this.aPos === null ) this.aPos = this.gl.getAttribLocation( this.program, "a_pos" )
 
-    const uTime= this.gl.getUniformLocation( this.program, "time" )
-    const uResolution = this.gl.getUniformLocation( this.program, "resolution" )
+    //const uTime= this.gl.getUniformLocation( this.program, "time" )
+    //const uResolution = this.gl.getUniformLocation( this.program, "resolution" )
 
-    return { aPos, uTime, uResolution } 
+    return { aPos:this.aPos } 
   },
 
   initTextures( gl, width, height ) {
@@ -356,7 +387,7 @@ const SDF = {
     gl.vertexAttribPointer( aPos, 2, gl.FLOAT, false, 0, 0)
   },
 
-  initWebGL( vs, fs, width, height,shouldAnimate=false ) {
+  initWebGL( vs, fs, width, height,shouldAnimate=false, __time = 0 ) {
     this.canvas.width = width 
     this.canvas.height = height 
 
@@ -365,21 +396,27 @@ const SDF = {
     const gl                                = this.gl,
           programs                          = this.initShaderProgram( vs, fs, gl ),
           { colorTexture, depthTexture }    = this.initTextures( gl, width, height ),
-          { aPos, uTime, uResolution }      = this.initUniforms( gl, programs[0] ),
           { vbo, vertices, framebuffer }    = this.initBuffers( width, height, colorTexture, depthTexture )
  
-    let total_time = 0.0,
+
+    Object.assign( this,  this.initUniforms( gl, programs[0] ) )
+      
+    let total_time = __time,
         frameCount = 0
 
     // only init post-processing if effects have been registered
-    if( this.fx.chain.length > 0 ) this.fx.init( colorTexture, depthTexture, gl )
+    if( this.fx.chain.length > 0 ) {
+      this.fx.init( colorTexture, depthTexture, gl )
+    }
 
+    // needed whenever post-processing is in use
     gl.useProgram( this.program )
+
     this.updateLocations( gl, this.program )
-    this.uploadVertices( gl, aPos, vertices )
+    this.uploadVertices( gl, this.aPos, vertices )
 
     gl.viewport( 0,0,width,height )
-    gl.uniform2f( uResolution, width, height )
+    gl.uniform2f( this.uResolution, width, height )
  
     const render = function( timestamp ){
       if( render.running === true && shouldAnimate === true ) {
@@ -401,7 +438,7 @@ const SDF = {
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, depthTexture, 0)
       }
 
-      gl.enableVertexAttribArray( aPos )
+      gl.enableVertexAttribArray( this.aPos )
 
       if( this.__isPaused === false ) {
         this.currentTime = timestamp
@@ -414,14 +451,13 @@ const SDF = {
         }
 
         total_time = timestamp / 1000.0
-        gl.uniform1f( uTime, total_time )
+        //gl.uniform1f( this.uTime, total_time )
 
         this.callbacks.forEach( cb => cb( total_time, this.currentTime ) )
 
         if( typeof window.onframe === 'function' ) window.onframe( total_time )
       }
 
-      //this.textures.update_location( gl, this.program )
       // transfer all data associated with uniforms in marching.js
       this.uploadData( gl )
 
@@ -446,7 +482,7 @@ const SDF = {
       if( this.fx.merger !== null ) this.fx.merger.draw( total_time )
 
       this.postrendercallbacks.forEach( fnc => fnc( total_time ) )
-
+      render.time = total_time
     }.bind( SDF )
 
     render.running = true

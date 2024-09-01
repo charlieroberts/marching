@@ -132,7 +132,7 @@ const getScene = function( SDF ) {
       return this
     },
 
-    render( quality=10, animate=false, useQuality=true ) {
+    render( quality=10, animate=false, useQuality=true, shouldResetTime=false ) {
       // adds default if none has been specified
       this.background() 
       if( this.__postprocessingFlag === false ) { SDF.fx.clear() }
@@ -163,6 +163,9 @@ const getScene = function( SDF ) {
       variablesDeclaration += SDF.lighting.emit_decl() 
       variablesDeclaration += this.__background.emit_decl()
 
+      if( this.width === undefined )  this.width = window.innerWidth
+      if( this.height === undefined ) this.height = window.innerHeight
+
       this.fs = SDF.renderFragmentShader( 
         variablesDeclaration, 
         sceneRendering.out, 
@@ -176,9 +179,9 @@ const getScene = function( SDF ) {
         this.__voxelSize
       )
 
-      if( this.width === undefined ) this.width = window.innerWidth
-      if( this.height === undefined ) this.height = window.innerHeight
-      SDF.start( this.fs, this.width, this.height, this.__animate )
+
+      const time = SDF.render !== null && !shouldResetTime ? SDF.render.time : 0
+      SDF.start( this.fs, this.width, this.height, this.__animate, time  )
 
       //SDF.materials.materials.length = 0
 

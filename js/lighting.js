@@ -284,8 +284,10 @@ const Lights = function( SDF ) {
       },
 
       phong( numlights, lights, materials ) {
-        const shadow = SDF.__scene.__shadow
-
+        let shadow = SDF.__scene.__shadow
+        if( (shadow + '').indexOf('.') === -1 ) {
+          shadow = shadow + '.0'
+        }
         const __shadow = shadow > 0
           ? `diffuseCoefficient *= softshadow( surfacePosition, normalize( light.position ), 0.02, 2.5, ${shadow} );` 
           : ''

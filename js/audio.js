@@ -66,7 +66,7 @@ const Audio = {
 
     // does this start at 0Hz? ack... can't remember... does it include DC offset?
     const hzPerBin = (Audio.ctx.sampleRate / 2) / Audio.FFT.frequencyBinCount
-    const lowRange = 150, midRange = 1400, highRange = Audio.ctx.sampleRate / 2
+    const lowRange = 180, midRange = 1400, highRange = Audio.ctx.sampleRate / 2
 
     if( Audio.bins === null ) {
       for( let i = 1; i < Audio.FFT.frequencyBinCount; i++ ) {

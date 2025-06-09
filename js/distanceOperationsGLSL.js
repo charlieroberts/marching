@@ -193,6 +193,129 @@ module.exports = {
       }
       `
   },
+  // TODO: has some discontinuities
+  ColumnsUnion:{
+    float:`
+      float fOpUnionColumns(float a, float b, float r, float n) {
+        if ((a < r) && (b < r)) {
+          vec2 p = vec2(a, b);
+          float columnradius = r*sqrt(2.)/((n-1.)*2.+sqrt(2.));
+
+          //pR45(p);
+          p = (p + vec2(p.y, -p.x))*sqrt(0.5);
+
+          p.x -= sqrt(2.)/2.*r;
+          p.x += columnradius*sqrt(2.);
+          if( mod(n,2.) == 0. ) {
+            p.y += columnradius;
+          }
+
+          // At this point, we have turned 45 degrees and moved at a point on the
+          // diagonal that we want to pylace the columns on.
+          // Now, repeat the domain along this direction and place a circle.
+          // pMod1(p.y, columnradius*2);
+          float size = columnradius*2.;
+          float halfsize = columnradius;
+	        p.y = mod(p.y + halfsize, size) - halfsize;
+
+          float result = length(p) - columnradius;
+          result = min(result, p.x);
+          result = min(result, a);
+          return min(result, b);
+        } else {
+          return min(a, b);
+        }
+      }`,
+    vec2:`
+      vec2 fOpUnionColumns( vec2 d1, vec2 d2, float r, float n  ) {
+        vec2 o = vec2( 0., d1.y ); 
+        o.x = fOpUnionColumns( d1.x, d2.x, r,n );
+
+
+        if( d1.x <= d2.x ) {
+          o.y = d1.y;
+        }else{
+          o.y = d2.y;
+        }
+
+        return o;
+      }
+      `
+  },
+  ColumnsIntersection:{
+    dependencies:['ColumnsDifference'],
+    float:`
+      float fOpIntersectionColumns(float a, float b, float r, float n) {
+        return fOpDifferenceColumns(a,-b,r, n);
+      }`,
+    vec2:`
+      vec2 fOpIntersectionColumns( vec2 d1, vec2 d2, float r, float n   ) {
+        vec2 o = vec2( 0., d1.y ); 
+        o.x = fOpIntersectionColumns( d1.x, d2.x, r,n );
+
+        if( d1.x >= d2.x ) {
+          o.y = d1.y;
+        }else{
+          o.y = d2.y;
+        }
+
+        return o;
+      }
+      `
+  },
+
+  ColumnsDifference:{
+    float:`
+      float fOpDifferenceColumns(float a, float b, float r, float n) {
+        a = -a;
+        float m = min(a, b);
+        //avoid the expensive computation where not needed (produces discontinuity though)
+        if ((a < r) && (b < r)) {
+          vec2 p = vec2(a, b);
+          float columnradius = r*sqrt(2.)/n/2.0;
+          columnradius = r*sqrt(2.)/((n-1.)*2.+sqrt(2.));
+
+          //pR45(p);
+          p = (p + vec2(p.y, -p.x))*sqrt(0.5);
+          
+          p.y += columnradius;
+          p.x -= sqrt(2.)/2.*r;
+          p.x += -columnradius*sqrt(2.)/2.;
+
+          if (mod(n,2.) == 1.) {
+            p.y += columnradius;
+          }
+
+          //pMod1(p.y,columnradius*2.);
+          float size = columnradius*2.;
+          float halfsize = size*0.5;
+					//float c = floor((p + halfsize)/size);
+	        p = mod(p + halfsize, size) - halfsize;
+
+          float result = -length(p) + columnradius;
+          result = max(result, p.x);
+          result = min(result, a);
+          return -min(result, b);
+        } else {
+          return -m;
+        }
+      }`,
+    vec2:`
+      vec2 fOpDifferenceColumns( vec2 d1, vec2 d2, float r, float n  ) {
+        vec2 o = vec2( 0., d1.y ); 
+        o.x = fOpDifferenceColumns( d1.x, d2.x, r, n );
+
+        if( d1.x >= -d2.x ) {
+          o.y = d1.y;
+        }else{
+          o.y = d2.y;
+        }
+
+        return o;
+      }
+      `
+  },
+
   ChamferUnion:{
     float:`
       float fOpUnionChamfer(float a, float b, float r) {

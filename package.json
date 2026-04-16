@@ -26,7 +26,7 @@
     "toastr": "^2.1.4",
     "tsify": "^4.0.2",
     "tweakpane": "^1.5.3",
-    "typescript": "^3.9.6",
+    "typescript": "^6.0.2",
     "vinyl-source-stream": "^2.0.0",
     "vinyl-transform": "^1.0.0",
     "watchify": "^3.10.0"

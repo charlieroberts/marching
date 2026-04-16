@@ -17,29 +17,46 @@ const getMainContinuous = function( steps, minDistance, maxDistance, postprocess
     return calcNormal(pos, 0.002);
   }
 
-  // Adapted from from https://www.shadertoy.com/view/ldfSWs
-  vec2 calcRayIntersection( vec3 rayOrigin, vec3 rayDir, float maxd, float precis ) {
-    float latest = precis * 2.0;
-    float dist   = +0.0;
-    float type   = -1.0;
-    vec2 result;
-    vec2 res = vec2(-50000., -1.);;
+  // Adapted from https://kev.town/raymarching/media/enhanced_sphere_tracing.pdf 
+  vec2 calcRayIntersection( vec3 o, vec3 d, float t_max, float t_min ) {
+    bool forceHit = false;
+    float pixelRadius = t_min;
+    float omega = 1.2;
+    float t = t_min;
+    float candidate_error = 50000.;
+    float candidate_t = t_min;
+    float previousRadius = 0.;
+    float stepLength = 0.;
+    vec2 result = scene(o);
+    float functionSign = result.x < 0. ? -1. : 1.;
+    for (int i = 0; i < ${steps}; ++i) {
+      result = scene(d*t + o);
 
-    for (int i = 0; i < ${steps} ; i++) {
-      if (latest < precis || dist > maxd) break;
+      float signedRadius = functionSign * result.x;
+      float radius = abs(signedRadius);
+      bool sorFail = omega > 1. && (radius + previousRadius) < stepLength;
 
-      result = scene(rayOrigin + rayDir * dist);
+      if (sorFail) {
+        stepLength -= omega * stepLength;
+        omega = 1.;
+      } else {
+        stepLength = signedRadius * omega;
+      }
 
-      latest = result.x;
-      dist  += latest;
+      previousRadius = radius;
+      float error = radius / t;
+      if (!sorFail && error < candidate_error) {
+        candidate_t = t;
+        candidate_error = error;
+      }
+
+      if (!sorFail && error < pixelRadius || t > t_max) break;
+      t += stepLength;
     }
 
-    if( dist < maxd ) {
-      result.x = dist;
-      res = result;
-    }
-
-    return res;
+    if ((t > t_max || candidate_error > pixelRadius) && !forceHit) return vec2(-50000., -1.);
+      
+    return vec2(candidate_t, result.y);
   }
 
   layout(location = 0) out vec4 col;
